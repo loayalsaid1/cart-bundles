@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Product, ApplyPricingPayload } from "@/types/product";
 import {
     Dialog,
@@ -27,6 +28,9 @@ export function DiscountModal({
     products,
     onApply,
 }: DiscountModalProps) {
+    const t = useTranslations("DiscountModal");
+    const tCommon = useTranslations("Common");
+
     const [discountType, setDiscountType] = React.useState<"percentage" | "fixed">("percentage");
     const [value, setValue] = React.useState<string>("10");
     const [loading, setLoading] = React.useState(false);
@@ -52,11 +56,11 @@ export function DiscountModal({
         setError(null);
 
         if (isNaN(numVal) || numVal <= 0) {
-            setError("Please enter a valid discount value greater than 0.");
+            setError(t("errInvalidValue"));
             return;
         }
         if (discountType === "percentage" && numVal > 100) {
-            setError("Percentage discount cannot exceed 100%.");
+            setError(t("errMaxPercentage"));
             return;
         }
 
@@ -70,7 +74,7 @@ export function DiscountModal({
             });
             onOpenChange(false);
         } catch (err: any) {
-            setError(err.message || "Failed to apply discount.");
+            setError(err.message || t("errFailed"));
         } finally {
             setLoading(false);
         }
@@ -85,13 +89,11 @@ export function DiscountModal({
                     <DialogHeader>
                         <DialogTitle className="text-base font-bold">
                             {isBulk
-                                ? `Set Sale Price — ${products.length} Products`
-                                : `Set Sale Price — "${products[0]?.name ?? "Product"}"`}
+                                ? t("titleBulk", { count: products.length })
+                                : t("titleSingle", { name: products[0]?.name ?? "Product" })}
                         </DialogTitle>
                         <DialogDescription className="text-xs">
-                            {isBulk
-                                ? "Apply a bulk sale price across all selected products."
-                                : "Set a sale price discount for this product."}
+                            {isBulk ? t("descBulk") : t("descSingle")}
                         </DialogDescription>
                     </DialogHeader>
 
@@ -104,7 +106,7 @@ export function DiscountModal({
                     <div className="space-y-4 py-3">
                         {/* Discount Type Toggle */}
                         <div className="space-y-1.5">
-                            <Label>Discount Type</Label>
+                            <Label>{t("discountType")}</Label>
                             <div className="grid grid-cols-2 gap-2">
                                 <Button
                                     type="button"
@@ -113,7 +115,7 @@ export function DiscountModal({
                                     onClick={() => setDiscountType("percentage")}
                                     className="w-full text-xs"
                                 >
-                                    Percentage (%)
+                                    {t("percentage")}
                                 </Button>
                                 <Button
                                     type="button"
@@ -122,7 +124,7 @@ export function DiscountModal({
                                     onClick={() => setDiscountType("fixed")}
                                     className="w-full text-xs"
                                 >
-                                    Fixed Amount (SAR)
+                                    {t("fixed")}
                                 </Button>
                             </div>
                         </div>
@@ -130,7 +132,7 @@ export function DiscountModal({
                         {/* Amount Input */}
                         <div className="space-y-1.5">
                             <Label htmlFor="discount-val">
-                                {discountType === "percentage" ? "Discount %" : "Amount off (SAR)"}
+                                {discountType === "percentage" ? t("amountLabelPercent") : t("amountLabelFixed")}
                             </Label>
                             <Input
                                 id="discount-val"
@@ -138,7 +140,7 @@ export function DiscountModal({
                                 step="any"
                                 min="0.01"
                                 max={discountType === "percentage" ? "100" : undefined}
-                                placeholder={discountType === "percentage" ? "e.g. 15" : "e.g. 50"}
+                                placeholder={discountType === "percentage" ? t("placeholderPercent") : t("placeholderFixed")}
                                 value={value}
                                 onChange={(e) => setValue(e.target.value)}
                                 autoFocus
@@ -160,10 +162,10 @@ export function DiscountModal({
                             onClick={() => onOpenChange(false)}
                             disabled={loading}
                         >
-                            Cancel
+                            {tCommon("cancel")}
                         </Button>
                         <Button type="submit" size="sm" disabled={loading}>
-                            {loading ? "Applying…" : "Apply Sale Price"}
+                            {loading ? t("applying") : t("applySalePrice")}
                         </Button>
                     </DialogFooter>
                 </form>
@@ -171,3 +173,4 @@ export function DiscountModal({
         </Dialog>
     );
 }
+

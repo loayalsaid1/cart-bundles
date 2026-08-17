@@ -1,9 +1,12 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
+
+const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
   /* config options here */
   // allowedDevOrigins: ['*.tunnelmole.net', '*.ngrok-free.app'],
-  allowedDevOrigins: ['40d2-197-54-171-132.ngrok-free.app'],
+  allowedDevOrigins: ['8fd6-197-54-171-132.ngrok-free.app'],
   async headers() {
     return [
       {
@@ -19,4 +22,5 @@ const nextConfig: NextConfig = {
   }
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);
+

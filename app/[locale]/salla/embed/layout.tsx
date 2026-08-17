@@ -2,13 +2,16 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { embedded } from '@salla.sa/embedded-sdk';
-import { useRouter, usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useRouter, usePathname } from '@/i18n/routing';
+import { LanguageSwitcher } from '@/components/language-switcher';
 
 export default function EmbedLayout({ children }: { children: React.ReactNode }) {
     const [ready, setReady] = useState(false);
     const initialized = useRef(false);
     const router = useRouter();
     const pathname = usePathname();
+    const t = useTranslations('EmbedLayout');
 
     useEffect(() => {
         // Prevent React Strict Mode from initializing the SDK twice in dev mode
@@ -36,14 +39,14 @@ export default function EmbedLayout({ children }: { children: React.ReactNode })
             // Add navigation items to Salla embedded header
             try {
                 await embedded.nav.addNavItem({
-                    title: "Products",
+                    title: t("navProducts"),
                     value: "products-page",
                     url: "/salla/embed",
                     active: pathname === "/salla/embed",
                 });
 
                 await embedded.nav.addNavItem({
-                    title: "Test",
+                    title: t("navTest"),
                     value: "test-page",
                     url: "/salla/embed/test",
                     active: pathname === "/salla/embed/test",
@@ -65,7 +68,7 @@ export default function EmbedLayout({ children }: { children: React.ReactNode })
             setReady(true);
             embedded.ready(); // tell Salla to remove its loading overlay
         })();
-    }, [router, pathname]);
+    }, [router, pathname, t]);
 
     // Keep active state updated on path changes
     useEffect(() => {
@@ -82,5 +85,14 @@ export default function EmbedLayout({ children }: { children: React.ReactNode })
 
     if (!ready) return null; // Salla shows its own loading state until ready()
 
-    return <div className="embed-layout min-h-screen bg-background">{children}</div>;
+    return (
+        <div className="embed-layout min-h-screen bg-background flex flex-col">
+            <header className="flex justify-end p-4 border-b bg-card">
+                <LanguageSwitcher />
+            </header>
+            <main className="flex-1">
+                {children}
+            </main>
+        </div>
+    );
 }

@@ -1,0 +1,59 @@
+{
+  "Common": {
+    "appName": "حزم السلة",
+    "language": "اللغة",
+    "english": "English",
+    "arabic": "العربية",
+    "cancel": "إلغاء",
+    "apply": "تطبيق",
+    "loading": "جاري التحميل..."
+  },
+  "Home": {
+    "title": "لللبدء، قم بتعديل ملف",
+    "subtitle": "هل تبحث عن نقطة بداية أو تعليمات إضافية؟ تفضل بزيارة",
+    "templates": "القوالب",
+    "or": "أو",
+    "learning": "مركز التعلم.",
+    "deployNow": "انشر الآن",
+    "documentation": "الوثائق"
+  },
+  "DiscountModal": {
+    "titleBulk": "تحديد سعر التخفيض — {count} منتجات",
+    "titleSingle": "تحديد سعر التخفيض — \"{name}\"",
+    "descBulk": "تطبيق سعر تخفيض جماعي على جميع المنتجات المحددة.",
+    "descSingle": "تحديد خصم سعر التخفيض لهذا المنتج.",
+    "discountType": "نوع الخصم",
+    "percentage": "نسبة مئوية (%)",
+    "fixed": "مبلغ ثابت (ر.س)",
+    "amountLabelPercent": "نسبة الخصم %",
+    "amountLabelFixed": "مبلغ الخصم (ر.س)",
+    "placeholderPercent": "مثال: 15",
+    "placeholderFixed": "مثال: 50",
+    "applying": "جاري التطبيق…",
+    "applySalePrice": "تطبيق سعر التخفيض",
+    "errInvalidValue": "يرجى إدخال قيمة خصم صالحة أكبر من 0.",
+    "errMaxPercentage": "لا يمكن أن تتجاوز نسبة الخصم 100%.",
+    "errFailed": "فشل تطبيق الخصم."
+  },
+  "ProductSearch": {
+    "title": "المنتجات",
+    "headerTitle": "منتجات المتجر والأسعار",
+    "headerSubtitle": "إدارة منتجات المتجر، وتحديد أسعار التخفيض العرضية، وإزالة الخصومات بالجملة.",
+    "searchPlaceholder": "ابحث عن المنتجات بالاسم أو الترمز (SKU)...",
+
+    "selectedCount": "تم تحديد {count} منتج",
+    "setSalePrice": "تحديد سعر التخفيض",
+    "productColumn": "المنتج",
+    "priceColumn": "السعر",
+    "salePriceColumn": "سعر التخفيض",
+    "statusColumn": "الحالة",
+    "actionsColumn": "الإجراءات",
+    "noProducts": "لم يتم العثور على منتجات",
+    "onSale": "مخفض",
+    "regular": "عادي"
+  },
+  "EmbedLayout": {
+    "navProducts": "المنتجات",
+    "navTest": "الاختبار"
+  }
+}

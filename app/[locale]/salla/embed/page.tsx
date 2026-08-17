@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { Product, ApplyPricingPayload, ApplyPricingResponse } from '@/types/product';
 import { ProductSearch } from '@/components/salla/product-search';
 import { ProductGrid } from '@/components/salla/product-grid';
@@ -8,6 +9,7 @@ import { DiscountModal } from '@/components/salla/discount-modal';
 import { SallaSDK } from '@/lib/salla-sdk';
 
 export default function EmbedProductsPage() {
+    const t = useTranslations('ProductSearch');
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [searching, setSearching] = useState(false);
@@ -152,9 +154,9 @@ export default function EmbedProductsPage() {
             {/* Header section with Title & Search Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Store Products & Pricing</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">{t('headerTitle')}</h1>
                     <p className="text-xs text-muted-foreground mt-1">
-                        Manage store products, set promotional sale prices, and remove discounts in bulk.
+                        {t('headerSubtitle')}
                     </p>
                 </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -12,6 +13,8 @@ interface ProductSearchProps {
 }
 
 export function ProductSearch({ value, onChange, onSearch, loading }: ProductSearchProps) {
+  const t = useTranslations("ProductSearch");
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && onSearch) {
       onSearch();
@@ -23,7 +26,7 @@ export function ProductSearch({ value, onChange, onSearch, loading }: ProductSea
       <div className="relative flex-1">
         <Input
           type="text"
-          placeholder="Search products by name or SKU..."
+          placeholder={t("searchPlaceholder")}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -34,7 +37,7 @@ export function ProductSearch({ value, onChange, onSearch, loading }: ProductSea
             type="button"
             onClick={() => onChange("")}
             className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs font-semibold px-1 rounded"
-            title="Clear search"
+            title="Clear"
           >
             ✕
           </Button>
@@ -49,9 +52,10 @@ export function ProductSearch({ value, onChange, onSearch, loading }: ProductSea
           variant="default"
           size="default"
         >
-          {loading ? "Searching..." : "Search"}
+          {loading ? "..." : "Search"}
         </Button>
       )}
     </div>
   );
 }
+
