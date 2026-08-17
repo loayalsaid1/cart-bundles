@@ -1,0 +1,1 @@
+export const SALLA_API_BASE_URL = "https://api.salla.dev/admin/v2"

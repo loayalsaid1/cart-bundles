@@ -1,0 +1,86 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import { embedded } from '@salla.sa/embedded-sdk';
+import { useRouter, usePathname } from 'next/navigation';
+
+export default function EmbedLayout({ children }: { children: React.ReactNode }) {
+    const [ready, setReady] = useState(false);
+    const initialized = useRef(false);
+    const router = useRouter();
+    const pathname = usePathname();
+
+    useEffect(() => {
+        // Prevent React Strict Mode from initializing the SDK twice in dev mode
+        if (initialized.current) return;
+        initialized.current = true;
+
+        (async () => {
+            await embedded.init();
+
+            const token = embedded.auth.getToken();
+            if (!token) {
+                embedded.destroy();
+                return;
+            }
+
+            const res = await fetch('/api/salla/embed/auth/verify?token=' + token);
+            const data = await res.json();
+
+            if (!res.ok) {
+                embedded.destroy();
+                return;
+            }
+            localStorage.setItem("jwtToken", data.jwtToken);
+
+            // Add navigation items to Salla embedded header
+            try {
+                await embedded.nav.addNavItem({
+                    title: "Products",
+                    value: "products-page",
+                    url: "/salla/embed",
+                    active: pathname === "/salla/embed",
+                });
+
+                await embedded.nav.addNavItem({
+                    title: "Test",
+                    value: "test-page",
+                    url: "/salla/embed/test",
+                    active: pathname === "/salla/embed/test",
+                });
+            } catch (err) {
+                console.warn("Failed to add nav items to embedded SDK:", err);
+            }
+
+            // Listen to sub-nav item clicks from Salla host header
+            embedded.nav.onNavItemClick(({ value, url }) => {
+                console.log("Salla nav item clicked:", value, url);
+                if (url) {
+                    router.push(url);
+                    embedded.nav.updateNavItem({ value: "products-page", active: value === "products-page" });
+                    embedded.nav.updateNavItem({ value: "test-page", active: value === "test-page" });
+                }
+            });
+
+            setReady(true);
+            embedded.ready(); // tell Salla to remove its loading overlay
+        })();
+    }, [router, pathname]);
+
+    // Keep active state updated on path changes
+    useEffect(() => {
+        if (ready) {
+            if (pathname === "/salla/embed") {
+                embedded.nav.updateNavItem({ value: "products-page", active: true });
+                embedded.nav.updateNavItem({ value: "test-page", active: false });
+            } else if (pathname === "/salla/embed/test") {
+                embedded.nav.updateNavItem({ value: "products-page", active: false });
+                embedded.nav.updateNavItem({ value: "test-page", active: true });
+            }
+        }
+    }, [pathname, ready]);
+
+    if (!ready) return null; // Salla shows its own loading state until ready()
+
+    return <div className="embed-layout min-h-screen bg-background">{children}</div>;
+}
