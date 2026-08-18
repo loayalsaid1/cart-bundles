@@ -1,10 +1,28 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { embedded } from '@salla.sa/embedded-sdk';
 import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import { useRouter, usePathname } from '@/i18n/routing';
 import { LanguageSwitcher } from '@/components/language-switcher';
+
+function DarkModeSync() {
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        const isDark = searchParams.get('dark') === 'true' || searchParams.get('theme') === 'dark';
+        if (isDark) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+            document.documentElement.classList.remove('dark');
+        }
+    }, [searchParams]);
+
+    return null;
+}
 
 export default function EmbedLayout({ children }: { children: React.ReactNode }) {
     const [ready, setReady] = useState(false);
@@ -12,6 +30,7 @@ export default function EmbedLayout({ children }: { children: React.ReactNode })
     const router = useRouter();
     const pathname = usePathname();
     const t = useTranslations('EmbedLayout');
+
 
     useEffect(() => {
         // Prevent React Strict Mode from initializing the SDK twice in dev mode
@@ -64,6 +83,7 @@ export default function EmbedLayout({ children }: { children: React.ReactNode })
                     embedded.nav.updateNavItem({ value: "test-page", active: value === "test-page" });
                 }
             });
+           embedded.ui.breadcrumbs.hide();
 
             setReady(true);
             embedded.ready(); // tell Salla to remove its loading overlay
@@ -86,13 +106,17 @@ export default function EmbedLayout({ children }: { children: React.ReactNode })
     if (!ready) return null; // Salla shows its own loading state until ready()
 
     return (
-        <div className="embed-layout min-h-screen bg-background flex flex-col">
-            <header className="flex justify-end p-4 border-b bg-card">
+        <div className="embed-layout min-h-screen bg-background ">
+            <Suspense fallback={null}>
+                <DarkModeSync />
+            </Suspense>
+            {/* <header className="flex justify-end p-4 border-b bg-card">
                 <LanguageSwitcher />
             </header>
-            <main className="flex-1">
+            <main className="flex-1"> */}
                 {children}
-            </main>
+            {/* </main> */}
         </div>
     );
+
 }

@@ -52,7 +52,7 @@ export function ProductSearch({ value, onChange, onSearch, loading }: ProductSea
           variant="default"
           size="default"
         >
-          {loading ? "..." : "Search"}
+          {loading ? "..." : t("searchButton")}
         </Button>
       )}
     </div>

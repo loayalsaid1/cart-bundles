@@ -31,5 +31,6 @@ export default function proxy(req: NextRequest) {
 }
 
 export const config = {
+  // Assuming I'll only need arabic and english as per the salla documentation
   matcher: ["/", "/(ar|en)/:path*", "/((?!_next|_vercel|api|.*\\..*).*)"],
 };

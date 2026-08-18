@@ -50,7 +50,9 @@
     "actionsColumn": "Actions",
     "noProducts": "No products found",
     "onSale": "On Sale",
-    "regular": "Regular"
+    "regular": "Regular",
+    "searchButton": "Search",
+    "searching": "Searching..."
   },
   "EmbedLayout": {
     "navProducts": "Products",

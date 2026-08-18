@@ -50,7 +50,9 @@
     "actionsColumn": "الإجراءات",
     "noProducts": "لم يتم العثور على منتجات",
     "onSale": "مخفض",
-    "regular": "عادي"
+    "regular": "عادي",
+    "searchButton": "ابحث",
+    "searching": "جاري البحث"
   },
   "EmbedLayout": {
     "navProducts": "المنتجات",
