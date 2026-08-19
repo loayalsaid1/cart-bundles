@@ -1,6 +1,7 @@
 import "dotenv/config";
 
 import { defineConfig } from "drizzle-kit";
+import fs from "fs";
 
 export default defineConfig({
   out: "./drizzle",
@@ -8,5 +9,9 @@ export default defineConfig({
   dialect: "postgresql",
   dbCredentials: {
     url: process.env.DATABASE_URL!,
+    ssl: {
+      rejectUnauthorized: false,
+      // ca: fs.readFileSync("./ca.pem").toString(),
+    },
   },
 });

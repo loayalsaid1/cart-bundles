@@ -1,6 +1,8 @@
 import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 import { schema } from './schema'; // Assuming schema is an object of all your tables
+import fs from "fs";
+
 
 // 1. Cache the DB instance directly, not just the pool
 const globalForDb = globalThis as unknown as {
@@ -19,7 +21,12 @@ const createDb = () => {
     connectionString: databaseUrl,
     max: 20,
     idleTimeoutMillis: 30000,
+    ssl: {
+      rejectUnauthorized: false,
+      // ca: fs.readFileSync("/ca.pem").toString(),
+    },
   });
+
 
   pool.on('error', (err) => {
     console.error('Unexpected database error', err);

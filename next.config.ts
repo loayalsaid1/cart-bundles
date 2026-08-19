@@ -6,7 +6,7 @@ const withNextIntl = createNextIntlPlugin();
 const nextConfig: NextConfig = {
   /* config options here */
   // allowedDevOrigins: ['*.tunnelmole.net', '*.ngrok-free.app'],
-  allowedDevOrigins: ['sacred-resolved-gazelle.ngrok-free.app', 'ccgg56-ip-197-53-124-214.tunnelmole.net'],
+  allowedDevOrigins: ['sacred-resolved-gazelle.ngrok-free.app', '*.tunnelmole.net'],
   async headers() {
     return [
       {
@@ -17,7 +17,6 @@ const nextConfig: NextConfig = {
             value: 'true',
           },
           {
-            // allow all 'https://demostore.salla.sa'
             key: 'Access-Control-Allow-Origin',
             value: 'https://demostore.salla.sa',
           },

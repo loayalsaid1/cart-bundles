@@ -74,6 +74,7 @@ export default function EmbedLayout({ children }: { children: React.ReactNode })
                 credentials: 'include',
             });
             const data = await res.json();
+            
 
             if (!res.ok) {
                 embedded.destroy();
