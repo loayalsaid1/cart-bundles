@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { NextIntlClientProvider } from "next-intl";
+import { NextIntlClientProvider, Formats } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
@@ -34,10 +34,36 @@ export default async function LocaleLayout({
   // Providing all messages to the client side
   const messages = await getMessages();
 
+  const isArabic = locale === "ar";
+  const formats: Formats = {
+    number: {
+      default: {
+        numberingSystem: isArabic ? "arab" : "latn",
+      },
+      arabicDigits: {
+          numberingSystem: 'arab'
+      },
+      precise: {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        numberingSystem: isArabic ? "arab" : "latn",
+      },
+      currency: {
+        style: "currency",
+        currency: "SAR",
+        numberingSystem: isArabic ? "arab" : "latn",
+      },
+    },
+  };
+
   return (
     <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} className="h-full antialiased">
       <body className="min-h-full flex flex-col">
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider 
+          messages={messages}
+          locale={locale}
+          formats={formats}
+        >
           {children}
         </NextIntlClientProvider>
       </body>

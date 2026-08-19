@@ -57,5 +57,18 @@
   "EmbedLayout": {
     "navProducts": "Products",
     "navTest": "Test"
+  },
+  "ProductCard": {
+    "selectProduct": "Select product",
+    "idLabel": "ID: {id}",
+    "percentOff": "{percent}% OFF",
+    "onSale": "ON SALE",
+    "standard": "Standard",
+    "noImage": "No Image",
+    "skuLabel": "SKU: {sku}",
+    "saveAmount": "Save {amount} {currency}",
+    "editSalePrice": "Edit Sale Price",
+    "setSalePrice": "Set Sale Price",
+    "removeSalePrice": "Remove sale price"
   }
 }

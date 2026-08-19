@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations, useFormatter, useLocale, NumberFormatOptions } from "next-intl";
 import { Product } from "@/types/product";
 import {
     Card,
@@ -28,10 +29,27 @@ export function ProductCard({
     onSetSalePrice,
     onRemoveSalePrice,
 }: ProductCardProps) {
+    const t = useTranslations("ProductCard");
+    const format = useFormatter();
+    const locale = useLocale();
+
+    // Helper ensuring Eastern Arabic digits (٠١٢٣٤٥٦٧٨٩) are always used in Arabic locale
+    const formatNumber = React.useCallback(
+        (value: number | string, options?: NumberFormatOptions) => {
+            const num = typeof value === "number" ? value : Number(value);
+            if (isNaN(num)) return String(value);
+
+            return format.number(num, 'arabicDigits', options as NumberFormatOptions);
+
+        },
+        [format, locale]
+    );
+
     // Determine original price and sale price safely from Salla payload
     const rawRegularPrice = product.regular_price?.amount ?? product.price?.amount ?? 0;
     const rawSalePrice = product.sale_price?.amount ?? 0;
     const currency = product.price?.currency ?? "SAR";
+    const displayCurrency = locale === "ar" && currency === "SAR" ? "ر.س" : currency;
 
     // Product has an active sale price if sale_price > 0 and lower than regular price, or marked by Salla
     const hasSalePrice =
@@ -60,11 +78,11 @@ export function ProductCard({
                             <Checkbox
                                 checked={selected}
                                 onCheckedChange={(checked) => onSelectChange(Boolean(checked))}
-                                title="Select product"
+                                title={t("selectProduct")}
                             />
                         )}
                         <span className="text-xs text-muted-foreground font-mono">
-                            ID: {product.id}
+                            {t("idLabel", { id: formatNumber(product.id) })}
                         </span>
                     </div>
 
@@ -73,11 +91,11 @@ export function ProductCard({
                             variant="default"
                             className="bg-red-500 hover:bg-red-600 text-white text-[10px] font-bold"
                         >
-                            🏷️ {percentOff > 0 ? `${percentOff}% OFF` : "ON SALE"}
+                            🏷️ {percentOff > 0 ? t("percentOff", { percent: formatNumber(percentOff) }) : t("onSale")}
                         </Badge>
                     ) : (
                         <Badge variant="outline" className="text-muted-foreground text-[10px]">
-                            Standard
+                            {t("standard")}
                         </Badge>
                     )}
                 </div>
@@ -91,7 +109,7 @@ export function ProductCard({
                             className="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
                         />
                     ) : (
-                        <div className="text-xs text-muted-foreground">No Image</div>
+                        <div className="text-xs text-muted-foreground">{t("noImage")}</div>
                     )}
                 </div>
 
@@ -105,7 +123,7 @@ export function ProductCard({
                     </CardTitle>
                     {product.sku && (
                         <CardDescription className="text-xs font-mono">
-                            SKU: {product.sku}
+                            {t("skuLabel", { sku: product.sku })}
                         </CardDescription>
                     )}
                 </CardHeader>
@@ -117,10 +135,10 @@ export function ProductCard({
                                 {/* Current Sale Price & Strikethrough Original Price side-by-side */}
                                 <div className="flex items-baseline gap-2 flex-wrap">
                                     <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400">
-                                        {currentPrice} {currency}
+                                        {formatNumber(currentPrice, {style: "currency", currency: "SAR"})} 
                                     </span>
                                     <span className="text-sm font-medium text-muted-foreground line-through">
-                                        {originalPrice} {currency}
+                                        {formatNumber(originalPrice, {style: "currency", currency: "SAR"})}
                                     </span>
                                 </div>
 
@@ -128,7 +146,13 @@ export function ProductCard({
                                 {amountSaved > 0 && (
                                     <div>
                                         <span className="text-[10px] font-semibold text-red-600 bg-red-100 dark:bg-red-950/40 dark:text-red-300 px-1.5 py-0.5 rounded">
-                                            Save {amountSaved.toFixed(2)} {currency}
+                                            {t("saveAmount", {
+                                                amount: formatNumber(amountSaved, {
+                                                    minimumFractionDigits: 2,
+                                                    maximumFractionDigits: 2,
+                                                }),
+                                                currency: displayCurrency,
+                                            })}
                                         </span>
                                     </div>
                                 )}
@@ -136,7 +160,7 @@ export function ProductCard({
                         ) : (
                             /* Standard Price (No Sale) */
                             <span className="text-lg font-bold text-foreground mt-2">
-                                {currentPrice} {currency}
+                                {formatNumber(currentPrice)} {displayCurrency}
                             </span>
                         )}
                     </div>
@@ -151,7 +175,7 @@ export function ProductCard({
                     className="flex-1 text-xs"
                     onClick={() => onSetSalePrice?.(product)}
                 >
-                    {hasSalePrice ? "Edit Sale Price" : "Set Sale Price"}
+                    {hasSalePrice ? t("editSalePrice") : t("setSalePrice")}
                 </Button>
 
                 {hasSalePrice && (
@@ -160,7 +184,7 @@ export function ProductCard({
                         size="sm"
                         className="text-xs text-destructive hover:text-destructive hover:bg-destructive/10 px-2.5"
                         onClick={() => onRemoveSalePrice?.(product)}
-                        title="Remove sale price"
+                        title={t("removeSalePrice")}
                     >
                         ✕
                     </Button>

@@ -57,5 +57,18 @@
   "EmbedLayout": {
     "navProducts": "المنتجات",
     "navTest": "الاختبار"
+  },
+  "ProductCard": {
+    "selectProduct": "تحديد المنتج",
+    "idLabel": "المعرف: {id}",
+    "percentOff": "خصم {percent}%",
+    "onSale": "تخفيض",
+    "standard": "عادي",
+    "noImage": "لا توجد صورة",
+    "skuLabel": "رمز المنتج: {sku}",
+    "saveAmount": "وفر {amount} {currency}",
+    "editSalePrice": "تعديل سعر التخفيض",
+    "setSalePrice": "تحديد سعر التخفيض",
+    "removeSalePrice": "إزالة سعر التخفيض"
   }
 }
