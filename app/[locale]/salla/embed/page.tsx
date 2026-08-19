@@ -30,16 +30,11 @@ export default function EmbedProductsPage() {
             }
             setError(null);
 
-            const token = localStorage.getItem('jwtToken');
-            if (!token) {
-                throw new Error("Authentication error: No token found in session.");
-            }
-
             const url = `/api/v1/salla/embed/products${query ? `?query=${encodeURIComponent(query)}` : ""}`;
             const res = await fetch(url, {
                 method: 'GET',
+                credentials: 'include',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
             });
@@ -86,16 +81,10 @@ export default function EmbedProductsPage() {
 
     // Apply pricing action (set_sale or remove_sale)
     const handleApplyPricing = async (payload: ApplyPricingPayload) => {
-        const token = localStorage.getItem('jwtToken');
-        if (!token) {
-            SallaSDK.notify.error("Authentication error: Token missing.");
-            throw new Error("Authentication error: Token missing.");
-        }
-
         const res = await fetch('/api/v1/salla/embed/products/discount', {
             method: 'POST',
+            credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(payload),

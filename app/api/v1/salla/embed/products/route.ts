@@ -10,17 +10,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
     try {
-        const authHeader = request.headers.get("Authorization");
-        if (!authHeader) {
-            return NextResponse.json({ error: "Authorization header is missing" }, { status: 400 });
-        }
-        const embedAccessToken = authHeader.split(" ")[1];
+        const embedAccessToken =
+            request.cookies.get("embedToken")?.value ||
+            request.headers.get("Authorization")?.split(" ")[1];
+
         if (!embedAccessToken) {
-            return NextResponse.json({ error: "Embeded access token is missing" }, { status: 400 });
+            return NextResponse.json({ error: "Embedded access token is missing" }, { status: 401 });
         }
         const embedAccessTokenVerified = SallaEmbedAuth.verifyToken(embedAccessToken);
         if (!embedAccessTokenVerified.success) {
-            return NextResponse.json({ error: embedAccessTokenVerified.error }, { status: 400 });
+            return NextResponse.json({ error: embedAccessTokenVerified.error }, { status: 401 });
         }
 
         const { merchant_id } = embedAccessTokenVerified.data;

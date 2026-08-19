@@ -70,14 +70,15 @@ export default function EmbedLayout({ children }: { children: React.ReactNode })
                 return;
             }
 
-            const res = await fetch('/api/salla/embed/auth/verify?token=' + token);
+            const res = await fetch('/api/salla/embed/auth/verify?token=' + token, {
+                credentials: 'include',
+            });
             const data = await res.json();
 
             if (!res.ok) {
                 embedded.destroy();
                 return;
             }
-            localStorage.setItem("jwtToken", data.jwtToken);
 
             // Add navigation items to Salla embedded header
             try {
