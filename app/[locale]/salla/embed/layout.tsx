@@ -7,17 +7,33 @@ import { useSearchParams } from 'next/navigation';
 import { useRouter, usePathname } from '@/i18n/routing';
 import { LanguageSwitcher } from '@/components/language-switcher';
 
+function applyTheme(isDark: boolean) {
+    if (isDark) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('salla_theme', 'dark');
+    } else {
+        document.documentElement.removeAttribute('data-theme');
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('salla_theme', 'light');
+    }
+}
+
 function DarkModeSync() {
     const searchParams = useSearchParams();
 
     useEffect(() => {
-        const isDark = searchParams.get('dark') === 'true' || searchParams.get('theme') === 'dark';
-        if (isDark) {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            document.documentElement.classList.add('dark');
+        const darkParam = searchParams.get('dark');
+        const themeParam = searchParams.get('theme');
+
+        if (darkParam !== null || themeParam !== null) {
+            const isDark = darkParam === 'true' || themeParam === 'dark';
+            applyTheme(isDark);
         } else {
-            document.documentElement.removeAttribute('data-theme');
-            document.documentElement.classList.remove('dark');
+            const savedTheme = localStorage.getItem('salla_theme');
+            if (savedTheme) {
+                applyTheme(savedTheme === 'dark');
+            }
         }
     }, [searchParams]);
 
@@ -38,7 +54,15 @@ export default function EmbedLayout({ children }: { children: React.ReactNode })
         initialized.current = true;
 
         (async () => {
-            await embedded.init();
+            const initResult = await embedded.init();
+            if (initResult?.layout?.theme) {
+                applyTheme(initResult.layout.theme === 'dark');
+            }
+
+            // Subscribe to real-time theme changes from Salla host dashboard
+            embedded.onThemeChange((theme) => {
+                applyTheme(theme === 'dark');
+            });
 
             const token = embedded.auth.getToken();
             if (!token) {
