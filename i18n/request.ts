@@ -17,7 +17,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
         numberingSystem: isArabic ? "arab" : "latn",
       },
       arabicDigits: {
-          numberingSystem: 'arab'
+          numberingSystem: isArabic ? 'arab' : 'latn'
       },
       precise: {
         minimumFractionDigits: 2,

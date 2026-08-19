@@ -41,7 +41,7 @@ export default async function LocaleLayout({
         numberingSystem: isArabic ? "arab" : "latn",
       },
       arabicDigits: {
-          numberingSystem: 'arab'
+        numberingSystem: isArabic ? "arab" : "latn",
       },
       precise: {
         minimumFractionDigits: 2,

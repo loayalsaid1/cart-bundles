@@ -33,7 +33,7 @@ export function ProductCard({
     const format = useFormatter();
     const locale = useLocale();
 
-    // Helper ensuring Eastern Arabic digits (٠١٢٣٤٥٦٧٨٩) are always used in Arabic locale
+    // Helper to format numbers: Eastern Arabic digits (٠١٢٣٤٥٦٧٨٩) for Arabic locale, Western digits (0123456789) for English
     const formatNumber = React.useCallback(
         (value: number | string, options?: NumberFormatOptions) => {
             const num = typeof value === "number" ? value : Number(value);
@@ -66,9 +66,8 @@ export function ProductCard({
 
     return (
         <Card
-            className={`relative overflow-hidden transition-all duration-200 hover:shadow-md border flex flex-col justify-between ${
-                selected ? "ring-2 ring-primary border-primary bg-primary/5" : ""
-            }`}
+            className={`relative overflow-hidden transition-all duration-200 hover:shadow-md border flex flex-col justify-between ${selected ? "ring-2 ring-primary border-primary bg-primary/5" : ""
+                }`}
         >
             <div>
                 {/* Top Controls Row */}
@@ -135,10 +134,10 @@ export function ProductCard({
                                 {/* Current Sale Price & Strikethrough Original Price side-by-side */}
                                 <div className="flex items-baseline gap-2 flex-wrap">
                                     <span className="text-xl font-extrabold text-emerald-600 dark:text-emerald-400">
-                                        {formatNumber(currentPrice, {style: "currency", currency: "SAR"})} 
+                                        {formatNumber(currentPrice, { style: "currency", currency: "SAR" })}
                                     </span>
                                     <span className="text-sm font-medium text-muted-foreground line-through">
-                                        {formatNumber(originalPrice, {style: "currency", currency: "SAR"})}
+                                        {formatNumber(originalPrice, { style: "currency", currency: "SAR" })}
                                     </span>
                                 </div>
 
