@@ -70,5 +70,8 @@
     "editSalePrice": "تعديل سعر التخفيض",
     "setSalePrice": "تحديد سعر التخفيض",
     "removeSalePrice": "إزالة سعر التخفيض"
+  },
+  "TestPage": {
+    "title": "مرحبا بك"
   }
 }

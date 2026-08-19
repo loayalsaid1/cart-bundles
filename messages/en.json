@@ -70,5 +70,8 @@
     "editSalePrice": "Edit Sale Price",
     "setSalePrice": "Set Sale Price",
     "removeSalePrice": "Remove sale price"
+  },
+  "TestPage": {
+    "title": "Welcome in test Page"
   }
 }
