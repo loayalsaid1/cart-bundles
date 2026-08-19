@@ -6,9 +6,19 @@
  * call my backend for a bunch of products as a recommendation and redner them in a salla-products-slider 
  * giving it the property source = "json" and source value, the list of products from the API.
  */
-const BACKEND_URL = 'https://n2r4sc-ip-197-53-102-100.tunnelmole.net/api/v1';
-Salla.onReady(() => {
+  function getTargetAnchor() {
+    return document.querySelector("form#product-form") ||
+           document.getElementById("product-form") ||
+           document.querySelector(".product-form") ||
+           document.getElementById("single-product-form") ||
+           document.querySelector(".form.form--product-options") ||
+           document.querySelector("div.option-wrapper") ||
+           document.querySelector("div.product-option-wrapper") ||
+           document.querySelector("div.options");
+  }
 
+const BACKEND_URL = 'https://ccgg56-ip-197-53-124-214.tunnelmole.net/api/v1';
+Salla.onReady(() => {
 
     const storeId = salla.config.get('store.id');
     const productId = salla.config.get('page.id');
@@ -31,12 +41,13 @@ Salla.onReady(() => {
             slider.sourceValue = data;
             // Append the slider to a container on the page
             // For example, append it after the main product form
-            const productForm = document.querySelector('.form.product-form');
+            const productForm = getTargetAnchor();
             if (productForm) {
-                productForm.parentNode.appendChild(slider);
+                console.log(productForm)
+                productForm.insertAdjacentElement("beforebegin", slider);
             } else {
                 // Fallback: append to body if product form not found
-                document.body.appendChild(slider);
+                document.body.insertAdjacentElement("beforebegin", slider);
             }
         })
 })

@@ -69,9 +69,7 @@ export async function GET(request: NextRequest) {
 
         // Fetch recommended products from Salla API
         const response = await fetch(
-            `https://api.salla.dev/admin/v2/products?keyword=${encodeURIComponent(
-                "فستان"
-            )}`,
+            `https://api.salla.dev/admin/v2/products?status=sale`,
             {
                 headers: {
                     Authorization: `Bearer ${accessToken}`,
