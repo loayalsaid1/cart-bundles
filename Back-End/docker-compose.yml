@@ -1,0 +1,37 @@
+name: cart-bundles-prod
+
+services:
+  web:
+    image: ${IMAGE_NAME:-cart-bundles-backend}:${IMAGE_TAG:-latest}
+    container_name: cart-bundles-backend
+    restart: always
+    ports:
+      - '${APP_PORT:-3000}:3000'
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${APP_PORT:-3000}
+
+      - DATABASE_URL=${DATABASE_URL}
+
+      - SALLA_CLIENT_ID=${SALLA_CLIENT_ID}
+      - SALLA_CLIENT_SECRET=${SALLA_CLIENT_SECRET}
+      - SALLA_APP_ID=${SALLA_APP_ID}
+      - SALLA_WEBHOOK_SECRET=${SALLA_WEBHOOK_SECRET}
+
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-30m}
+
+      - FRONTEND_URL=${FRONTEND_URL}
+      - SALLA_STOREFRONT_ORIGIN=${SALLA_STOREFRONT_ORIGIN}
+
+      - VIRTUAL_HOST=${VIRTUAL_HOST}
+      - LETSENCRYPT_HOST=${LETSENCRYPT_HOST}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+    networks:
+      - backend-network
+      - nginx-proxy
+
+networks:
+  backend-network:
+  nginx-proxy:
+    external: true

@@ -1,0 +1,63 @@
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { Request } from 'express';
+import { AuthService } from '../../modules/auth/auth.service';
+import { EmbedContext } from '../../modules/auth/types/embed-context.interface';
+import { IS_PUBLIC_KEY } from '../decorators/is-public.decorator';
+
+/** Extend express Request so TypeScript knows about the attached embed context */
+export interface AuthenticatedRequest extends Request {
+  user: EmbedContext;
+}
+
+@Injectable()
+export class SallaAuthGuard implements CanActivate {
+  constructor(
+    private readonly authService: AuthService,
+    private readonly reflector: Reflector,
+  ) {}
+
+  canActivate(context: ExecutionContext): boolean {
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (isPublic) return true;
+
+    const request = context.switchToHttp().getRequest<Request>();
+
+    const token =
+      this.extractBearerToken(request) ?? this.extractEmbedTokenCookie(request);
+
+    if (!token) {
+      throw new UnauthorizedException('Missing embed access token');
+    }
+
+    // Verify the local JWT and attach merchant/user context to the request
+    (request as AuthenticatedRequest).user =
+      this.authService.verifyEmbedToken(token);
+
+    return true;
+  }
+
+  private extractBearerToken(request: Request): string | null {
+    const authHeader = request.headers['authorization'];
+    if (!authHeader?.startsWith('Bearer ')) return null;
+    return authHeader.slice(7);
+  }
+
+  private extractEmbedTokenCookie(request: Request): string | null {
+    const cookieHeader = request.headers['cookie'];
+    if (!cookieHeader) return null;
+    for (const pair of cookieHeader.split(';')) {
+      const [name, ...rest] = pair.trim().split('=');
+      if (name === 'embedToken') return rest.join('=');
+    }
+    return null;
+  }
+}
