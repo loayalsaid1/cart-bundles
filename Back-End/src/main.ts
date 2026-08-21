@@ -4,13 +4,16 @@ import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { DatabaseExceptionFilter } from './common/filters/database-exception.filter';
 import { LoggerInterceptor } from './common/interceptors/logger.interceptor';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   // rawBody: true is required for Salla webhook HMAC signature verification
   const app = await NestFactory.create(AppModule, { rawBody: true });
 
-  const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
-  const storefrontOrigin = process.env.SALLA_STOREFRONT_ORIGIN;
+  const config = app.get<ConfigService>(ConfigService);
+  
+  const frontendUrl = config.get<string>('FRONTEND_URL', 'http://localhost:3000');
+  const storefrontOrigin = config.get<string>('SALLA_STOREFRONT_ORIGIN');
   const allowedOrigins = [frontendUrl, storefrontOrigin].filter(
     (origin): origin is string => Boolean(origin),
   );
@@ -31,7 +34,7 @@ async function bootstrap() {
   });
 
   // Global prefix
-  app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api/v1');
 
   // Global validation pipe
   app.useGlobalPipes(

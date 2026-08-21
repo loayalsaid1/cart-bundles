@@ -18,11 +18,15 @@ export class ApplyPricingDto {
   @IsIn(['set_sale', 'remove_sale'])
   action!: PricingAction;
 
-  @ValidateIf((dto: ApplyPricingDto) => dto.action === 'set_sale')
   @IsIn(['percentage', 'fixed'])
   discountType?: DiscountType;
 
-  @ValidateIf((dto: ApplyPricingDto) => dto.action === 'set_sale')
+  @ValidateIf(
+    (dto: ApplyPricingDto) =>
+      dto.action === 'set_sale' &&
+      dto.discountType === 'percentage' &&
+      (dto?.amount ?? 0) > 100,
+  )
   @IsNumber()
   @IsPositive()
   amount?: number;

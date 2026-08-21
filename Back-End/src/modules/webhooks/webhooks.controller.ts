@@ -4,6 +4,7 @@ import {
   Logger,
   Post,
   Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { RawBodyRequest } from '@nestjs/common';
@@ -38,7 +39,7 @@ export class WebhooksController {
       throw new BadRequestException('Raw body is not available');
     }
 
-    const secret = this.configService.get<string>('SALLA_WEBHOOK_SECRET');
+    const secret = this.configService.getOrThrow<string>('SALLA_WEBHOOK_SECRET');
     const signature = req.headers['x-salla-signature'] as string | undefined;
 
     const validation = validateWebhookRequest(
@@ -47,17 +48,19 @@ export class WebhooksController {
       secret,
     );
     if (!validation.success) {
-      // Missing server-side secret is a misconfiguration, not a client error
-      if (validation.error === 'Missing salla secret') {
+      if (validation.error === 'Missing signature') {
+        this.logger.error('Missing signature');
         throw new BadRequestException(validation.error);
+      } else {
+        this.logger.error('Invalid signature');
+        throw new UnauthorizedException(validation.error);
       }
-      throw new BadRequestException(validation.error);
     }
 
     const data = JSON.parse(rawBody.toString()) as SallaAppEventBase;
 
     // Fire-and-forget audit log; failures are swallowed inside the logger
-    await this.eventLoggerService.logEvent(data);
+    void this.eventLoggerService.logEvent(data);
     this.logger.debug(`Webhook received: ${data.event}`);
 
     await this.webhooksService.processEvent(data);

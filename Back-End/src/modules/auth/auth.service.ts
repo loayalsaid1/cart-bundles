@@ -1,13 +1,13 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import jwt, { type SignOptions, JsonWebTokenError } from 'jsonwebtoken';
-import { EmbedContext } from './types/embed-context.interface';
+import jwt, { type SignOptions, JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
+import { EmbedContext, EmbedTokenVerificationResult } from './types/embed-context.interface';
 import {
   SallaInspectResult,
   SallaIntrospectData,
 } from './types/salla-token.interface';
 
-const TOKEN_EXPIRED_ERROR = 'TokenExpiredError';
+export const TOKEN_EXPIRED_ERROR = 'TokenExpiredError';
 
 @Injectable()
 export class AuthService {
@@ -19,7 +19,7 @@ export class AuthService {
   constructor(private readonly configService: ConfigService) {
     this.jwtSecret = this.configService.getOrThrow<string>('JWT_SECRET');
     this.jwtExpiresIn = (this.configService.get<string>('JWT_EXPIRES_IN') ??
-      '30m') as SignOptions['expiresIn'];
+    '30m') as SignOptions['expiresIn'];
     this.sallaAppId = this.configService.getOrThrow<string>('SALLA_APP_ID');
   }
 
@@ -43,13 +43,14 @@ export class AuthService {
         return {
           success: false,
           error: `Salla API returned ${response.status}`,
+          isUpstreamError: true,
         };
       }
 
-      const result = (await response.json()) as {
+      const result: {
         success?: boolean;
         data?: SallaIntrospectData;
-      };
+      } = (await response.json());
 
       if (result.success && result.data) {
         return { success: true, data: result.data };
@@ -76,22 +77,24 @@ export class AuthService {
 
   /**
    * Verify a local embed JWT and return the merchant/user context.
-   * Throws UnauthorizedException (with a specific reason) on failure.
    */
-  verifyEmbedToken(token: string): EmbedContext {
+  verifyEmbedToken(token: string): EmbedTokenVerificationResult {
     try {
       const payload = jwt.verify(token, this.jwtSecret) as EmbedContext;
-      return payload;
+      return { success: true, data: payload };
     } catch (error) {
-      if (error instanceof JsonWebTokenError) {
-        if (error.name === TOKEN_EXPIRED_ERROR) {
-          this.logger.debug('Embed token expired');
-          throw new UnauthorizedException(TOKEN_EXPIRED_ERROR);
-        }
+      let errorValue;
+      if (error instanceof TokenExpiredError){
+        errorValue = TOKEN_EXPIRED_ERROR;
+        this.logger.debug('Embed token expired');
+      }else if (error instanceof JsonWebTokenError) {
+        errorValue = error.message;
         this.logger.debug(`Embed token rejected: ${error.message}`);
-        throw new UnauthorizedException('Invalid embed access token');
+      }else{
+        errorValue = 'Invalid embed access token';
+        this.logger.debug(`Embed token rejected: ${error}`);
       }
-      throw new UnauthorizedException('Invalid embed access token');
+      return { success: false, error: errorValue };
     }
   }
 }

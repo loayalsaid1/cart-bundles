@@ -15,4 +15,4 @@ export interface SallaIntrospectData {
 
 export type SallaInspectResult =
   | { success: true; data: SallaIntrospectData }
-  | { success: false; error?: string };
+  | { success: false; error?: string, isUpstreamError?: boolean };

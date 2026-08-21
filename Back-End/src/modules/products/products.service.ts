@@ -30,8 +30,8 @@ export class ProductsService {
       );
     }
 
-    const json = (await response.json()) as { data?: Product[] };
-    return json.data ?? [];
+    const json = (await response.json()) as { data: Product[] };
+    return json.data;
   }
 
   /**

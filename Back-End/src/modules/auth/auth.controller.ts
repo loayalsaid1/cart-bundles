@@ -5,6 +5,7 @@ import {
   Res,
   BadRequestException,
   Logger,
+  BadGatewayException,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { IsPublic } from '../../common/decorators';
@@ -33,6 +34,9 @@ export class AuthController {
     const inspectResult = await this.authService.inspectSallaToken(sallaToken);
     if (!inspectResult.success) {
       this.logger.debug(`Salla introspection failed: ${inspectResult.error}`);
+      if (inspectResult.isUpstreamError) {
+        throw new BadGatewayException('Authentication service unavailable');
+      }
       throw new BadRequestException(inspectResult.error);
     }
 
@@ -42,7 +46,7 @@ export class AuthController {
       userId: user_id,
     });
 
-    // Partitioned HttpOnly Cookie (CHIPS) so it survives inside the Salla iframe
+    // Partitioned HttpOnly cookie so it survives inside the Salla iframe
     res.cookie('embedToken', jwtToken, {
       httpOnly: true,
       secure: true,
@@ -52,17 +56,6 @@ export class AuthController {
       maxAge: 30 * 60 * 1000, // 30 minutes
     });
 
-    // Ensure the Partitioned attribute is explicitly on the Set-Cookie header
-    const setCookie = res.getHeader('set-cookie');
-    if (setCookie) {
-      const header = Array.isArray(setCookie) ? setCookie[0] : setCookie;
-      if (
-        typeof header === 'string' &&
-        !header.toLowerCase().includes('partitioned')
-      ) {
-        res.setHeader('set-cookie', `${header}; Partitioned`);
-      }
-    }
 
     return { success: true };
   }

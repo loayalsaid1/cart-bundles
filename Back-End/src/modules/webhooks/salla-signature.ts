@@ -12,11 +12,8 @@ export interface WebhookValidationResult {
 export function validateWebhookRequest(
   rawBody: string,
   signature: string | undefined,
-  secret: string | undefined,
+  secret: string,
 ): WebhookValidationResult {
-  if (!secret) {
-    return { success: false, error: 'Missing salla secret' };
-  }
   if (!signature) {
     return { success: false, error: 'Missing signature' };
   }

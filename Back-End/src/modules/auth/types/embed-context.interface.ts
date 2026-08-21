@@ -6,3 +6,11 @@ export interface EmbedContext {
   merchantId: number;
   userId: number;
 }
+
+export type EmbedTokenVerificationResult = {
+  success: true;
+  data: EmbedContext;
+} | {
+  success: false;
+  error: string;
+};

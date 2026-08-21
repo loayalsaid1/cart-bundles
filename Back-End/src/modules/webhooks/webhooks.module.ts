@@ -9,6 +9,5 @@ import { WebhooksService } from './webhooks.service';
   imports: [DrizzleModule, MerchantsModule],
   controllers: [WebhooksController],
   providers: [WebhooksService, EventLoggerService],
-  exports: [WebhooksService],
 })
 export class WebhooksModule {}

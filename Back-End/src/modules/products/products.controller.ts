@@ -2,9 +2,11 @@ import {
   Body,
   Controller,
   Get,
+  InternalServerErrorException,
   NotFoundException,
   Post,
   Query,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CurrentUser, IsPublic } from '../../common/decorators';
 import type { EmbedContext } from '../auth/types/embed-context.interface';
@@ -13,31 +15,29 @@ import { ApplyPricingDto } from './dto';
 import { ProductsService } from './products.service';
 import { ApplyPricingResult, Product } from './product.types';
 
-/**
- * Authenticated endpoints used by the Salla embedded app.
- */
-@Controller('v1/salla/embed/products')
-export class EmbedProductsController {
+
+@Controller('salla')
+export class ProductsController {
   constructor(
     private readonly productsService: ProductsService,
     private readonly merchantsService: MerchantsService,
-  ) {}
+  ) { }
 
-  @Get()
+  @Get("embed/products")
   async list(
     @CurrentUser() user: EmbedContext,
     @Query('query') query?: string,
   ): Promise<Product[]> {
-    const accessToken = await this.getValidToken(user.merchantId);
+    const accessToken = await this.getOrThrowValidAccessToken(user.merchantId);
     return this.productsService.getProducts(accessToken, query);
   }
 
-  @Post('discount')
+  @Post('embed/products/discount')
   async applyDiscount(
     @CurrentUser() user: EmbedContext,
     @Body() dto: ApplyPricingDto,
   ): Promise<ApplyPricingResult> {
-    const accessToken = await this.getValidToken(user.merchantId);
+    const accessToken = await this.getOrThrowValidAccessToken(user.merchantId);
     const result = await this.productsService.applyBulkPricing(
       accessToken,
       dto,
@@ -50,34 +50,12 @@ export class EmbedProductsController {
     return result;
   }
 
-  private async getValidToken(merchantId: number): Promise<string> {
-    const accessToken =
-      await this.merchantsService.getValidAccessToken(merchantId);
-    if (!accessToken) {
-      throw new NotFoundException(
-        'Merchant access token is missing or expired',
-      );
-    }
-    return accessToken;
-  }
-}
-
-/**
- * Public endpoints callable from the Salla storefront (CORS-enabled).
- */
-@IsPublic()
-@Controller('v1/salla/products')
-export class PublicProductsController {
-  constructor(
-    private readonly productsService: ProductsService,
-    private readonly merchantsService: MerchantsService,
-  ) {}
-
   /**
    * Returns sale products for the given store to surface as recommendations.
    * `productId` is part of the storefront contract but is currently unused.
    */
-  @Get('recommendations')
+  @IsPublic()
+  @Get('salla/products/recommendations')
   async recommendations(
     @Query('storeId') storeId?: string,
     @Query('store_id') store_id?: string,
@@ -87,13 +65,28 @@ export class PublicProductsController {
       throw new NotFoundException('Missing storeId parameter');
     }
 
-    const accessToken = await this.merchantsService.getValidAccessToken(
+    const accessToken = await this.getOrThrowValidAccessToken(
       Number(rawStoreId),
     );
-    if (!accessToken) {
-      throw new NotFoundException('Merchant not found');
+    return this.productsService.getRecommendedProducts(accessToken);
+  }
+
+
+  private async getOrThrowValidAccessToken(merchantId: number): Promise<string> {
+    const tokenResult = await this.merchantsService.getValidAccessToken(merchantId);
+
+    if (tokenResult.success) {
+      return tokenResult.accessToken;
     }
 
-    return this.productsService.getRecommendedProducts(accessToken);
+    if (tokenResult.reason === 'not_found') {
+      throw new NotFoundException('Merchant not found');
+    }
+    if (tokenResult.reason === 'reauth_required') {
+      throw new UnauthorizedException('Reauthentication required');
+    }
+
+    // refresh_failed - transient error, safe to retry later
+    throw new InternalServerErrorException('Failed to refresh merchant token');
   }
 }

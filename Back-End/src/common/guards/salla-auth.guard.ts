@@ -5,8 +5,8 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Request } from 'express';
-import { AuthService } from '../../modules/auth/auth.service';
+import { Request, Response } from 'express';
+import { AuthService, TOKEN_EXPIRED_ERROR } from '../../modules/auth/auth.service';
 import { EmbedContext } from '../../modules/auth/types/embed-context.interface';
 import { IS_PUBLIC_KEY } from '../decorators/is-public.decorator';
 
@@ -39,25 +39,28 @@ export class SallaAuthGuard implements CanActivate {
     }
 
     // Verify the local JWT and attach merchant/user context to the request
-    (request as AuthenticatedRequest).user =
-      this.authService.verifyEmbedToken(token);
+    const result = this.authService.verifyEmbedToken(token);
+    if (!result.success) {
+      if (result.error == TOKEN_EXPIRED_ERROR) {
+        const response = context.switchToHttp().getResponse<Response>();
+        response.clearCookie('embedToken');
+      }
+      throw new UnauthorizedException(result.error);
+    }
 
+    (request as AuthenticatedRequest).user = result.data;
     return true;
   }
 
   private extractBearerToken(request: Request): string | null {
     const authHeader = request.headers['authorization'];
     if (!authHeader?.startsWith('Bearer ')) return null;
-    return authHeader.slice(7);
+    return authHeader.split(" ")[1];
   }
 
   private extractEmbedTokenCookie(request: Request): string | null {
-    const cookieHeader = request.headers['cookie'];
-    if (!cookieHeader) return null;
-    for (const pair of cookieHeader.split(';')) {
-      const [name, ...rest] = pair.trim().split('=');
-      if (name === 'embedToken') return rest.join('=');
-    }
-    return null;
+    const embedToken = request.cookies['embedToken'];
+    if (!embedToken) return null;
+    return embedToken;
   }
 }
