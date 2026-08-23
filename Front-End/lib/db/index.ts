@@ -21,10 +21,6 @@ const createDb = () => {
     connectionString: databaseUrl,
     max: 20,
     idleTimeoutMillis: 30000,
-    ssl: {
-      rejectUnauthorized: false,
-      // ca: fs.readFileSync("/ca.pem").toString(),
-    },
   });
 
 

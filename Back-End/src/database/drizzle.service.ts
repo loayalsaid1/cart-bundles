@@ -21,9 +21,6 @@ export class DrizzleService implements OnModuleDestroy {
       connectionString,
       max: 20,
       idleTimeoutMillis: 30000,
-      ssl: {
-        rejectUnauthorized: false,
-      },
     });
 
     this.pool.on('error', (err) => {
