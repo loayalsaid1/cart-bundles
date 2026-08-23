@@ -5,6 +5,8 @@ import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
 import { DatabaseExceptionFilter } from './common/filters/database-exception.filter';
 import { LoggerInterceptor } from './common/interceptors/logger.interceptor';
 import { ConfigService } from '@nestjs/config';
+import cookieParser from 'cookie-parser';
+
 
 async function bootstrap() {
   // rawBody: true is required for Salla webhook HMAC signature verification
@@ -32,6 +34,8 @@ async function bootstrap() {
     },
     credentials: true,
   });
+
+  app.use(cookieParser());
 
   // Global prefix
   app.setGlobalPrefix('api/v1');
