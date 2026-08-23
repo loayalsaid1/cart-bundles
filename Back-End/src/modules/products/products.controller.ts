@@ -55,7 +55,7 @@ export class ProductsController {
    * `productId` is part of the storefront contract but is currently unused.
    */
   @IsPublic()
-  @Get('salla/products/recommendations')
+  @Get('products/recommendations')
   async recommendations(
     @Query('storeId') storeId?: string,
     @Query('store_id') store_id?: string,

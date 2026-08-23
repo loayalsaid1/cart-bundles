@@ -20,7 +20,7 @@ import { WebhooksService } from './webhooks.service';
  * and dispatches it to the matching handler.
  */
 @IsPublic()
-@Controller('v1/salla/webhook')
+@Controller('salla/webhook')
 export class WebhooksController {
   private readonly logger = new Logger(WebhooksController.name);
 

@@ -2,7 +2,7 @@ import { Controller, Get } from '@nestjs/common';
 import { IsPublic } from './common/decorators';
 import { AppService } from './app.service';
 
-@Controller('v1/db')
+@Controller('db')
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
