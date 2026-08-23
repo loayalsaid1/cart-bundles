@@ -70,7 +70,7 @@ export default function EmbedLayout({ children }: { children: React.ReactNode })
                 return;
             }
 
-            const res = await fetch('/api/salla/embed/auth/verify?token=' + token, {
+            const res = await fetch('/api/v1/salla/embed/auth/verify?token=' + token, {
                 credentials: 'include',
             });
             const data = await res.json();
