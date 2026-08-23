@@ -13,27 +13,19 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
 
   const config = app.get<ConfigService>(ConfigService);
-  
-  const frontendUrl = config.get<string>('FRONTEND_URL', 'http://localhost:3000');
-  const storefrontOrigin = config.get<string>('SALLA_STOREFRONT_ORIGIN');
-  const allowedOrigins = [frontendUrl, storefrontOrigin].filter(
-    (origin): origin is string => Boolean(origin),
-  );
+
+  const STATIC_ORIGINS: string[] = config.get<string>('ALLOWED_CORS_ORIGINS', "").split(",").map((o) => o.trim());
 
   app.enableCors({
-    origin: (
-      origin: string | undefined,
-      callback: (err: Error | null, allow?: boolean) => void,
-    ) => {
-      // Allow non-browser clients (curl, Salla SDK server calls) without an origin
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
+    origin: async (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      if (!origin) return callback(null, true);
+      if (STATIC_ORIGINS.includes(origin)) return callback(null, true);
+      return callback(null, false);
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
+
 
   app.use(cookieParser());
 
