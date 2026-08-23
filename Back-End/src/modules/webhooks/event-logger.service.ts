@@ -12,7 +12,6 @@ export class EventLoggerService {
   /** Persist an incoming Salla event for auditing. */
   async logEvent(payload: SallaAppEventBase): Promise<void> {
     try {
-
       await this.drizzleService.db.insert(eventLogs).values({
         eventName: payload.event,
         eventData: payload,

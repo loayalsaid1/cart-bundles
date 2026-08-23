@@ -1,7 +1,14 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import jwt, { type SignOptions, JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken';
-import { EmbedContext, EmbedTokenVerificationResult } from './types/embed-context.interface';
+import jwt, {
+  type SignOptions,
+  JsonWebTokenError,
+  TokenExpiredError,
+} from 'jsonwebtoken';
+import {
+  EmbedContext,
+  EmbedTokenVerificationResult,
+} from './types/embed-context.interface';
 import {
   SallaInspectResult,
   SallaIntrospectData,
@@ -19,7 +26,7 @@ export class AuthService {
   constructor(private readonly configService: ConfigService) {
     this.jwtSecret = this.configService.getOrThrow<string>('JWT_SECRET');
     this.jwtExpiresIn = (this.configService.get<string>('JWT_EXPIRES_IN') ??
-    '30m') as SignOptions['expiresIn'];
+      '30m') as SignOptions['expiresIn'];
     this.sallaAppId = this.configService.getOrThrow<string>('SALLA_APP_ID');
   }
 
@@ -47,10 +54,10 @@ export class AuthService {
         };
       }
 
-      const result: {
+      const result = (await response.json()) as {
         success?: boolean;
         data?: SallaIntrospectData;
-      } = (await response.json());
+      };
 
       if (result.success && result.data) {
         return { success: true, data: result.data };
@@ -83,14 +90,14 @@ export class AuthService {
       const payload = jwt.verify(token, this.jwtSecret) as EmbedContext;
       return { success: true, data: payload };
     } catch (error) {
-      let errorValue;
-      if (error instanceof TokenExpiredError){
+      let errorValue: string;
+      if (error instanceof TokenExpiredError) {
         errorValue = TOKEN_EXPIRED_ERROR;
         this.logger.debug('Embed token expired');
-      }else if (error instanceof JsonWebTokenError) {
+      } else if (error instanceof JsonWebTokenError) {
         errorValue = error.message;
         this.logger.debug(`Embed token rejected: ${error.message}`);
-      }else{
+      } else {
         errorValue = 'Invalid embed access token';
         this.logger.debug(`Embed token rejected: ${error}`);
       }

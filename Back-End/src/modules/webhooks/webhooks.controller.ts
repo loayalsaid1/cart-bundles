@@ -39,7 +39,9 @@ export class WebhooksController {
       throw new BadRequestException('Raw body is not available');
     }
 
-    const secret = this.configService.getOrThrow<string>('SALLA_WEBHOOK_SECRET');
+    const secret = this.configService.getOrThrow<string>(
+      'SALLA_WEBHOOK_SECRET',
+    );
     const signature = req.headers['x-salla-signature'] as string | undefined;
 
     const validation = validateWebhookRequest(

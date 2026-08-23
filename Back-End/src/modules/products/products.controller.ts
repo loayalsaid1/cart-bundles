@@ -1,4 +1,6 @@
 import {
+  BadGatewayException,
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -15,15 +17,14 @@ import { ApplyPricingDto } from './dto';
 import { ProductsService } from './products.service';
 import { ApplyPricingResult, Product } from './product.types';
 
-
 @Controller('salla')
 export class ProductsController {
   constructor(
     private readonly productsService: ProductsService,
     private readonly merchantsService: MerchantsService,
-  ) { }
+  ) {}
 
-  @Get("embed/products")
+  @Get('embed/products')
   async list(
     @CurrentUser() user: EmbedContext,
     @Query('query') query?: string,
@@ -44,7 +45,7 @@ export class ProductsController {
     );
 
     if (!result.success) {
-      throw new NotFoundException(result.error);
+      throw new BadGatewayException(result.error);
     }
 
     return result;
@@ -62,7 +63,7 @@ export class ProductsController {
   ): Promise<Product[]> {
     const rawStoreId = storeId ?? store_id;
     if (!rawStoreId) {
-      throw new NotFoundException('Missing storeId parameter');
+      throw new BadRequestException('Missing storeId parameter');
     }
 
     const accessToken = await this.getOrThrowValidAccessToken(
@@ -71,9 +72,11 @@ export class ProductsController {
     return this.productsService.getRecommendedProducts(accessToken);
   }
 
-
-  private async getOrThrowValidAccessToken(merchantId: number): Promise<string> {
-    const tokenResult = await this.merchantsService.getValidAccessToken(merchantId);
+  private async getOrThrowValidAccessToken(
+    merchantId: number,
+  ): Promise<string> {
+    const tokenResult =
+      await this.merchantsService.getValidAccessToken(merchantId);
 
     if (tokenResult.success) {
       return tokenResult.accessToken;

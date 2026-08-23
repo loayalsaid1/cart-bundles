@@ -56,7 +56,6 @@ export class AuthController {
       maxAge: 30 * 60 * 1000, // 30 minutes
     });
 
-
     return { success: true };
   }
 }

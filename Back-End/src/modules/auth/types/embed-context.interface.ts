@@ -7,10 +7,12 @@ export interface EmbedContext {
   userId: number;
 }
 
-export type EmbedTokenVerificationResult = {
-  success: true;
-  data: EmbedContext;
-} | {
-  success: false;
-  error: string;
-};
+export type EmbedTokenVerificationResult =
+  | {
+      success: true;
+      data: EmbedContext;
+    }
+  | {
+      success: false;
+      error: string;
+    };

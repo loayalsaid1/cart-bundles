@@ -6,7 +6,10 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Request, Response } from 'express';
-import { AuthService, TOKEN_EXPIRED_ERROR } from '../../modules/auth/auth.service';
+import {
+  AuthService,
+  TOKEN_EXPIRED_ERROR,
+} from '../../modules/auth/auth.service';
 import { EmbedContext } from '../../modules/auth/types/embed-context.interface';
 import { IS_PUBLIC_KEY } from '../decorators/is-public.decorator';
 
@@ -55,11 +58,13 @@ export class SallaAuthGuard implements CanActivate {
   private extractBearerToken(request: Request): string | null {
     const authHeader = request.headers['authorization'];
     if (!authHeader?.startsWith('Bearer ')) return null;
-    return authHeader.split(" ")[1];
+    return authHeader.split(' ')[1];
   }
 
   private extractEmbedTokenCookie(request: Request): string | null {
-    const embedToken = request.cookies['embedToken'];
+    const cookies = (request as unknown as { cookies?: Record<string, string> })
+      .cookies;
+    const embedToken = cookies?.['embedToken'];
     if (!embedToken) return null;
     return embedToken;
   }

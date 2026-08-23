@@ -1,4 +1,4 @@
-import { SallaTokenData } from "src/modules/auth/types/salla-token.interface";
+import { SallaTokenData } from 'src/modules/auth/types/salla-token.interface';
 
 export interface MerchantAuthorizeInput {
   merchantId: number;

@@ -6,11 +6,14 @@ import { eq } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
 import { merchants, type Merchant } from '../../database/entities/merchants';
 import type { SallaTokenData } from '../auth/types/salla-token.interface';
-import { MerchantAuthorizeInput, RefreshResult, TokenResult } from './interfaces/merchnatToken.interface';
+import {
+  MerchantAuthorizeInput,
+  RefreshResult,
+  TokenResult,
+} from './interfaces/merchnatToken.interface';
 
 const TOKEN_CACHE_PREFIX = 'merchant:token:';
 const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000; // refresh 5 minutes before expiry
-
 
 @Injectable()
 export class MerchantsService {
@@ -23,7 +26,10 @@ export class MerchantsService {
    * of requests near expiry triggers exactly one call to Salla, not one
    * per request.
    */
-  private readonly inFlightRefreshes = new Map<number, Promise<RefreshResult>>();
+  private readonly inFlightRefreshes = new Map<
+    number,
+    Promise<RefreshResult>
+  >();
 
   constructor(
     private readonly drizzleService: DrizzleService,
@@ -94,7 +100,11 @@ export class MerchantsService {
     if (!merchant) return { success: false, reason: 'not_found' };
 
     if (merchant.expiresAt.getTime() - TOKEN_REFRESH_BUFFER_MS > Date.now()) {
-      await this.cacheToken(merchantId, merchant.accessToken, merchant.expiresAt);
+      await this.cacheToken(
+        merchantId,
+        merchant.accessToken,
+        merchant.expiresAt,
+      );
       return { success: true, accessToken: merchant.accessToken };
     }
 
@@ -230,7 +240,9 @@ export class MerchantsService {
     const cacheKey = `${TOKEN_CACHE_PREFIX}${merchantId}`;
     const ttlSeconds = Math.max(
       60,
-      Math.floor((expiresAt.getTime() - Date.now() - TOKEN_REFRESH_BUFFER_MS) / 1000),
+      Math.floor(
+        (expiresAt.getTime() - Date.now() - TOKEN_REFRESH_BUFFER_MS) / 1000,
+      ),
     );
     await this.cacheManager.set(cacheKey, accessToken, ttlSeconds);
   }
