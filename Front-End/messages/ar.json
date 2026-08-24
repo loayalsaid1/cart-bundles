@@ -73,5 +73,30 @@
   },
   "TestPage": {
     "title": "مرحبا بك"
+  },
+"Login": {
+    "title": "[Arabic] ... Cart Bundles",
+    "subtitle": "[Arabic] ... Sign in with your Salla account to manage your store products.",
+    "signInWithSalla": "[Arabic] ... Login with Salla",
+    "hint": "[Arabic] ... You will be redirected to Salla to authorize this app.",
+    "loggingIn": "[Arabic] ... Signing you in...",
+    "errorTitle": "[Arabic] ... Sign-in failed",
+    "errorMissingParams": "[Arabic] ... Missing authorization parameters from Salla.",
+    "errorDenied": "[Arabic] ... You denied authorization, or the request was cancelled.",
+    "errorFailed": "[Arabic] ... Something went wrong. Please try again.",
+    "backToLogin": "[Arabic] ... Back to login"
+  },
+  "ProductsPage": {
+    "title": "[Arabic] .... Store Products",
+    "subtitle": "[Arabic] .... Products and recommendations from your Salla store.",
+    "productsTitle": "[Arabic] .... Your Products",
+    "recommendationsTitle": "[Arabic] .... Recommendations (On Sale)",
+    "logout": "[Arabic] .... Logout",
+    "noProducts": "[Arabic] .... No products found.",
+    "noRecommendations": "[Arabic] .... No on-sale recommendations right now.",
+    "errorFailed": "[Arabic] .... Failed to load your products. Please try again.",
+    "noImage": "[Arabic] .... No Image",
+    "skuLabel": "[Arabic] .... SKU: {sku}",
+    "salePrice": "[Arabic] .... Sale"
   }
 }
