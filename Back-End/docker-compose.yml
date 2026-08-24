@@ -18,6 +18,9 @@ services:
       - SALLA_APP_ID=${SALLA_APP_ID}
       - SALLA_WEBHOOK_SECRET=${SALLA_WEBHOOK_SECRET}
 
+      - SALLA_REDIRECT_URI=${SALLA_REDIRECT_URI}
+      - SALLA_OAUTH_SCOPE=${SALLA_OAUTH_SCOPE:-products.read_write offline_access}
+
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-30m}
 

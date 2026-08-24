@@ -73,5 +73,30 @@
   },
   "TestPage": {
     "title": "Welcome in test Page"
+  },
+  "Login": {
+    "title": "Cart Bundles",
+    "subtitle": "Sign in with your Salla account to manage your store products.",
+    "signInWithSalla": "Login with Salla",
+    "hint": "You will be redirected to Salla to authorize this app.",
+    "loggingIn": "Signing you in...",
+    "errorTitle": "Sign-in failed",
+    "errorMissingParams": "Missing authorization parameters from Salla.",
+    "errorDenied": "You denied authorization, or the request was cancelled.",
+    "errorFailed": "Something went wrong. Please try again.",
+    "backToLogin": "Back to login"
+  },
+  "ProductsPage": {
+    "title": "Store Products",
+    "subtitle": "Products and recommendations from your Salla store.",
+    "productsTitle": "Your Products",
+    "recommendationsTitle": "Recommendations (On Sale)",
+    "logout": "Logout",
+    "noProducts": "No products found.",
+    "noRecommendations": "No on-sale recommendations right now.",
+    "errorFailed": "Failed to load your products. Please try again.",
+    "noImage": "No Image",
+    "skuLabel": "SKU: {sku}",
+    "salePrice": "Sale"
   }
 }
