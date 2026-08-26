@@ -11,6 +11,7 @@ import { MerchantsModule } from './modules/merchants/merchants.module';
 import { ProductsModule } from './modules/products/products.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { OAuthModule } from './modules/oauth/oauth.module';
+import { OffersModule } from './modules/offers/offers.module';
 import { SallaAuthGuard } from './common/guards/salla-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 
@@ -30,6 +31,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     ProductsModule,
     WebhooksModule,
     OAuthModule,
+    OffersModule,
   ],
   controllers: [AppController],
   providers: [
