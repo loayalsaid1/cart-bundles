@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { eq, and, ilike, sql, exists } from 'drizzle-orm';
+import { eq, and, ilike, sql, exists, or, SQL } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
 import { offers, offerTargets, schema } from '../../database/schema';
 import { FullOffer, Offer, OfferKind, OfferStatus, ServiceResult } from './types/offers.types';
@@ -10,7 +10,7 @@ type DashboardOfferShort = Pick<Offer, 'id' | 'internalName' | 'kind' | 'status'
 
 @Injectable()
 export class OffersService {
-  constructor(private readonly drizzleService: DrizzleService) {}
+  constructor(private readonly drizzleService: DrizzleService) { }
 
   private get db() {
     return this.drizzleService.db;
@@ -70,11 +70,41 @@ export class OffersService {
     return { success: true, data: updated as FullOffer };
   }
 
+
   async getActiveStorefrontOffers(merchantId: number, sallaProductId?: number): Promise<FullOffer[]> {
-    const allActive = (await this.db.query.offers.findMany({
-      where: and(eq(offers.merchantId, merchantId), eq(offers.status, 'active')),
+
+    // 1. Base conditions: Match merchant and active status
+    const conditions: (SQL | undefined)[] = [
+      eq(offers.merchantId, merchantId),
+      eq(offers.status, 'active'),
+    ];
+
+    // 2. If a specific product is being viewed, push the filtering to SQL!
+    if (sallaProductId) {
+      conditions.push(
+        or(
+          // Either the offer applies to the whole store...
+          eq(offers.targetType, 'all_products'),
+
+          // OR it specifically targets this product in the offerTargets table
+          exists(
+            this.db.select()
+              .from(offerTargets)
+              .where(
+                and(
+                  eq(offerTargets.offerId, offers.id),
+                  eq(offerTargets.sallaEntityId, sallaProductId)
+                )
+              )
+          )
+        )
+      );
+    }
+
+    // 3. Execute the highly-optimized query
+    const results = await this.db.query.offers.findMany({
+      where: and(...conditions),
       with: {
-        targets: true,
         relatedProducts: true,
         appearance: true,
         quantitySettings: true,
@@ -84,68 +114,63 @@ export class OffersService {
         upgradeSettings: true,
         recommendationSettings: true,
       },
-    })) as FullOffer[];
-
-    if (!sallaProductId) return allActive;
-
-    return allActive.filter((offer) => {
-      if (offer.targetType === 'all_products') return true;
-      return offer.targets.some((t) => t.sallaEntityId === sallaProductId);
     });
+
+    return results as FullOffer[];
   }
 
-async getDashboardOffers(
-  merchantId: number,
-  filters?: { search?: string; productId?: number; type?: OfferKind; status?: OfferStatus }
-): Promise<DashboardOfferShort[]> {
-  // 1. Build dynamic WHERE conditions
-  const conditions = [eq(offers.merchantId, merchantId)];
+  async getDashboardOffers(
+    merchantId: number,
+    filters?: { search?: string; productId?: number; type?: OfferKind; status?: OfferStatus }
+  ): Promise<DashboardOfferShort[]> {
+    // 1. Build dynamic WHERE conditions
+    const conditions = [eq(offers.merchantId, merchantId)];
 
-  if (filters?.search) {
-    conditions.push(ilike(offers.internalName, `%${filters.search}%`));
-  }
-  if (filters?.type) {
-    conditions.push(eq(offers.kind, filters.type));
-  }
-  if (filters?.status) {
-    conditions.push(eq(offers.status, filters.status));
-  }
-  
-  // 4. Logic to filter based on products included using EXISTS (Highly optimized in SQL)
-  if (filters?.productId) {
-    conditions.push(
-      exists(
-        this.db.select()
-          .from(offerTargets)
-          .where(and(
-            eq(offerTargets.offerId, offers.id),
-            eq(offerTargets.sallaEntityId, filters.productId)
-          ))
-      )
-    );
-  }
+    if (filters?.search) {
+      conditions.push(ilike(offers.internalName, `%${filters.search}%`));
+    }
+    if (filters?.type) {
+      conditions.push(eq(offers.kind, filters.type));
+    }
+    if (filters?.status) {
+      conditions.push(eq(offers.status, filters.status));
+    }
 
-  // 2. Query with Subqueries for Counts (Avoids N+1 and massive memory consumption)
-  const results = await this.db
-    .select({
-      id: offers.id,
-      internalName: offers.internalName,
-      kind: offers.kind,
-      status: offers.status,
-      expiryDate: offers.expiryDate,
-      // Aggregating targets count directly in PostgreSQL
-      targetsCount: sql<number>`(
+    // 4. Logic to filter based on products included using EXISTS (Highly optimized in SQL)
+    if (filters?.productId) {
+      conditions.push(
+        exists(
+          this.db.select()
+            .from(offerTargets)
+            .where(and(
+              eq(offerTargets.offerId, offers.id),
+              eq(offerTargets.sallaEntityId, filters.productId)
+            ))
+        )
+      );
+    }
+
+    // 2. Query with Subqueries for Counts (Avoids N+1 and massive memory consumption)
+    const results = await this.db
+      .select({
+        id: offers.id,
+        internalName: offers.internalName,
+        kind: offers.kind,
+        status: offers.status,
+        expiryDate: offers.expiryDate,
+        // Aggregating targets count directly in PostgreSQL
+        targetsCount: sql<number>`(
         SELECT count(*) 
         FROM ${offerTargets} 
         WHERE ${offerTargets.offerId} = ${offers.id}
       )::int`,
-      // Aggregate stats should be here next, but after I build the stats seprate module
-    })
-    .from(offers)
-    .where(and(...conditions))
-    
-    .orderBy(sql`${offers.createdAt} DESC`);
+        // Aggregate stats should be here next, but after I build the stats seprate module
+      })
+      .from(offers)
+      .where(and(...conditions))
 
-  return results;
-}
+      .orderBy(sql`${offers.createdAt} DESC`);
+
+    return results;
+  }
 }
