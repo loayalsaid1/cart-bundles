@@ -38,36 +38,19 @@ export class OffersService {
   async toggleStatus(
     merchantId: number,
     offerId: number,
-    status: 'active' | 'paused' | 'draft',
-  ): Promise<ServiceResult<FullOffer>> {
-    const offer = await this.db.query.offers.findFirst({
-      where: and(eq(offers.id, offerId), eq(offers.merchantId, merchantId)),
-    });
+    status: OfferStatus,
+  ): Promise<ServiceResult<Pick<Offer, 'id' | 'status'>>> {
+    const [ offer ] = await this.db
+      .update(offers)
+      .set({ status })
+      .where(and(eq(offers.id, offerId), eq(offers.merchantId, merchantId))) 
+      .returning({id: offers.id, status: offers.status});
+
     if (!offer) {
       return { success: false, reason: 'not_found' };
     }
 
-    await this.db
-      .update(offers)
-      .set({ status })
-      .where(eq(offers.id, offerId));
-
-    const updated = await this.db.query.offers.findFirst({
-      where: eq(offers.id, offerId),
-      with: {
-        targets: true,
-        relatedProducts: true,
-        appearance: true,
-        quantitySettings: true,
-        quantityTiers: true,
-        addonSettings: true,
-        bundleSettings: true,
-        upgradeSettings: true,
-        recommendationSettings: true,
-      },
-    });
-
-    return { success: true, data: updated as FullOffer };
+    return { success: true, data: offer };
   }
 
 
