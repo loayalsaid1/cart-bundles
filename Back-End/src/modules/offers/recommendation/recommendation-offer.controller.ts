@@ -13,19 +13,20 @@ import {
 import { RecommendationOfferService } from './recommendation-offer.service';
 import { CreateRecommendationOfferDto, UpdateRecommendationOfferDto } from './recommendation-offer.dto';
 import { RecommendationOfferFull } from '../types/offers.types';
+import { CurrentUser } from '../../../common/decorators';
 
 @Controller('offers/recommendation')
 export class RecommendationOfferController {
   constructor(private readonly service: RecommendationOfferService) {}
 
-  @Get(':merchantId')
-  async list(@Param('merchantId', ParseIntPipe) merchantId: number): Promise<RecommendationOfferFull[]> {
+  @Get()
+  async list(@CurrentUser('merchantId') merchantId: number): Promise<RecommendationOfferFull[]> {
     return this.service.list(merchantId);
   }
 
-  @Get(':merchantId/:offerId')
+  @Get(':offerId')
   async findOne(
-    @Param('merchantId', ParseIntPipe) merchantId: number,
+    @CurrentUser('merchantId') merchantId: number,
     @Param('offerId', ParseIntPipe) offerId: number,
   ): Promise<RecommendationOfferFull> {
     const result = await this.service.findOne(merchantId, offerId);
@@ -35,9 +36,9 @@ export class RecommendationOfferController {
     return result.data;
   }
 
-  @Post(':merchantId')
+  @Post()
   async create(
-    @Param('merchantId', ParseIntPipe) merchantId: number,
+    @CurrentUser('merchantId') merchantId: number,
     @Body() dto: CreateRecommendationOfferDto,
   ): Promise<RecommendationOfferFull> {
     const result = await this.service.create(merchantId, dto);
@@ -47,9 +48,9 @@ export class RecommendationOfferController {
     return result.data;
   }
 
-  @Put(':merchantId/:offerId')
+  @Put(':offerId')
   async update(
-    @Param('merchantId', ParseIntPipe) merchantId: number,
+    @CurrentUser('merchantId') merchantId: number,
     @Param('offerId', ParseIntPipe) offerId: number,
     @Body() dto: UpdateRecommendationOfferDto,
   ): Promise<RecommendationOfferFull> {
@@ -63,9 +64,9 @@ export class RecommendationOfferController {
     return result.data;
   }
 
-  @Delete(':merchantId/:offerId')
+  @Delete(':offerId')
   async remove(
-    @Param('merchantId', ParseIntPipe) merchantId: number,
+    @CurrentUser('merchantId') merchantId: number,
     @Param('offerId', ParseIntPipe) offerId: number,
   ): Promise<{ success: boolean }> {
     const result = await this.service.delete(merchantId, offerId);

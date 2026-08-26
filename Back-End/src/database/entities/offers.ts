@@ -24,6 +24,7 @@ export const offerKindEnum = pgEnum('offer_kind', [
   'cart_recommendation',
 ]);
 
+
 export const offerStatusEnum = pgEnum('offer_status', [
   'draft',
   'active',

@@ -9,13 +9,12 @@ import {
   Query,
 } from '@nestjs/common';
 import { OffersService } from './offers.service';
-import { IsPublic } from '../../common/decorators/is-public.decorator';
+import { CurrentUser, IsPublic } from '../../common/decorators';
 import { FullOffer } from './types/offers.types';
 
 @Controller('offers')
 export class OffersController {
   constructor(private readonly service: OffersService) {}
-
 
   @IsPublic()
   @Get('storefront/:merchantId')
@@ -26,14 +25,14 @@ export class OffersController {
     return this.service.getActiveStorefrontOffers(merchantId, productId);
   }
 
-  @Get(':merchantId')
-  async findAllForMerchant(@Param('merchantId', ParseIntPipe) merchantId: number): Promise<FullOffer[]> {
+  @Get()
+  async findAllForMerchant(@CurrentUser('merchantId') merchantId: number): Promise<FullOffer[]> {
     return this.service.findAllForMerchant(merchantId);
   }
 
-  @Patch(':merchantId/:offerId/status')
+  @Patch(':offerId/status')
   async toggleStatus(
-    @Param('merchantId', ParseIntPipe) merchantId: number,
+    @CurrentUser('merchantId') merchantId: number,
     @Param('offerId', ParseIntPipe) offerId: number,
     @Body('status') status: 'active' | 'paused' | 'draft',
   ): Promise<FullOffer> {

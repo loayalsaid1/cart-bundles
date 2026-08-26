@@ -13,19 +13,20 @@ import {
 import { AddonOfferService } from './addon-offer.service';
 import { CreateAddonOfferDto, UpdateAddonOfferDto } from './addon-offer.dto';
 import { AddonOfferFull } from '../types/offers.types';
+import { CurrentUser } from '../../../common/decorators';
 
 @Controller('offers/addon')
 export class AddonOfferController {
   constructor(private readonly service: AddonOfferService) {}
 
-  @Get(':merchantId')
-  async list(@Param('merchantId', ParseIntPipe) merchantId: number): Promise<AddonOfferFull[]> {
+  @Get()
+  async list(@CurrentUser('merchantId') merchantId: number): Promise<AddonOfferFull[]> {
     return this.service.list(merchantId);
   }
 
-  @Get(':merchantId/:offerId')
+  @Get(':offerId')
   async findOne(
-    @Param('merchantId', ParseIntPipe) merchantId: number,
+    @CurrentUser('merchantId') merchantId: number,
     @Param('offerId', ParseIntPipe) offerId: number,
   ): Promise<AddonOfferFull> {
     const result = await this.service.findOne(merchantId, offerId);
@@ -35,9 +36,9 @@ export class AddonOfferController {
     return result.data;
   }
 
-  @Post(':merchantId')
+  @Post()
   async create(
-    @Param('merchantId', ParseIntPipe) merchantId: number,
+    @CurrentUser('merchantId') merchantId: number,
     @Body() dto: CreateAddonOfferDto,
   ): Promise<AddonOfferFull> {
     const result = await this.service.create(merchantId, dto);
@@ -47,9 +48,9 @@ export class AddonOfferController {
     return result.data;
   }
 
-  @Put(':merchantId/:offerId')
+  @Put(':offerId')
   async update(
-    @Param('merchantId', ParseIntPipe) merchantId: number,
+    @CurrentUser('merchantId') merchantId: number,
     @Param('offerId', ParseIntPipe) offerId: number,
     @Body() dto: UpdateAddonOfferDto,
   ): Promise<AddonOfferFull> {
@@ -63,9 +64,9 @@ export class AddonOfferController {
     return result.data;
   }
 
-  @Delete(':merchantId/:offerId')
+  @Delete(':offerId')
   async remove(
-    @Param('merchantId', ParseIntPipe) merchantId: number,
+    @CurrentUser('merchantId') merchantId: number,
     @Param('offerId', ParseIntPipe) offerId: number,
   ): Promise<{ success: boolean }> {
     const result = await this.service.delete(merchantId, offerId);
