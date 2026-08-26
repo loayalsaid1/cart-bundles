@@ -7,14 +7,13 @@ import { EmbedContext } from '../../modules/auth/types/embed-context.interface';
  * (merchant_id / user_id) from the request.
  *
  * @example
- * @Get()
- * getProducts(@CurrentUser() context: EmbedContext) {
- *   return this.productsService.list(context.merchantId);
- * }
+ * getProducts(@CurrentUser() context: EmbedContext)
+ * list(@CurrentUser('merchantId') merchantId: number)
  */
 export const CurrentUser = createParamDecorator(
-  (_data: unknown, ctx: ExecutionContext): EmbedContext => {
+  (data: keyof EmbedContext | undefined, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
-    return request.user;
+    const user = request.user;
+    return data ? user?.[data] : user;
   },
 );
