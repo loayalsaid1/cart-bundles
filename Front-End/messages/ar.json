@@ -4,6 +4,8 @@
     "language": "اللغة",
     "english": "English",
     "arabic": "العربية",
+    "ar": "العربية",
+    "en": "الإنجليزية",
     "cancel": "إلغاء",
     "apply": "تطبيق",
     "loading": "جاري التحميل..."
@@ -40,7 +42,6 @@
     "headerTitle": "منتجات المتجر والأسعار",
     "headerSubtitle": "إدارة منتجات المتجر، وتحديد أسعار التخفيض العرضية، وإزالة الخصومات بالجملة.",
     "searchPlaceholder": "ابحث عن المنتجات بالاسم أو الترمز (SKU)...",
-
     "selectedCount": "تم تحديد {count} منتج",
     "setSalePrice": "تحديد سعر التخفيض",
     "productColumn": "المنتج",
@@ -56,7 +57,11 @@
   },
   "EmbedLayout": {
     "navProducts": "المنتجات",
-    "navTest": "الاختبار"
+    "navTest": "الاختبار",
+    "navOffers": "العروض",
+    "products-page": "المنتجات",
+    "test-page": "الاختبار",
+    "offers-page": "العروض"
   },
   "ProductCard": {
     "selectProduct": "تحديد المنتج",
@@ -74,29 +79,222 @@
   "TestPage": {
     "title": "مرحبا بك"
   },
-"Login": {
-    "title": "[Arabic] ... Cart Bundles",
-    "subtitle": "[Arabic] ... Sign in with your Salla account to manage your store products.",
-    "signInWithSalla": "[Arabic] ... Login with Salla",
-    "hint": "[Arabic] ... You will be redirected to Salla to authorize this app.",
-    "loggingIn": "[Arabic] ... Signing you in...",
-    "errorTitle": "[Arabic] ... Sign-in failed",
-    "errorMissingParams": "[Arabic] ... Missing authorization parameters from Salla.",
-    "errorDenied": "[Arabic] ... You denied authorization, or the request was cancelled.",
-    "errorFailed": "[Arabic] ... Something went wrong. Please try again.",
-    "backToLogin": "[Arabic] ... Back to login"
+  "Login": {
+    "title": "حزم السلة",
+    "subtitle": "سجل الدخول باستخدام حساب سلة لإدارة منتجات متجرك.",
+    "signInWithSalla": "تسجيل الدخول مع سلة",
+    "hint": "سيتم إعادة توجيهك إلى سلة لتفويض هذا التطبيق.",
+    "loggingIn": "جاري تسجيل الدخول...",
+    "errorTitle": "فشل تسجيل الدخول",
+    "errorMissingParams": "معلمات التفويض مفقودة من سلة.",
+    "errorDenied": "لقد رفضت التفويض أو تم إلغاء الطلب.",
+    "errorFailed": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+    "backToLogin": "العودة لتسجيل الدخول"
   },
   "ProductsPage": {
-    "title": "[Arabic] .... Store Products",
-    "subtitle": "[Arabic] .... Products and recommendations from your Salla store.",
-    "productsTitle": "[Arabic] .... Your Products",
-    "recommendationsTitle": "[Arabic] .... Recommendations (On Sale)",
-    "logout": "[Arabic] .... Logout",
-    "noProducts": "[Arabic] .... No products found.",
-    "noRecommendations": "[Arabic] .... No on-sale recommendations right now.",
-    "errorFailed": "[Arabic] .... Failed to load your products. Please try again.",
-    "noImage": "[Arabic] .... No Image",
-    "skuLabel": "[Arabic] .... SKU: {sku}",
-    "salePrice": "[Arabic] .... Sale"
+    "title": "منتجات المتجر",
+    "subtitle": "المنتجات والتوصيات من متجر سلة الخاص بك.",
+    "productsTitle": "منتجاتك",
+    "recommendationsTitle": "التوصيات (عليها تخفيض)",
+    "logout": "تسجيل الخروج",
+    "noProducts": "لم يتم العثور على منتجات.",
+    "noRecommendations": "لا توجد توصيات مخفضة حالياً.",
+    "errorFailed": "تعذر تحميل منتجاتك. يرجى المحاولة مرة أخرى.",
+    "noImage": "لا توجد صورة",
+    "skuLabel": "رمز المنتج: {sku}",
+    "salePrice": "تخفيض"
+  },
+  "Offers": {
+    "kind": {
+      "quantity_discount": "عرض خاص بالكمية",
+      "product_add_on": "منتجات إضافية",
+      "bundle": "باقة المنتجات",
+      "upgrade_offer": "عرض الترقية",
+      "cart_recommendation": "ترشيحات السلة"
+    },
+    "status": {
+      "active": "نشط",
+      "draft": "مسودة",
+      "paused": "موقوف",
+      "expired": "منتهي"
+    },
+    "masterList": {
+      "title": "العروض",
+      "subtitle": "أنشئ وأدر العروض الخاصة بمتجرك.",
+      "newOffer": "عرض جديد",
+      "kpis": {
+        "active": "العروض النشطة",
+        "targeted": "المنتجات المستهدفة",
+        "revenue": "إيرادات البيع الإضافي",
+        "conversion": "معدل التحويل",
+        "na": "—"
+      },
+      "filters": {
+        "searchPlaceholder": "ابحث باسم العرض أو المنتج...",
+        "allTypes": "جميع الأنواع",
+        "allStatuses": "جميع الحالات"
+      },
+      "tabs": { "all": "الكل" },
+      "table": {
+        "name": "العرض",
+        "targets": "الأهداف",
+        "status": "الحالة",
+        "expiry": "ينتهي",
+        "actions": "الإجراءات"
+      },
+      "targets": {
+        "all": "المتجر كاملاً",
+        "count": "{count} أهداف"
+      },
+      "status": { "label": "حالة العرض" },
+      "never": "بدون انتهاء",
+      "empty": "لا توجد عروض بعد. أنشئ أول عرض لك.",
+      "error": "تعذر تحميل العروض.",
+      "retry": "إعادة المحاولة",
+      "actions": {
+        "label": "إجراءات العرض",
+        "edit": "تعديل",
+        "duplicate": "تكرار",
+        "delete": "حذف",
+        "cancel": "إلغاء",
+        "deleteTitle": "حذف العرض",
+        "deleteText": "حذف \"{name}\"؟ لا يمكن التراجع عن هذا الإجراء."
+      }
+    },
+    "typeSelector": {
+      "title": "اختر نوع العرض",
+      "subtitle": "اختر نوع العرض الذي تريد إنشاءه.",
+      "create": "إنشاء",
+      "comingSoon": "قريباً",
+      "quantity_discount": {
+        "description": "خصومات متدرجة عندما يشتري العميل كمية أكبر من نفس المنتج."
+      },
+      "product_add_on": {
+        "description": "اقترح منتجات مكملة في صفحة المنتج."
+      },
+      "bundle": {
+        "description": "جمّع المنتجات التي تُشترى معاً بسعر حزمة مميز."
+      },
+      "upgrade_offer": {
+        "description": "اقترح بديلاً أعلى قيمة لزيادة متوسط الطلب."
+      },
+      "cart_recommendation": {
+        "description": "اقترح منتجات بناءً على ما هو موجود في السلة."
+      }
+    },
+    "builder": {
+      "titleNew": "عرض كمية جديد",
+      "titleEdit": "تعديل عرض الكمية",
+      "cancel": "إلغاء",
+      "next": "التالي",
+      "save": "حفظ العرض",
+      "steps": {
+        "info": "معلومات عامة",
+        "targeting": "الاستهداف",
+        "settings": "الفئات والسلوك",
+        "appearance": "المظهر"
+      },
+      "notifications": {
+        "validationFailed": "يرجى تصحيح الحقول المحددة قبل الحفظ.",
+        "saved": "تم حفظ العرض"
+      }
+    },
+    "quantity": {
+      "info": {
+        "internalName": "الاسم الداخلي",
+        "internalNamePlaceholder": "مثال: كميات رمضان",
+        "title": "العنوان في المتجر",
+        "titlePlaceholderAr": "وفّر أكثر عند شراء كميات أكبر",
+        "titlePlaceholderEn": "Save more when you buy more",
+        "subtitle": "العنوان الفرعي في المتجر",
+        "subtitlePlaceholderAr": "خصومات متدرجة على الكميات",
+        "subtitlePlaceholderEn": "Tiered discounts on quantities",
+        "expiry": "تاريخ الانتهاء",
+        "noExpiry": "بدون تاريخ انتهاء"
+      },
+      "targeting": {
+        "all_products": "جميع منتجات المتجر",
+        "selected_products": "منتجات محددة",
+        "selected_categories": "فئات محددة",
+        "pickProducts": "اختيار المنتجات",
+        "pickCategories": "اختيار الفئات"
+      },
+      "tiers": {
+        "title": "فئات الكمية",
+        "addTier": "إضافة فئة",
+        "tierLabel": "الفئة {index}",
+        "quantity": "الكمية",
+        "mainTitle": "العنوان",
+        "badgeText": "نص الشارة",
+        "percentage": "نسبة مئوية (%)",
+        "fixed": "مبلغ ثابت (ر.س)",
+        "discountValue": "قيمة الخصم",
+        "defaultSelected": "محددة افتراضياً",
+        "moveUp": "تحريك لأعلى",
+        "moveDown": "تحريك لأسفل",
+        "removeTier": "حذف الفئة"
+      },
+      "settings": {
+        "behavior": "سلوك المتجر",
+        "allowDifferentOptionsPerPiece": "السماح بخيارات مختلفة لكل قطعة",
+        "hideThemeDefaultOptions": "إخفاء قائمة الكمية الافتراضية للقالب",
+        "showPricePerPiece": "عرض السعر للقطعة الواحدة",
+        "roundPriceToNearestInteger": "تقريب الأسعار لأقرب عدد صحيح",
+        "applyEvenWithCoupon": "التطبيق حتى عند استخدام كوبون",
+        "hideQuantityField": "إخفاء حقل الكمية",
+        "redirectToCartAfterAdd": "الانتقال إلى السلة بعد الإضافة"
+      },
+      "appearance": {
+        "borderRadius": "استدارة الزوايا",
+        "presetsLabel": "قوالب جاهزة",
+        "presets": {
+          "minimal": "حدود بسيطة",
+          "solid": "بطاقة صلبة",
+          "compact": "قائمة مضغوطة"
+        },
+        "colors": {
+          "cardBg": "خلفية البطاقة",
+          "cardBorder": "حدود البطاقة",
+          "selectedTier": "الفئة المحددة",
+          "badgeBg": "خلفية الشارة",
+          "badgeText": "نص الشارة",
+          "savings": "تمييز التوفير"
+        }
+      }
+    },
+    "pickers": {
+      "cancel": "إلغاء",
+      "apply": "تطبيق",
+      "remove": "إزالة",
+      "products": {
+        "title": "اختيار المنتجات",
+        "description": "اختر المنتجات التي ينطبق عليها هذا العرض.",
+        "searchPlaceholder": "ابحث عن المنتجات...",
+        "empty": "لا توجد منتجات.",
+        "typeToSearch": "اكتب للبحث عن المنتجات.",
+        "noImage": "لا توجد صورة",
+        "selectedCount": "{count} محدد"
+      },
+      "categories": {
+        "title": "اختيار الفئات",
+        "description": "اختر الفئات التي ينطبق عليها هذا العرض.",
+        "searchPlaceholder": "ابحث عن الفئات...",
+        "empty": "لا توجد فئات.",
+        "typeToSearch": "اكتب للبحث عن الفئات.",
+        "noImage": "لا توجد صورة",
+        "selectedCount": "{count} محدد"
+      }
+    },
+    "preview": {
+      "title": "معاينة مباشرة",
+      "desktop": "عرض سطح المكتب",
+      "mobile": "عرض الجوال",
+      "locale": "تبديل لغة المعاينة",
+      "productImage": "صورة المنتج",
+      "productName": "منتج تجريبي",
+      "currency": "ر.س",
+      "save": "وفّر {amount}",
+      "addToCart": "أضف إلى السلة"
+    }
   }
 }

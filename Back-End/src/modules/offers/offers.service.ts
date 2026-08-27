@@ -2,10 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { eq, and, ilike, sql, exists, or, SQL } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
 import { offers, offerTargets, schema } from '../../database/schema';
-import { FullOffer, Offer, OfferKind, OfferStatus, ServiceResult } from './types/offers.types';
-
-// partial type of offers plus count of targets
-type DashboardOfferShort = Pick<Offer, 'id' | 'internalName' | 'kind' | 'status' | 'expiryDate'> & { targetsCount: number };
+import { DashboardOfferShort, FullOffer, Offer, OfferKind, OfferStatus, ServiceResult } from './types/offers.types';
 
 
 @Injectable()

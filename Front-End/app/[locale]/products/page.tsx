@@ -15,9 +15,9 @@ interface MeResponse {
 function ProductCard({ product }: { product: Product }) {
   const t = useTranslations("ProductsPage");
   const hasSale =
-    product.sale_price &&
-    product.sale_price.amount > 0 &&
-    product.sale_price.amount !== product.price.amount;
+    Boolean(product.sale_price) &&
+    (product.sale_price?.amount ?? 0) > 0 &&
+    product.sale_price?.amount !== product.price.amount;
 
   return (
     <div className="flex gap-3 rounded-xl border bg-card p-3">
@@ -44,8 +44,8 @@ function ProductCard({ product }: { product: Product }) {
           {hasSale ? (
             <>
               <span className="text-xs font-semibold text-emerald-600">
-                {t("salePrice")}: {product.sale_price.amount}{" "}
-                {product.sale_price.currency}
+                {t("salePrice")}: {product.sale_price?.amount}{" "}
+                {product.sale_price?.currency}
               </span>
               <span className="text-xs text-muted-foreground line-through">
                 {product.price.amount} {product.price.currency}

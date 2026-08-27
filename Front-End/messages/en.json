@@ -4,6 +4,8 @@
     "language": "Language",
     "english": "English",
     "arabic": "العربية",
+    "ar": "Arabic",
+    "en": "English",
     "cancel": "Cancel",
     "apply": "Apply",
     "loading": "Loading..."
@@ -40,7 +42,6 @@
     "headerTitle": "Store Products & Pricing",
     "headerSubtitle": "Manage store products, set promotional sale prices, and remove discounts in bulk.",
     "searchPlaceholder": "Search products by name or SKU...",
-
     "selectedCount": "{count} product(s) selected",
     "setSalePrice": "Set Sale Price",
     "productColumn": "Product",
@@ -56,7 +57,11 @@
   },
   "EmbedLayout": {
     "navProducts": "Products",
-    "navTest": "Test"
+    "navTest": "Test",
+    "navOffers": "Offers",
+    "products-page": "Products",
+    "test-page": "Test",
+    "offers-page": "Offers"
   },
   "ProductCard": {
     "selectProduct": "Select product",
@@ -98,5 +103,198 @@
     "noImage": "No Image",
     "skuLabel": "SKU: {sku}",
     "salePrice": "Sale"
+  },
+  "Offers": {
+    "kind": {
+      "quantity_discount": "Quantity Discount",
+      "product_add_on": "Additional Products",
+      "bundle": "Product Bundle",
+      "upgrade_offer": "Upgrade Offer",
+      "cart_recommendation": "Cart Recommendations"
+    },
+    "status": {
+      "active": "Active",
+      "draft": "Draft",
+      "paused": "Paused",
+      "expired": "Expired"
+    },
+    "masterList": {
+      "title": "Offers",
+      "subtitle": "Create and manage offers for your storefront.",
+      "newOffer": "New Offer",
+      "kpis": {
+        "active": "Active offers",
+        "targeted": "Targets",
+        "revenue": "Upsell revenue",
+        "conversion": "Conversion rate",
+        "na": "—"
+      },
+      "filters": {
+        "searchPlaceholder": "Search by offer name or product...",
+        "allTypes": "All types",
+        "allStatuses": "All statuses"
+      },
+      "tabs": { "all": "All" },
+      "table": {
+        "name": "Offer",
+        "targets": "Targets",
+        "status": "Status",
+        "expiry": "Expires",
+        "actions": "Actions"
+      },
+      "targets": {
+        "all": "All store",
+        "count": "{count} targets"
+      },
+      "status": { "label": "Offer status" },
+      "never": "Never",
+      "empty": "No offers yet. Create your first offer.",
+      "error": "Failed to load offers.",
+      "retry": "Retry",
+      "actions": {
+        "label": "Offer actions",
+        "edit": "Edit",
+        "duplicate": "Duplicate",
+        "delete": "Delete",
+        "cancel": "Cancel",
+        "deleteTitle": "Delete offer",
+        "deleteText": "Delete \"{name}\"? This cannot be undone."
+      }
+    },
+    "typeSelector": {
+      "title": "Choose an offer type",
+      "subtitle": "Pick the type of offer you want to build.",
+      "create": "Create",
+      "comingSoon": "Coming soon",
+      "quantity_discount": {
+        "description": "Tiered discounts when customers buy more of the same product."
+      },
+      "product_add_on": {
+        "description": "Recommend complementary products on the product page."
+      },
+      "bundle": {
+        "description": "Group products usually bought together at a bundle price."
+      },
+      "upgrade_offer": {
+        "description": "Suggest a higher-value alternative to increase order value."
+      },
+      "cart_recommendation": {
+        "description": "Recommend products based on what is already in the cart."
+      }
+    },
+    "builder": {
+      "titleNew": "New Quantity Discount",
+      "titleEdit": "Edit Quantity Discount",
+      "cancel": "Cancel",
+      "next": "Next",
+      "save": "Save offer",
+      "steps": {
+        "info": "General info",
+        "targeting": "Targeting",
+        "settings": "Tiers & behavior",
+        "appearance": "Appearance"
+      },
+      "notifications": {
+        "validationFailed": "Please fix the highlighted fields before saving.",
+        "saved": "Offer saved"
+      }
+    },
+    "quantity": {
+      "info": {
+        "internalName": "Internal name",
+        "internalNamePlaceholder": "e.g. Ramadan quantities",
+        "title": "Storefront title",
+        "titlePlaceholderAr": "وفر أكثر عند شراء كميات أكبر",
+        "titlePlaceholderEn": "Save more when you buy more",
+        "subtitle": "Storefront subtitle",
+        "subtitlePlaceholderAr": "خصومات متدرجة على الكميات",
+        "subtitlePlaceholderEn": "Tiered discounts on quantities",
+        "expiry": "Expiry date",
+        "noExpiry": "No expiry date"
+      },
+      "targeting": {
+        "all_products": "All products in the store",
+        "selected_products": "Selected products",
+        "selected_categories": "Selected categories",
+        "pickProducts": "Choose products",
+        "pickCategories": "Choose categories"
+      },
+      "tiers": {
+        "title": "Quantity tiers",
+        "addTier": "Add tier",
+        "tierLabel": "Tier {index}",
+        "quantity": "Quantity",
+        "mainTitle": "Title",
+        "badgeText": "Badge text",
+        "percentage": "Percentage (%)",
+        "fixed": "Fixed amount (SAR)",
+        "discountValue": "Discount value",
+        "defaultSelected": "Selected by default",
+        "moveUp": "Move up",
+        "moveDown": "Move down",
+        "removeTier": "Remove tier"
+      },
+      "settings": {
+        "behavior": "Storefront behavior",
+        "allowDifferentOptionsPerPiece": "Allow different options per piece",
+        "hideThemeDefaultOptions": "Hide the theme quantity dropdown",
+        "showPricePerPiece": "Show price per piece",
+        "roundPriceToNearestInteger": "Round prices to nearest integer",
+        "applyEvenWithCoupon": "Apply even when a coupon is used",
+        "hideQuantityField": "Hide the quantity field",
+        "redirectToCartAfterAdd": "Redirect to cart after adding"
+      },
+      "appearance": {
+        "borderRadius": "Corner radius",
+        "presetsLabel": "Preset templates",
+        "presets": {
+          "minimal": "Minimal bordered",
+          "solid": "Solid card",
+          "compact": "Compact radio list"
+        },
+        "colors": {
+          "cardBg": "Card background",
+          "cardBorder": "Card border",
+          "selectedTier": "Selected tier",
+          "badgeBg": "Badge background",
+          "badgeText": "Badge text",
+          "savings": "Savings highlight"
+        }
+      }
+    },
+    "pickers": {
+      "cancel": "Cancel",
+      "apply": "Apply",
+      "remove": "Remove",
+      "products": {
+        "title": "Choose products",
+        "description": "Select the products this offer applies to.",
+        "searchPlaceholder": "Search products...",
+        "empty": "No products found.",
+        "typeToSearch": "Type to search products.",
+        "noImage": "No image",
+        "selectedCount": "{count} selected"
+      },
+      "categories": {
+        "title": "Choose categories",
+        "description": "Select the categories this offer applies to.",
+        "searchPlaceholder": "Search categories...",
+        "empty": "No categories found.",
+        "typeToSearch": "Type to search categories.",
+        "noImage": "No image",
+        "selectedCount": "{count} selected"
+      }
+    },
+    "preview": {
+      "title": "Live preview",
+      "desktop": "Desktop view",
+      "mobile": "Mobile view",
+      "locale": "Toggle preview language",
+      "productImage": "Product image",
+      "productName": "Sample product",
+      "currency": "SAR",
+      "save": "Save {amount}",
+      "addToCart": "Add to cart"
+    }
   }
 }

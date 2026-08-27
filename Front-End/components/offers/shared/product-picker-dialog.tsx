@@ -1,0 +1,138 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useProductSearch } from "@/hooks/use-product-search";
+import type { Product } from "@/types/product";
+
+interface ProductPickerDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  selectedIds: number[];
+  onApply: (products: Product[]) => void;
+}
+
+export function ProductPickerDialog({
+  open,
+  onOpenChange,
+  selectedIds,
+  onApply,
+}: ProductPickerDialogProps) {
+  const t = useTranslations("Offers");
+  const [query, setQuery] = useState("");
+  const [picked, setPicked] = useState<Map<number, Product>>(new Map());
+  const { data: products } = useProductSearch(query.trim(), open);
+
+  useEffect(() => {
+    if (open) {
+      setQuery("");
+      setPicked(new Map());
+    }
+  }, [open]);
+
+  const toggle = (product: Product) => {
+    setPicked((prev) => {
+      const next = new Map(prev);
+      if (next.has(product.id)) next.delete(product.id);
+      else next.set(product.id, product);
+      return next;
+    });
+  };
+
+  const apply = () => {
+    onApply([...picked.values()]);
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-xl">
+        <DialogHeader>
+          <DialogTitle>{t("pickers.products.title")}</DialogTitle>
+          <DialogDescription>{t("pickers.products.description")}</DialogDescription>
+        </DialogHeader>
+
+        <Command shouldFilter={false} className="rounded-lg border">
+          <CommandInput
+            value={query}
+            onValueChange={setQuery}
+            placeholder={t("pickers.products.searchPlaceholder")}
+          />
+          <CommandList className="max-h-72">
+            <CommandEmpty>
+              {query
+                ? t("pickers.products.empty")
+                : t("pickers.products.typeToSearch")}
+            </CommandEmpty>
+            {products && products.length > 0 && (
+              <CommandGroup>
+                {products.map((product) => {
+                  const checked = picked.has(product.id);
+                  return (
+                    <CommandItem
+                      key={product.id}
+                      value={String(product.id)}
+                      onSelect={() => toggle(product)}
+                      className="flex items-center gap-3"
+                    >
+                      <Checkbox checked={checked} onCheckedChange={() => toggle(product)} />
+                      {product.thumbnail ? (
+                        <img
+                          src={product.thumbnail}
+                          alt={product.name}
+                          className="size-10 rounded-md object-cover"
+                        />
+                      ) : (
+                        <div className="flex size-10 items-center justify-center rounded-md bg-muted text-[10px] text-muted-foreground">
+                          {t("pickers.products.noImage")}
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{product.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {product.price?.amount} {product.price?.currency}
+                        </p>
+                      </div>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            )}
+          </CommandList>
+        </Command>
+
+        <DialogFooter className="gap-2 sm:justify-between">
+          <p className="text-xs text-muted-foreground">
+            {t("pickers.products.selectedCount", { count: picked.size })}
+          </p>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              {t("pickers.cancel")}
+            </Button>
+            <Button onClick={apply} disabled={picked.size === 0}>
+              {t("pickers.apply")}
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

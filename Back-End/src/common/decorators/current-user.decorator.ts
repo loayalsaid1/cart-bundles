@@ -4,11 +4,16 @@ import { EmbedContext } from '../../modules/auth/types/embed-context.interface';
 
 /**
  * Parameter decorator that extracts the authenticated embed context
- * (merchant_id / user_id) from the request.
+ * (or a specific field from it) from the request.
  *
  * @example
- * getProducts(@CurrentUser() context: EmbedContext)
- * list(@CurrentUser('merchantId') merchantId: number)
+ * // Full context
+ * @Get()
+ * list(@CurrentUser() user: EmbedContext) { ... }
+ *
+ * // Single field — @CurrentUser('merchantId') returns a number
+ * @Get()
+ * list(@CurrentUser('merchantId') merchantId: number) { ... }
  */
 export const CurrentUser = createParamDecorator(
   (data: keyof EmbedContext | undefined, ctx: ExecutionContext) => {

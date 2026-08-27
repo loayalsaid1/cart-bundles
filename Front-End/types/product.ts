@@ -1,33 +1,33 @@
 export interface ProductPrice {
   amount: number;
-  currency: string;
+  currency?: string;
 }
 
 export interface Product {
   id: number;
   name: string;
-  sku: string;
-  thumbnail: string | null;
+  sku?: string;
+  thumbnail?: string | null;
 
   price: ProductPrice;
   regular_price?: ProductPrice;
-  sale_price: ProductPrice;
+  sale_price?: ProductPrice;
 
-  quantity: number | string;
-  unlimited_quantity: boolean;
+  quantity?: number | string;
+  unlimited_quantity?: boolean;
 
-  status: string;
-  is_available: boolean;
-  has_special_price: boolean;
+  status?: string;
+  is_available?: boolean;
+  has_special_price?: boolean;
 
-  type: string;
+  type?: string;
 
-  urls: {
-    customer: string;
-    admin: string;
+  urls?: {
+    customer?: string;
+    admin?: string;
   };
 
-  updated_at: string;
+  updated_at?: string;
 }
 
 export interface ApplyPricingPayload {

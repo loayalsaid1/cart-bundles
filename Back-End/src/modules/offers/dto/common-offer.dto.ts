@@ -21,7 +21,14 @@ export class OfferInfoDto {
   subtitle?: Record<string, string>;
 
   @IsISO8601()
-  expiryDate: string;
+  @IsOptional()
+  expiryDate?: string;
+}
+
+export function toExpiryDate(value?: string): Date | null {
+  if (!value) return null;
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
 export class OfferTargetingDto {

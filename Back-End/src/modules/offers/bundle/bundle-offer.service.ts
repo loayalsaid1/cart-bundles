@@ -10,6 +10,7 @@ import {
 } from '../../../database/schema';
 import { MerchantsService } from '../../merchants/merchants.service';
 import { CreateBundleOfferDto, UpdateBundleOfferDto } from './bundle-offer.dto';
+import { toExpiryDate } from '../dto/common-offer.dto';
 import { BundleOfferFull, ServiceResult } from '../types/offers.types';
 
 const SALLA_SPECIAL_OFFERS_URL = 'https://api.salla.dev/admin/v2/specialoffers';
@@ -57,7 +58,7 @@ export class BundleOfferService {
           title: dto.info.title,
           subtitle: dto.info.subtitle,
           targetType: dto.targeting.type,
-          expiryDate: new Date(dto.info.expiryDate),
+          expiryDate: toExpiryDate(dto.info.expiryDate),
           status: 'draft',
           redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
           hideSallaPopup: dto.settings.hideSallaPopup ?? true,
@@ -124,7 +125,7 @@ export class BundleOfferService {
           title: dto.info.title,
           subtitle: dto.info.subtitle,
           targetType: dto.targeting.type,
-          expiryDate: new Date(dto.info.expiryDate),
+          expiryDate: toExpiryDate(dto.info.expiryDate),
           redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
           hideSallaPopup: dto.settings.hideSallaPopup ?? true,
         })

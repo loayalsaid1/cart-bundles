@@ -3,6 +3,14 @@ export interface ProductPrice {
   currency: string;
 }
 
+export interface Category {
+  id: number;
+  name: string;
+  image: string;
+  status: string;
+  parent_id: number | null;
+}
+
 export interface Product {
   id: number;
   name: string;

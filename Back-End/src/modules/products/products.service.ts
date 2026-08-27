@@ -2,6 +2,7 @@ import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import {
   ApplyPricingPayload,
   ApplyPricingResult,
+  Category,
   Product,
 } from './product.types';
 
@@ -32,6 +33,35 @@ export class ProductsService {
 
     const json = (await response.json()) as { data?: Product[] };
     return json.data ?? [];
+  }
+
+  async getCategories(accessToken: string, keyword?: string): Promise<Category[]> {
+    const queryParam = keyword ? `?keyword=${encodeURIComponent(keyword)}` : '';
+    const url = `${SALLA_API_BASE_URL}/categories${queryParam}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${accessToken}` },
+      redirect: 'follow',
+    });
+
+    if (!response.ok) {
+      throw new BadRequestException(
+        `Salla API error: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    const { data } = await response.json();
+    // Aparently the categry response is a gigantic object, so i'm taking only what I need
+    const returnValue:Category[] = data.map((category: Category) => ({
+      id: category.id,
+      image: category.image,
+      parent_id: category.parent_id,
+      status: category.status,
+      name: category.name,
+    }));
+
+    return returnValue;
   }
 
   /**

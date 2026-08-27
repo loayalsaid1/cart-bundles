@@ -7,6 +7,7 @@ import {
   recommendationOfferSettings,
 } from '../../../database/schema';
 import { CreateRecommendationOfferDto, UpdateRecommendationOfferDto } from './recommendation-offer.dto';
+import { toExpiryDate } from '../dto/common-offer.dto';
 import { RecommendationOfferFull, ServiceResult } from '../types/offers.types';
 
 @Injectable()
@@ -50,7 +51,7 @@ export class RecommendationOfferService {
           title: dto.info.title,
           subtitle: dto.info.subtitle,
           targetType: dto.targeting?.type ?? 'all_products',
-          expiryDate: new Date(dto.info.expiryDate),
+          expiryDate: toExpiryDate(dto.info.expiryDate),
           status: 'active',
         })
         .returning();
@@ -93,7 +94,7 @@ export class RecommendationOfferService {
           internalName: dto.info.internalName,
           title: dto.info.title,
           subtitle: dto.info.subtitle,
-          expiryDate: new Date(dto.info.expiryDate),
+          expiryDate: toExpiryDate(dto.info.expiryDate),
         })
         .where(eq(offers.id, offerId));
 

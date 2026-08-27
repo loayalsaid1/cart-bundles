@@ -7,6 +7,7 @@ import {
   upgradeOfferSettings,
 } from '../../../database/schema';
 import { CreateUpgradeOfferDto, UpdateUpgradeOfferDto } from './upgrade-offer.dto';
+import { toExpiryDate } from '../dto/common-offer.dto';
 import { ServiceResult, UpgradeOfferFull } from '../types/offers.types';
 
 @Injectable()
@@ -47,7 +48,7 @@ export class UpgradeOfferService {
           title: dto.info.title,
           subtitle: dto.info.subtitle,
           targetType: dto.targeting.type,
-          expiryDate: new Date(dto.info.expiryDate),
+          expiryDate: toExpiryDate(dto.info.expiryDate),
           status: 'active',
           redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
           hideSallaPopup: dto.settings.hideSallaPopup ?? true,
@@ -94,7 +95,7 @@ export class UpgradeOfferService {
           title: dto.info.title,
           subtitle: dto.info.subtitle,
           targetType: dto.targeting.type,
-          expiryDate: new Date(dto.info.expiryDate),
+          expiryDate: toExpiryDate(dto.info.expiryDate),
           redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
           hideSallaPopup: dto.settings.hideSallaPopup ?? true,
         })

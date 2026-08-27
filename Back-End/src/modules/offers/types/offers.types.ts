@@ -86,6 +86,11 @@ export interface FullOffer extends Offer {
   recommendationSettings: RecommendationOfferSettings | null;
 }
 
+export type DashboardOfferShort = Pick<
+  Offer,
+  'id' | 'internalName' | 'kind' | 'status' | 'expiryDate'
+> & { targetsCount: number };
+
 export type ServiceResult<T> =
   | { success: true; data: T }
   | { success: false; reason: 'not_found'; error?: string }
