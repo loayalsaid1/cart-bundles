@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { useRouter, usePathname } from '@/i18n/routing';
 import { Toaster } from '@/components/ui/sonner';
+import ReactQueryProvider from '@/app/react-query-providers';
 
 function applyTheme(isDark: boolean) {
     if (isDark) {
@@ -122,11 +123,13 @@ export default function EmbedLayout({ children }: { children: React.ReactNode })
 
     return (
         <div className="embed-layout min-h-screen bg-background text-foreground">
+            <ReactQueryProvider>
             <Suspense fallback={null}>
                 <DarkModeSync />
             </Suspense>
             {children}
             <Toaster position="bottom-right" />
+            </ReactQueryProvider>
         </div>
     );
 }
