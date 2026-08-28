@@ -7,7 +7,7 @@ export default async function EditOfferPage({
   params: Promise<{ type: string; id: string }>;
 }) {
   const { type, id } = await params;
-  if (type !== "quantity") notFound();
+  if (type !== "quantity_discount") notFound();
   const offerId = Number(id);
   if (!Number.isInteger(offerId)) notFound();
   return <QuantityOfferBuilder offerId={offerId} />;

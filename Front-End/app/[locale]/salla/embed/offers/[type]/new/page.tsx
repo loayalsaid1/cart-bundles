@@ -7,6 +7,6 @@ export default async function NewOfferTypePage({
   params: Promise<{ type: string }>;
 }) {
   const { type } = await params;
-  if (type !== "quantity") notFound();
+  if (type !== "quantity_discount") notFound();
   return <QuantityOfferBuilder />;
 }

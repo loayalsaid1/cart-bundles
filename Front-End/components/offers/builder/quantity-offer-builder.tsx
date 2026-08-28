@@ -84,7 +84,7 @@ export function QuantityOfferBuilder({ offerId }: { offerId?: number }) {
     router.push("/salla/embed/offers");
   };
 
-  if (isPending) {
+  if (offerId != null && isPending) {
     return (
       <div className="space-y-4 p-6">
         <Skeleton className="h-8 w-64" />

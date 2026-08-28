@@ -24,7 +24,7 @@ export function OfferActionsMenu({ offer }: { offer: DashboardOffer }) {
 
   const edit = () => {
     if (offer.kind !== "quantity_discount") return;
-    router.push(`/salla/embed/offers/quantity/${offer.id}/edit`);
+    router.push(`/salla/embed/offers/${offer.kind}/${offer.id}/edit`);
   };
 
   const duplicate = async () => {
