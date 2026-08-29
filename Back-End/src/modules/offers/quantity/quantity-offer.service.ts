@@ -212,30 +212,49 @@ export class QuantityOfferService {
         return { success: false, error: 'Merchant access token unavailable' };
       }
       const isCategory = offer.targetType === 'selected_categories';
+      const isAll = offer.targetType === 'all_products';
       const entityIds = offer.targets.map((t) => Number(t.sallaEntityId)).filter(Boolean);
+
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const formatDate = (d: Date) =>
+        `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+
+      const startDateStr = formatDate(new Date());
+      const expiryDateStr = offer.expiryDate ? formatDate(new Date(offer.expiryDate)) : undefined;
+
+      const tiers = offer.quantityTiers
+        .sort((a, b) => a.position - b.position)
+        .map((t) => ({
+          quantity: t.quantity,
+          discount_type: t.pricingType,
+          discount_amount: Number(t.discountAmount),
+        }));
+
+      const appliedTo = isAll ? 'order' : isCategory ? 'category' : 'product';
+
       const payload: Record<string, unknown> = {
         name: offer.internalName,
         message: offer.title?.['ar'] ?? offer.internalName,
         applied_channel: 'browser_and_application',
-        applied_to: offer.targetType === 'all_products' ? 'all_products' : isCategory ? 'category' : 'product',
-        start_date: new Date().toISOString().slice(0, 10),
-        expiry_date: offer.expiryDate?.toISOString().slice(0, 10),
-        offer_type: 'quantity_discount',
-        based_on: 'quantity',
-        options: offer.quantityTiers
-          .sort((a, b) => a.position - b.position)
-          .map((t) => ({
-            quantity: t.quantity,
-            discount_type: t.pricingType,
-            discount_amount: Number(t.discountAmount),
-          })),
+        applied_to: appliedTo,
+        start_date: startDateStr,
+        offer_type: 'discounts_table',
+        discounts_table: tiers,
+        options: tiers,
       };
-      if (offer.targetType !== 'all_products') {
+
+      if (!isAll) {
         if (isCategory) {
+          payload.buy = { categories: entityIds };
           payload.categories = entityIds;
         } else {
+          payload.buy = { products: entityIds };
           payload.products = entityIds;
         }
+      }
+
+      if (expiryDateStr) {
+        payload.expiry_date = expiryDateStr;
       }
       const url = offer.sallaOfferId
         ? `${SALLA_SPECIAL_OFFERS_URL}/${offer.sallaOfferId}`
