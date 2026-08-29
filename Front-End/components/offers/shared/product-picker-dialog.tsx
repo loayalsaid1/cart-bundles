@@ -27,6 +27,7 @@ interface ProductPickerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedIds: number[];
+  initialProducts?: Product[];
   onApply: (products: Product[]) => void;
 }
 
@@ -34,19 +35,39 @@ export function ProductPickerDialog({
   open,
   onOpenChange,
   selectedIds,
+  initialProducts = [],
   onApply,
 }: ProductPickerDialogProps) {
   const t = useTranslations("Offers");
   const [query, setQuery] = useState("");
   const [picked, setPicked] = useState<Map<number, Product>>(new Map());
-  const { data: products } = useProductSearch(query.trim(), open);
+  const { data: products, isPending } = useProductSearch(query.trim(), open);
 
   useEffect(() => {
     if (open) {
       setQuery("");
-      setPicked(new Map());
+      const initialMap = new Map<number, Product>();
+      initialProducts.forEach((p) => initialMap.set(p.id, p));
+      setPicked(initialMap);
     }
   }, [open]);
+
+  // Sync search results into picked map if their ID is in selectedIds
+  useEffect(() => {
+    if (open && products && products.length > 0) {
+      setPicked((prev) => {
+        const next = new Map(prev);
+        let changed = false;
+        products.forEach((p) => {
+          if (selectedIds.includes(p.id) && !next.has(p.id)) {
+            next.set(p.id, p);
+            changed = true;
+          }
+        });
+        return changed ? next : prev;
+      });
+    }
+  }, [open, products, selectedIds]);
 
   const toggle = (product: Product) => {
     setPicked((prev) => {
@@ -77,11 +98,17 @@ export function ProductPickerDialog({
             placeholder={t("pickers.products.searchPlaceholder")}
           />
           <CommandList className="max-h-72">
-            <CommandEmpty>
-              {query
-                ? t("pickers.products.empty")
-                : t("pickers.products.typeToSearch")}
-            </CommandEmpty>
+            {isPending ? (
+              <div className="p-6 text-center text-xs text-muted-foreground">
+                {t("common.loading")}
+              </div>
+            ) : (
+              <CommandEmpty>
+                {query
+                  ? t("pickers.products.empty")
+                  : t("pickers.products.typeToSearch")}
+              </CommandEmpty>
+            )}
             {products && products.length > 0 && (
               <CommandGroup>
                 {products.map((product) => {
@@ -91,7 +118,7 @@ export function ProductPickerDialog({
                       key={product.id}
                       value={String(product.id)}
                       onSelect={() => toggle(product)}
-                      className="flex items-center gap-3"
+                      className="flex items-center gap-3 cursor-pointer"
                     >
                       <Checkbox checked={checked} onCheckedChange={() => toggle(product)} />
                       {product.thumbnail ? (
@@ -127,7 +154,7 @@ export function ProductPickerDialog({
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               {t("pickers.cancel")}
             </Button>
-            <Button onClick={apply} disabled={picked.size === 0}>
+            <Button onClick={apply}>
               {t("pickers.apply")}
             </Button>
           </div>

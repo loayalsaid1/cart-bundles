@@ -118,6 +118,11 @@
       "paused": "Paused",
       "expired": "Expired"
     },
+    "common": {
+      "ar": "Arabic",
+      "en": "English",
+      "loading": "Loading..."
+    },
     "masterList": {
       "title": "Offers",
       "subtitle": "Create and manage offers for your storefront.",

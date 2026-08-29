@@ -3,7 +3,6 @@
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PlusSignIcon } from "@hugeicons/core-free-icons";
 import { TierEditor } from "@/components/offers/builder/fields/tier-editor";
@@ -29,9 +28,9 @@ export function TiersStep() {
     name: "settings.tiers",
   });
 
-  const markDefault = (index: number) => {
+  const markDefault = (index: number, isChecked: boolean) => {
     fields.forEach((_, i) => {
-      setValue(`settings.tiers.${i}.isSelectedByDefault`, i === index);
+      setValue(`settings.tiers.${i}.isSelectedByDefault`, isChecked ? i === index : false);
     });
   };
 
@@ -40,6 +39,7 @@ export function TiersStep() {
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">{t("quantity.tiers.title")}</h3>
         <Button
+          type="button"
           variant="outline"
           size="sm"
           onClick={() =>
@@ -55,22 +55,20 @@ export function TiersStep() {
         </Button>
       </div>
 
-      <ScrollArea className="max-h-[26rem] rounded-lg border p-4">
-        <div className="space-y-4">
-          {fields.map((field, index) => (
-            <TierEditor
-              key={field.id}
-              index={index}
-              onMoveUp={() => move(index, index - 1)}
-              onMoveDown={() => move(index, index + 1)}
-              onRemove={() => remove(index)}
-              canMoveUp={index > 0}
-              canMoveDown={index < fields.length - 1}
-              onDefaultChange={() => markDefault(index)}
-            />
-          ))}
-        </div>
-      </ScrollArea>
+      <div className="max-h-[30rem] overflow-y-auto rounded-lg border p-4 space-y-4">
+        {fields.map((field, index) => (
+          <TierEditor
+            key={field.id}
+            index={index}
+            onMoveUp={() => move(index, index - 1)}
+            onMoveDown={() => move(index, index + 1)}
+            onRemove={() => remove(index)}
+            canMoveUp={index > 0}
+            canMoveDown={index < fields.length - 1}
+            onDefaultChange={(checked) => markDefault(index, checked)}
+          />
+        ))}
+      </div>
 
       <BehaviorSettings />
     </div>

@@ -110,17 +110,17 @@ export function GeneralInfoStep() {
             onChange={(e) =>
               form.setValue(
                 "info.expiryDate",
-                e.target.value ? new Date(e.target.value).toISOString() : undefined,
+                e.target.value ? e.target.value : undefined,
               )
             }
             className="w-52"
           />
         </div>
-        <label className="flex items-center gap-2 pb-2 text-sm">
+        <label className="flex items-center gap-2 pb-2 text-sm cursor-pointer">
           <Checkbox
             checked={noExpiry}
             onCheckedChange={(checked) =>
-              form.setValue("info.expiryDate", checked ? undefined : new Date().toISOString())
+              form.setValue("info.expiryDate", checked ? undefined : new Date().toISOString().slice(0, 10))
             }
           />
           {t("quantity.info.noExpiry")}

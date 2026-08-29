@@ -49,9 +49,8 @@ export function QuantityOfferBuilder({ offerId }: { offerId?: number }) {
     mode: "onTouched",
   });
 
-  // Re-populate form when editing an existing offer (data arrives async)
   useEffect(() => {
-    if (offer) {
+    if (offer && !form.formState.isDirty) {
       form.reset(fullOfferToQuantityDraft(offer));
     }
   }, [offer, form]);

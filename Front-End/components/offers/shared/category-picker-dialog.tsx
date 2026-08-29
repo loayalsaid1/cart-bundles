@@ -27,6 +27,7 @@ interface CategoryPickerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   selectedIds: number[];
+  initialCategories?: Category[];
   onApply: (categories: Category[]) => void;
 }
 
@@ -34,19 +35,39 @@ export function CategoryPickerDialog({
   open,
   onOpenChange,
   selectedIds,
+  initialCategories = [],
   onApply,
 }: CategoryPickerDialogProps) {
   const t = useTranslations("Offers");
   const [query, setQuery] = useState("");
   const [picked, setPicked] = useState<Map<number, Category>>(new Map());
-  const { data: categories } = useCategorySearch(query.trim(), open);
+  const { data: categories, isPending } = useCategorySearch(query.trim(), open);
 
   useEffect(() => {
     if (open) {
       setQuery("");
-      setPicked(new Map());
+      const initialMap = new Map<number, Category>();
+      initialCategories.forEach((c) => initialMap.set(c.id, c));
+      setPicked(initialMap);
     }
   }, [open]);
+
+  // Sync search results into picked map if their ID is in selectedIds
+  useEffect(() => {
+    if (open && categories && categories.length > 0) {
+      setPicked((prev) => {
+        const next = new Map(prev);
+        let changed = false;
+        categories.forEach((c) => {
+          if (selectedIds.includes(c.id) && !next.has(c.id)) {
+            next.set(c.id, c);
+            changed = true;
+          }
+        });
+        return changed ? next : prev;
+      });
+    }
+  }, [open, categories, selectedIds]);
 
   const toggle = (category: Category) => {
     setPicked((prev) => {
@@ -77,11 +98,17 @@ export function CategoryPickerDialog({
             placeholder={t("pickers.categories.searchPlaceholder")}
           />
           <CommandList className="max-h-72">
-            <CommandEmpty>
-              {query
-                ? t("pickers.categories.empty")
-                : t("pickers.categories.typeToSearch")}
-            </CommandEmpty>
+            {isPending ? (
+              <div className="p-6 text-center text-xs text-muted-foreground">
+                {t("common.loading")}
+              </div>
+            ) : (
+              <CommandEmpty>
+                {query
+                  ? t("pickers.categories.empty")
+                  : t("pickers.categories.typeToSearch")}
+              </CommandEmpty>
+            )}
             {categories && categories.length > 0 && (
               <CommandGroup>
                 {categories.map((category) => {
@@ -91,7 +118,7 @@ export function CategoryPickerDialog({
                       key={category.id}
                       value={String(category.id)}
                       onSelect={() => toggle(category)}
-                      className="flex items-center gap-3"
+                      className="flex items-center gap-3 cursor-pointer"
                     >
                       <Checkbox checked={checked} onCheckedChange={() => toggle(category)} />
                       {category.thumbnail ? (
@@ -122,7 +149,7 @@ export function CategoryPickerDialog({
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               {t("pickers.cancel")}
             </Button>
-            <Button onClick={apply} disabled={picked.size === 0}>
+            <Button onClick={apply}>
               {t("pickers.apply")}
             </Button>
           </div>

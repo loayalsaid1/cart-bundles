@@ -18,7 +18,7 @@ interface TierEditorProps {
   onRemove: () => void;
   canMoveUp: boolean;
   canMoveDown: boolean;
-  onDefaultChange: () => void;
+  onDefaultChange: (checked: boolean) => void;
 }
 
 export function TierEditor({
@@ -82,6 +82,8 @@ export function TierEditor({
         <div className="space-y-2">
           <Label>{t("quantity.tiers.mainTitle")} — {t("common.en")}</Label>
           <Input
+            // dir="ltr"
+            // className="text-left"
             value={tier.mainTitle.en ?? ""}
             onChange={(e) => form.setValue(`settings.tiers.${index}.mainTitle.en`, e.target.value)}
           />
@@ -118,7 +120,7 @@ export function TierEditor({
 
       <div className="flex items-center justify-between border-t pt-3">
         <span className="text-sm">{t("quantity.tiers.defaultSelected")}</span>
-        <Switch checked={tier.isSelectedByDefault ?? false} onCheckedChange={() => onDefaultChange()} />
+        <Switch checked={tier.isSelectedByDefault ?? false} onCheckedChange={(checked) => onDefaultChange(Boolean(checked))} />
       </div>
     </div>
   );

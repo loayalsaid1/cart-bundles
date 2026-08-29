@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useFormContext } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,8 @@ import { CategoryPickerDialog } from "@/components/offers/shared/category-picker
 import type { QuantityOfferDraft } from "@/lib/schemas/quantity-offer";
 import type { Product } from "@/types/product";
 import type { Category } from "@/lib/api/categories";
+import { useProductSearch } from "@/hooks/use-product-search";
+import { useCategorySearch } from "@/hooks/use-category-search";
 
 type TargetType = "all_products" | "selected_products" | "selected_categories";
 
@@ -23,34 +25,58 @@ export function TargetingStep({
 }) {
   const t = useTranslations("Offers");
   const form = useFormContext<QuantityOfferDraft>();
+  const { formState: { errors } } = form;
   const type = form.watch("targeting.type") as TargetType;
   const ids = form.watch("targeting.ids") ?? [];
   const [productPickerOpen, setProductPickerOpen] = useState(false);
   const [categoryPickerOpen, setCategoryPickerOpen] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+
+  // Fetch full lists using cached TanStack Query hooks
+  const { data: allProducts = [] } = useProductSearch("", type === "selected_products");
+  const { data: allCategories = [] } = useCategorySearch("", type === "selected_categories");
+
+  // Derive target items directly from form IDs + query data (No duplicate local state)
+  const products = useMemo(
+    () => allProducts.filter((p) => ids.includes(p.id)),
+    [allProducts, ids],
+  );
+
+  const categories = useMemo(
+    () => allCategories.filter((c) => ids.includes(c.id)),
+    [allCategories, ids],
+  );
+
+  const onProductsPickedRef = useRef(onProductsPicked);
+  useEffect(() => {
+    onProductsPickedRef.current = onProductsPicked;
+  }, [onProductsPicked]);
+
+  useEffect(() => {
+    if (products.length > 0) {
+      onProductsPickedRef.current(products);
+    }
+  }, [products]);
 
   const applyProducts = (picked: Product[]) => {
-    setProducts(picked);
-    onProductsPicked(picked);
     form.setValue("targeting.ids", picked.map((p) => p.id));
   };
 
   const applyCategories = (picked: Category[]) => {
-    setCategories(picked);
     form.setValue("targeting.ids", picked.map((c) => c.id));
   };
 
   const removeProduct = (id: number) => {
-    const next = products.filter((p) => p.id !== id);
-    setProducts(next);
-    form.setValue("targeting.ids", next.map((p) => p.id));
+    form.setValue(
+      "targeting.ids",
+      ids.filter((selectedId) => selectedId !== id),
+    );
   };
 
   const removeCategory = (id: number) => {
-    const next = categories.filter((c) => c.id !== id);
-    setCategories(next);
-    form.setValue("targeting.ids", next.map((c) => c.id));
+    form.setValue(
+      "targeting.ids",
+      ids.filter((selectedId) => selectedId !== id),
+    );
   };
 
   return (
@@ -73,9 +99,15 @@ export function TargetingStep({
         )}
       </RadioGroup>
 
+      {errors.targeting?.ids && (
+        <p className="text-xs font-medium text-destructive mt-1">
+          {errors.targeting.ids.message}
+        </p>
+      )}
+
       {type === "selected_products" && (
         <div className="space-y-3">
-          <Button variant="outline" onClick={() => setProductPickerOpen(true)}>
+          <Button type="button" variant="outline" onClick={() => setProductPickerOpen(true)}>
             <HugeiconsIcon icon={PackageAdd01Icon} size={16} />
             {t("quantity.targeting.pickProducts")}
           </Button>
@@ -94,6 +126,7 @@ export function TargetingStep({
                       </p>
                     </div>
                     <Button
+                      type="button"
                       variant="ghost"
                       size="icon"
                       onClick={() => removeProduct(p.id)}
@@ -111,7 +144,7 @@ export function TargetingStep({
 
       {type === "selected_categories" && (
         <div className="space-y-3">
-          <Button variant="outline" onClick={() => setCategoryPickerOpen(true)}>
+          <Button type="button" variant="outline" onClick={() => setCategoryPickerOpen(true)}>
             <HugeiconsIcon icon={PackageAdd01Icon} size={16} />
             {t("quantity.targeting.pickCategories")}
           </Button>
@@ -122,6 +155,7 @@ export function TargetingStep({
                   <CardContent className="flex items-center gap-3 p-3">
                     <span className="flex-1 text-sm font-medium">{c.name}</span>
                     <Button
+                      type="button"
                       variant="ghost"
                       size="icon"
                       onClick={() => removeCategory(c.id)}
@@ -141,12 +175,14 @@ export function TargetingStep({
         open={productPickerOpen}
         onOpenChange={setProductPickerOpen}
         selectedIds={ids}
+        initialProducts={products}
         onApply={applyProducts}
       />
       <CategoryPickerDialog
         open={categoryPickerOpen}
         onOpenChange={setCategoryPickerOpen}
         selectedIds={ids}
+        initialCategories={categories}
         onApply={applyCategories}
       />
     </div>

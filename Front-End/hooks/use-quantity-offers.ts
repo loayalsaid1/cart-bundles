@@ -27,6 +27,7 @@ export function useQuantityOffer(id: number | null) {
     queryKey: ["offers", "quantity", id],
     queryFn: () => getQuantityOffer(id as number),
     enabled: id !== null,
+    refetchOnWindowFocus: false,
   });
 }
 

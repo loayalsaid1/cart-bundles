@@ -105,8 +105,9 @@ export function QuantityOfferPreview({
               {subtitle && <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>}
               <div className="mt-3 space-y-2">
                 {tiers.map((tier, i) => {
-                  const total = tierUnitPrice(unitPrice, tier.quantity, tier.pricingType, tier.discountAmount, round) * tier.quantity;
-                  const savings = unitPrice * tier.quantity - total;
+                  const safeQty = Number.isFinite(tier.quantity) && tier.quantity > 0 ? tier.quantity : 1;
+                  const total = tierUnitPrice(unitPrice, safeQty, tier.pricingType, tier.discountAmount || 0, round) * safeQty;
+                  const savings = unitPrice * safeQty - total;
                   return (
                     <div
                       key={i}
@@ -117,7 +118,7 @@ export function QuantityOfferPreview({
                       }}
                     >
                       <span>
-                        {tier.quantity} × {showPerPiece ? `${formatter.number(total / tier.quantity)} ${t("preview.currency")}` : ""}
+                        {safeQty} × {showPerPiece ? `${formatter.number(total / safeQty)} ${t("preview.currency")}` : ""}
                       </span>
                       {tier.badgeText && (
                         <span
@@ -129,7 +130,7 @@ export function QuantityOfferPreview({
                       )}
                       <span style={{ color: colors.savings }}>
                         {t("preview.save", {
-                          amount: formatter.number(Math.max(0, savings)),
+                          amount: formatter.number(Math.max(0, savings || 0)),
                         })}
                       </span>
                     </div>
