@@ -8,12 +8,11 @@
   if (window.__QUANTITY_OFFER_EMBED_LOADED__) return;
   window.__QUANTITY_OFFER_EMBED_LOADED__ = true;
 
+  
   // Configuration & API Base Detection
   const currentScript = document.currentScript;
   const API_BASE =
-    currentScript?.getAttribute("data-api-base") ||
-    window.QUANTITY_OFFER_API_BASE ||
-    "/api/v1";
+    "https://jq1no5-ip-156-210-130-189.tunnelmole.net/api/v1";
 
   function getTargetAnchor() {
     return (
@@ -256,8 +255,36 @@
       return;
     }
 
+    let categoryIds = [];
+
+    // Attempt to fetch Category ID dynamically via Salla's built-in API
+    if (productId && salla?.product?.getDetails) {
+      try {
+        const response = await salla.product.getDetails(productId, ["category"]);
+        const catData = response.data.category;
+        
+        if (catData) {
+          // Future-proofing logic: if salla makes it an array later vs a single object right now
+          if (Array.isArray(catData)) {
+            categoryIds = catData.map(c => c.id).filter(Boolean);
+          } else if (catData.id) {
+            categoryIds.push(catData.id);
+          }
+        }
+      } catch (err) {
+        console.warn("[QuantityOffer] Failed to fetch category details, continuing without it.", err);
+      }
+    }
+
     try {
-      const url = `${API_BASE}/offers/storefront/${merchantId}${productId ? `?productId=${productId}` : ""}`;
+      // Build API URL cleanly using URLSearchParams
+      const urlParams = new URLSearchParams();
+      if (productId) urlParams.append("productId", productId);
+      if (categoryIds.length > 0) urlParams.append("categoryIds", categoryIds.join(",")); // e.g: categoryIds=123,456
+
+      const queryString = urlParams.toString();
+      const url = `${API_BASE}/offers/storefront/${merchantId}${queryString ? `?${queryString}` : ""}`;
+      
       const response = await fetch(url);
       if (!response.ok) return;
 
@@ -275,10 +302,10 @@
       console.error("[QuantityOffer] Error loading offer embed:", err);
     }
   }
-
+  
   // Safe Execution Hook
-  if (typeof Salla !== "undefined" && Salla.onReady) {
-    Salla.onReady(initQuantityOffers);
+  if (salla?.onReady) {
+    salla.onReady(initQuantityOffers);
   } else if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initQuantityOffers);
   } else {
