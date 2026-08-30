@@ -63,7 +63,7 @@ export function OfferBuilderShell<T extends { info: OfferInfo } & FieldValues>({
   });
 
   useEffect(() => {
-    if (offer) {
+    if (offer && !form.formState.isDirty) {
       form.reset(fullToDraft(offer as never));
     }
   }, [offer, form, fullToDraft]);

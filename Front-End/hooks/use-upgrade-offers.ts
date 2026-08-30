@@ -40,6 +40,10 @@ export function useCreateUpgradeOffer() {
       qc.invalidateQueries({ queryKey: ["offers"] });
       notify.success(t("notify.created", { kind: t("kind.upgrade_offer") }));
     },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : String(err);
+      notify.error(msg || t("notify.saveFailed"));
+    },
   });
 }
 
@@ -52,6 +56,10 @@ export function useUpdateUpgradeOffer() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["offers"] });
       notify.success(t("notify.updated", { kind: t("kind.upgrade_offer") }));
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : String(err);
+      notify.error(msg || t("notify.saveFailed"));
     },
   });
 }

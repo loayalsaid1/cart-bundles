@@ -40,6 +40,10 @@ export function useCreateAddonOffer() {
       qc.invalidateQueries({ queryKey: ["offers"] });
       notify.success(t("notify.created", { kind: t("kind.product_add_on") }));
     },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : String(err);
+      notify.error(msg || t("notify.saveFailed"));
+    },
   });
 }
 
@@ -52,6 +56,10 @@ export function useUpdateAddonOffer() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["offers"] });
       notify.success(t("notify.updated", { kind: t("kind.product_add_on") }));
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : String(err);
+      notify.error(msg || t("notify.saveFailed"));
     },
   });
 }

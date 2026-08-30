@@ -41,6 +41,10 @@ export function useCreateRecommendationOffer() {
       qc.invalidateQueries({ queryKey: ["offers"] });
       notify.success(t("notify.created", { kind: t("kind.cart_recommendation") }));
     },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : String(err);
+      notify.error(msg || t("notify.saveFailed"));
+    },
   });
 }
 
@@ -58,6 +62,10 @@ export function useUpdateRecommendationOffer() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["offers"] });
       notify.success(t("notify.updated", { kind: t("kind.cart_recommendation") }));
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : String(err);
+      notify.error(msg || t("notify.saveFailed"));
     },
   });
 }

@@ -362,7 +362,7 @@ export class AddonOfferService {
         const sallaId = Number(json.data?.id ?? json.id ?? offer.sallaOfferId);
         await this.db
           .update(offers)
-          .set({ sallaOfferId: sallaId, status: 'active' })
+          .set({ sallaOfferId: sallaId, status: offer.status === 'draft' ? 'active' : offer.status })
           .where(eq(offers.id, offerId));
         return { success: true, sallaOfferId: sallaId };
       }
