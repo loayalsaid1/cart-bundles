@@ -11,6 +11,7 @@ import {
 import { OffersService } from './offers.service';
 import { CurrentUser, IsPublic } from '../../common/decorators';
 import { DashboardOfferShort, FullOffer, Offer, OfferKind, OfferStatus } from './types/offers.types';
+import { GetStorefrontOffersQueryDto } from './dto/common-offer.dto';
 
 @Controller('offers')
 export class OffersController {
@@ -20,9 +21,13 @@ export class OffersController {
   @Get('storefront/:merchantId')
   async getStorefrontOffers(
     @Param('merchantId', ParseIntPipe) merchantId: number,
-    @Query('productId', new ParseIntPipe({ optional: true })) productId?: number,
+    @Query() query: GetStorefrontOffersQueryDto,
   ): Promise<FullOffer[]> {
-    return this.service.getActiveStorefrontOffers(merchantId, productId);
+    return this.service.getActiveStorefrontOffers(
+      merchantId,
+      query.productId,
+      query.categoryIds,
+    );
   }
 
   @Get('dashboard')

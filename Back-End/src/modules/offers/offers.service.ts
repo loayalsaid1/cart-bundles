@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { eq, and, ilike, sql, exists, or, SQL } from 'drizzle-orm';
+import { eq, and, ilike, sql, exists, or, inArray, SQL } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
 import { offers, offerTargets, schema } from '../../database/schema';
 import { DashboardOfferShort, FullOffer, Offer, OfferKind, OfferStatus, ServiceResult } from './types/offers.types';
@@ -75,7 +75,11 @@ export class OffersService {
   }
 
 
-  async getActiveStorefrontOffers(merchantId: number, sallaProductId?: number): Promise<FullOffer[]> {
+  async getActiveStorefrontOffers(
+    merchantId: number,
+    sallaProductId?: number,
+    categoryIds?: number[],
+  ): Promise<FullOffer[]> {
 
     // 1. Base conditions: Match merchant and active status
     const conditions: (SQL | undefined)[] = [
@@ -83,25 +87,32 @@ export class OffersService {
       eq(offers.status, 'active'),
     ];
 
-    // 2. If a specific product is being viewed, push the filtering to SQL!
-    if (sallaProductId) {
+    // 2. Build target entity IDs array (productId + categoryIds)
+    const targetEntityIds: number[] = [];
+    if (sallaProductId) targetEntityIds.push(sallaProductId);
+    if (categoryIds && categoryIds.length > 0) {
+      targetEntityIds.push(...categoryIds);
+    }
+
+    // 3. If target entity IDs exist, push SQL condition for product / category matching
+    if (targetEntityIds.length > 0) {
       conditions.push(
         or(
           // Either the offer applies to the whole store...
           eq(offers.targetType, 'all_products'),
 
-          // OR it specifically targets this product in the offerTargets table
+          // OR it targets this product or any of its categories in offerTargets
           exists(
             this.db.select()
               .from(offerTargets)
               .where(
                 and(
                   eq(offerTargets.offerId, offers.id),
-                  eq(offerTargets.sallaEntityId, sallaProductId)
-                )
-              )
-          )
-        )
+                  inArray(offerTargets.sallaEntityId, targetEntityIds),
+                ),
+              ),
+          ),
+        ),
       );
     }
 
