@@ -101,6 +101,8 @@ export class QuantityOfferService {
     const syncRes = await this.syncToSalla(merchantId, created.id);
     if (!syncRes.success) {
       this.logger.warn(`Offer ${created.id} created locally, but Salla sync failed: ${syncRes.error}`);
+      await this.db.delete(offers).where(eq(offers.id, created.id));
+      return { success: false, reason: 'salla_sync_failed', error: syncRes.error ?? 'Unknown Salla API error' };
     }
     return this.findOne(merchantId, created.id);
   }
@@ -176,6 +178,7 @@ export class QuantityOfferService {
     const syncRes = await this.syncToSalla(merchantId, offerId);
     if (!syncRes.success) {
       this.logger.warn(`Offer ${offerId} updated locally, but Salla sync failed: ${syncRes.error}`);
+      return { success: false, reason: 'salla_sync_failed', error: syncRes.error ?? 'Unknown Salla API error' };
     }
     return this.findOne(merchantId, offerId);
   }
@@ -241,6 +244,7 @@ export class QuantityOfferService {
         offer_type: 'discounts_table',
         discounts_table: tiers,
         options: tiers,
+        status: offer.status === 'paused' ? 'inactive' : 'active',
       };
 
       if (!isAll) {
@@ -273,7 +277,7 @@ export class QuantityOfferService {
         const sallaId = Number(json.data?.id ?? json.id ?? offer.sallaOfferId);
         await this.db
           .update(offers)
-          .set({ sallaOfferId: sallaId, status: 'active' })
+          .set({ sallaOfferId: sallaId, status: offer.status === 'draft' ? 'active' : offer.status })
           .where(eq(offers.id, offerId));
         return { success: true, sallaOfferId: sallaId };
       }

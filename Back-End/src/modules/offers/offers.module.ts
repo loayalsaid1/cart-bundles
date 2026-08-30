@@ -7,10 +7,12 @@ import { AddonOfferModule } from './addon/addon-offer.module';
 import { BundleOfferModule } from './bundle/bundle-offer.module';
 import { UpgradeOfferModule } from './upgrade/upgrade-offer.module';
 import { RecommendationOfferModule } from './recommendation/recommendation-offer.module';
+import { MerchantsModule } from '../merchants/merchants.module';
 
 @Module({
   imports: [
     DrizzleModule,
+    MerchantsModule,
     QuantityOfferModule,
     AddonOfferModule,
     BundleOfferModule,

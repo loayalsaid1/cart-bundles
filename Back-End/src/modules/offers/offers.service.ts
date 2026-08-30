@@ -1,13 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { eq, and, ilike, sql, exists, or, SQL } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
 import { offers, offerTargets, schema } from '../../database/schema';
 import { DashboardOfferShort, FullOffer, Offer, OfferKind, OfferStatus, ServiceResult } from './types/offers.types';
+import { MerchantsService } from '../merchants/merchants.service';
 
 
 @Injectable()
 export class OffersService {
-  constructor(private readonly drizzleService: DrizzleService) { }
+  private readonly logger = new Logger(OffersService.name);
+
+  constructor(
+    private readonly drizzleService: DrizzleService,
+    private readonly merchantsService: MerchantsService,
+  ) { }
 
   private get db() {
     return this.drizzleService.db;
@@ -41,13 +47,31 @@ export class OffersService {
       .update(offers)
       .set({ status })
       .where(and(eq(offers.id, offerId), eq(offers.merchantId, merchantId))) 
-      .returning({id: offers.id, status: offers.status});
+      .returning({id: offers.id, status: offers.status, sallaOfferId: offers.sallaOfferId});
 
     if (!offer) {
       return { success: false, reason: 'not_found' };
     }
 
-    return { success: true, data: offer };
+    if (offer.sallaOfferId) {
+      try {
+        const tokenRes = await this.merchantsService.getValidAccessToken(merchantId);
+        if (tokenRes.success) {
+          await fetch(`https://api.salla.dev/admin/v2/specialoffers/${offer.sallaOfferId}/status`, {
+            method: 'PUT',
+            headers: {
+              Authorization: `Bearer ${tokenRes.accessToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status: status === 'active' ? 'active' : 'inactive' }),
+          });
+        }
+      } catch (err) {
+        this.logger.error(`Failed to toggle Salla offer ${offer.sallaOfferId} status`, err);
+      }
+    }
+
+    return { success: true, data: { id: offer.id, status: offer.status } };
   }
 
 
