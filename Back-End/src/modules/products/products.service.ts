@@ -35,7 +35,10 @@ export class ProductsService {
     return json.data ?? [];
   }
 
-  async getCategories(accessToken: string, keyword?: string): Promise<Category[]> {
+  async getCategories(
+    accessToken: string,
+    keyword?: string,
+  ): Promise<Category[]> {
     const queryParam = keyword ? `?keyword=${encodeURIComponent(keyword)}` : '';
     const url = `${SALLA_API_BASE_URL}/categories${queryParam}`;
 
@@ -51,9 +54,9 @@ export class ProductsService {
       );
     }
 
-    const { data } = await response.json();
-    // Aparently the categry response is a gigantic object, so i'm taking only what I need
-    const returnValue:Category[] = data.map((category: Category) => ({
+    const json = (await response.json()) as { data?: Category[] };
+    // Apparently the category response is a gigantic object, so I'm taking only what I need
+    const returnValue: Category[] = (json.data ?? []).map((category) => ({
       id: category.id,
       image: category.image,
       parent_id: category.parent_id,

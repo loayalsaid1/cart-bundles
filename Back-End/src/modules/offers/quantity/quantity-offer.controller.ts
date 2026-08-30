@@ -11,7 +11,10 @@ import {
   Put,
 } from '@nestjs/common';
 import { QuantityOfferService } from './quantity-offer.service';
-import { CreateQuantityOfferDto, UpdateQuantityOfferDto } from './quantity-offer.dto';
+import {
+  CreateQuantityOfferDto,
+  UpdateQuantityOfferDto,
+} from './quantity-offer.dto';
 import { QuantityOfferFull } from '../types/offers.types';
 import { CurrentUser } from '../../../common/decorators';
 
@@ -20,7 +23,9 @@ export class QuantityOfferController {
   constructor(private readonly service: QuantityOfferService) {}
 
   @Get()
-  async list(@CurrentUser('merchantId') merchantId: number): Promise<QuantityOfferFull[]> {
+  async list(
+    @CurrentUser('merchantId') merchantId: number,
+  ): Promise<QuantityOfferFull[]> {
     return this.service.list(merchantId);
   }
 
@@ -43,7 +48,9 @@ export class QuantityOfferController {
   ): Promise<QuantityOfferFull> {
     const result = await this.service.create(merchantId, dto);
     if (!result.success) {
-      throw new BadRequestException(result.error ?? 'Failed to create quantity offer');
+      throw new BadRequestException(
+        result.error ?? 'Failed to create quantity offer',
+      );
     }
     return result.data;
   }
@@ -59,7 +66,9 @@ export class QuantityOfferController {
       if (result.reason === 'not_found') {
         throw new NotFoundException(`Quantity offer ${offerId} not found`);
       }
-      throw new BadRequestException(result.error ?? 'Failed to update quantity offer');
+      throw new BadRequestException(
+        result.error ?? 'Failed to update quantity offer',
+      );
     }
     return result.data;
   }

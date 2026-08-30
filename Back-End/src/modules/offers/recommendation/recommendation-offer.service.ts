@@ -6,7 +6,10 @@ import {
   offerRelatedProducts,
   recommendationOfferSettings,
 } from '../../../database/schema';
-import { CreateRecommendationOfferDto, UpdateRecommendationOfferDto } from './recommendation-offer.dto';
+import {
+  CreateRecommendationOfferDto,
+  UpdateRecommendationOfferDto,
+} from './recommendation-offer.dto';
 import { toExpiryDate } from '../dto/common-offer.dto';
 import { RecommendationOfferFull, ServiceResult } from '../types/offers.types';
 
@@ -20,13 +23,19 @@ export class RecommendationOfferService {
 
   async list(merchantId: number): Promise<RecommendationOfferFull[]> {
     const results = await this.db.query.offers.findMany({
-      where: and(eq(offers.merchantId, merchantId), eq(offers.kind, 'cart_recommendation')),
+      where: and(
+        eq(offers.merchantId, merchantId),
+        eq(offers.kind, 'cart_recommendation'),
+      ),
       with: { relatedProducts: true, recommendationSettings: true },
     });
-    return results as RecommendationOfferFull[];
+    return results;
   }
 
-  async findOne(merchantId: number, offerId: number): Promise<ServiceResult<RecommendationOfferFull>> {
+  async findOne(
+    merchantId: number,
+    offerId: number,
+  ): Promise<ServiceResult<RecommendationOfferFull>> {
     const offer = await this.db.query.offers.findFirst({
       where: and(eq(offers.id, offerId), eq(offers.merchantId, merchantId)),
       with: { relatedProducts: true, recommendationSettings: true },
@@ -34,7 +43,7 @@ export class RecommendationOfferService {
     if (!offer) {
       return { success: false, reason: 'not_found' };
     }
-    return { success: true, data: offer as RecommendationOfferFull };
+    return { success: true, data: offer };
   }
 
   async create(
@@ -70,7 +79,10 @@ export class RecommendationOfferService {
       await tx.insert(recommendationOfferSettings).values({
         offerId: offer.id,
         mode: dto.settings.mode,
-        triggerSallaProductId: dto.settings.mode === 'cart_related' ? dto.settings.triggerSallaProductId : null,
+        triggerSallaProductId:
+          dto.settings.mode === 'cart_related'
+            ? dto.settings.triggerSallaProductId
+            : null,
       });
 
       return offer;
@@ -98,7 +110,9 @@ export class RecommendationOfferService {
         })
         .where(eq(offers.id, offerId));
 
-      await tx.delete(offerRelatedProducts).where(eq(offerRelatedProducts.offerId, offerId));
+      await tx
+        .delete(offerRelatedProducts)
+        .where(eq(offerRelatedProducts.offerId, offerId));
       if (dto.settings.relatedProducts?.length) {
         await tx.insert(offerRelatedProducts).values(
           dto.settings.relatedProducts.map((p, idx) => ({
@@ -114,7 +128,10 @@ export class RecommendationOfferService {
         .update(recommendationOfferSettings)
         .set({
           mode: dto.settings.mode,
-          triggerSallaProductId: dto.settings.mode === 'cart_related' ? dto.settings.triggerSallaProductId : null,
+          triggerSallaProductId:
+            dto.settings.mode === 'cart_related'
+              ? dto.settings.triggerSallaProductId
+              : null,
         })
         .where(eq(recommendationOfferSettings.offerId, offerId));
     });
@@ -122,7 +139,10 @@ export class RecommendationOfferService {
     return this.findOne(merchantId, offerId);
   }
 
-  async delete(merchantId: number, offerId: number): Promise<ServiceResult<void>> {
+  async delete(
+    merchantId: number,
+    offerId: number,
+  ): Promise<ServiceResult<void>> {
     const existing = await this.findOne(merchantId, offerId);
     if (!existing.success) return existing;
 

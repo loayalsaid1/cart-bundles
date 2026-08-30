@@ -20,7 +20,9 @@ export class BundleOfferController {
   constructor(private readonly service: BundleOfferService) {}
 
   @Get()
-  async list(@CurrentUser('merchantId') merchantId: number): Promise<BundleOfferFull[]> {
+  async list(
+    @CurrentUser('merchantId') merchantId: number,
+  ): Promise<BundleOfferFull[]> {
     return this.service.list(merchantId);
   }
 
@@ -43,7 +45,9 @@ export class BundleOfferController {
   ): Promise<BundleOfferFull> {
     const result = await this.service.create(merchantId, dto);
     if (!result.success) {
-      throw new BadRequestException(result.error ?? 'Failed to create bundle offer');
+      throw new BadRequestException(
+        result.error ?? 'Failed to create bundle offer',
+      );
     }
     return result.data;
   }
@@ -59,7 +63,9 @@ export class BundleOfferController {
       if (result.reason === 'not_found') {
         throw new NotFoundException(`Bundle offer ${offerId} not found`);
       }
-      throw new BadRequestException(result.error ?? 'Failed to update bundle offer');
+      throw new BadRequestException(
+        result.error ?? 'Failed to update bundle offer',
+      );
     }
     return result.data;
   }

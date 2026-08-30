@@ -31,11 +31,19 @@ const createDb = () => {
   return drizzle(pool, { schema });
 };
 
-// 3. Export the singleton. 
-// If it exists on globalThis (HMR dev mode), use it. Otherwise, create it.
-export const db = globalForDb.db ?? createDb();
-
-// 4. In development, save it to the global object so HMR doesn't spam connections
-if (process.env.NODE_ENV !== 'production') {
-  globalForDb.db = db;
-}
+// 3. Export a lazy singleton. Importing the module must not throw when
+// DATABASE_URL is unset (e.g. during `next build`); the pool is created on
+// first real access instead.
+export const db = new Proxy({} as NodePgDatabase<typeof schema>, {
+  get(_target, prop) {
+    if (!globalForDb.db) {
+      if (!process.env.DATABASE_URL) {
+        throw new Error("DATABASE_URL is not set.");
+      }
+      globalForDb.db = createDb();
+    }
+    const instance = globalForDb.db;
+    const value = (instance as unknown as Record<PropertyKey, unknown>)[prop];
+    return typeof value === "function" ? value.bind(instance) : value;
+  },
+});

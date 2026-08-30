@@ -71,19 +71,25 @@ export const offerRelatedProductsRelations = relations(
   }),
 );
 
-export const offerAppearanceRelations = relations(offerAppearance, ({ one }) => ({
-  offer: one(offers, {
-    fields: [offerAppearance.offerId],
-    references: [offers.id],
+export const offerAppearanceRelations = relations(
+  offerAppearance,
+  ({ one }) => ({
+    offer: one(offers, {
+      fields: [offerAppearance.offerId],
+      references: [offers.id],
+    }),
   }),
-}));
+);
 
-export const quantityOfferSettingsRelations = relations(quantityOfferSettings, ({ one }) => ({
-  offer: one(offers, {
-    fields: [quantityOfferSettings.offerId],
-    references: [offers.id],
+export const quantityOfferSettingsRelations = relations(
+  quantityOfferSettings,
+  ({ one }) => ({
+    offer: one(offers, {
+      fields: [quantityOfferSettings.offerId],
+      references: [offers.id],
+    }),
   }),
-}));
+);
 
 export const quantityOfferTiersRelations = relations(
   quantityOfferTiers,
@@ -95,30 +101,42 @@ export const quantityOfferTiersRelations = relations(
   }),
 );
 
-export const addonOfferSettingsRelations = relations(addonOfferSettings, ({ one }) => ({
-  offer: one(offers, {
-    fields: [addonOfferSettings.offerId],
-    references: [offers.id],
+export const addonOfferSettingsRelations = relations(
+  addonOfferSettings,
+  ({ one }) => ({
+    offer: one(offers, {
+      fields: [addonOfferSettings.offerId],
+      references: [offers.id],
+    }),
   }),
-}));
+);
 
-export const bundleOfferSettingsRelations = relations(bundleOfferSettings, ({ one }) => ({
-  offer: one(offers, {
-    fields: [bundleOfferSettings.offerId],
-    references: [offers.id],
+export const bundleOfferSettingsRelations = relations(
+  bundleOfferSettings,
+  ({ one }) => ({
+    offer: one(offers, {
+      fields: [bundleOfferSettings.offerId],
+      references: [offers.id],
+    }),
   }),
-}));
+);
 
-export const upgradeOfferSettingsRelations = relations(upgradeOfferSettings, ({ one }) => ({
-  offer: one(offers, {
-    fields: [upgradeOfferSettings.offerId],
-    references: [offers.id],
+export const upgradeOfferSettingsRelations = relations(
+  upgradeOfferSettings,
+  ({ one }) => ({
+    offer: one(offers, {
+      fields: [upgradeOfferSettings.offerId],
+      references: [offers.id],
+    }),
   }),
-}));
+);
 
-export const recommendationOfferSettingsRelations = relations(recommendationOfferSettings, ({ one }) => ({
-  offer: one(offers, {
-    fields: [recommendationOfferSettings.offerId],
-    references: [offers.id],
+export const recommendationOfferSettingsRelations = relations(
+  recommendationOfferSettings,
+  ({ one }) => ({
+    offer: one(offers, {
+      fields: [recommendationOfferSettings.offerId],
+      references: [offers.id],
+    }),
   }),
-}));
+);

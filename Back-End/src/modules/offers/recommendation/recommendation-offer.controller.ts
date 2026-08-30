@@ -11,7 +11,10 @@ import {
   Put,
 } from '@nestjs/common';
 import { RecommendationOfferService } from './recommendation-offer.service';
-import { CreateRecommendationOfferDto, UpdateRecommendationOfferDto } from './recommendation-offer.dto';
+import {
+  CreateRecommendationOfferDto,
+  UpdateRecommendationOfferDto,
+} from './recommendation-offer.dto';
 import { RecommendationOfferFull } from '../types/offers.types';
 import { CurrentUser } from '../../../common/decorators';
 
@@ -20,7 +23,9 @@ export class RecommendationOfferController {
   constructor(private readonly service: RecommendationOfferService) {}
 
   @Get()
-  async list(@CurrentUser('merchantId') merchantId: number): Promise<RecommendationOfferFull[]> {
+  async list(
+    @CurrentUser('merchantId') merchantId: number,
+  ): Promise<RecommendationOfferFull[]> {
     return this.service.list(merchantId);
   }
 
@@ -43,7 +48,9 @@ export class RecommendationOfferController {
   ): Promise<RecommendationOfferFull> {
     const result = await this.service.create(merchantId, dto);
     if (!result.success) {
-      throw new BadRequestException(result.error ?? 'Failed to create recommendation offer');
+      throw new BadRequestException(
+        result.error ?? 'Failed to create recommendation offer',
+      );
     }
     return result.data;
   }
@@ -57,9 +64,13 @@ export class RecommendationOfferController {
     const result = await this.service.update(merchantId, offerId, dto);
     if (!result.success) {
       if (result.reason === 'not_found') {
-        throw new NotFoundException(`Recommendation offer ${offerId} not found`);
+        throw new NotFoundException(
+          `Recommendation offer ${offerId} not found`,
+        );
       }
-      throw new BadRequestException(result.error ?? 'Failed to update recommendation offer');
+      throw new BadRequestException(
+        result.error ?? 'Failed to update recommendation offer',
+      );
     }
     return result.data;
   }

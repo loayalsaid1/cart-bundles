@@ -1,8 +1,34 @@
 import type { QuantityOfferDraft, QuantityOfferFull } from '@/lib/schemas/quantity-offer';
+import type { AddonOfferDraft, AddonOfferFull } from '@/lib/schemas/addon-offer';
+import type { BundleOfferDraft, BundleOfferFull } from '@/lib/schemas/bundle-offer';
+import type { UpgradeOfferDraft, UpgradeOfferFull } from '@/lib/schemas/upgrade-offer';
+import type { RecommendationOfferDraft, RecommendationOfferFull } from '@/lib/schemas/recommendation-offer';
+import type { OfferAppearance } from '@/lib/schemas/common-offer';
 
 function toDateInput(value?: string | null): string | undefined {
   if (!value) return undefined;
   return value.slice(0, 10);
+}
+
+function toLocaleText(title: Record<string, string>): { ar: string; en?: string } {
+  return { ar: title.ar ?? '', en: title.en };
+}
+
+function toOptionalLocaleText(
+  subtitle?: Record<string, string> | null,
+): { ar?: string; en?: string } | undefined {
+  if (!subtitle) return undefined;
+  return { ar: subtitle.ar, en: subtitle.en };
+}
+
+function toAppearance(
+  appearance?: { borderRadiusPx?: number | null; colors?: Record<string, string> | null } | null,
+): OfferAppearance | undefined {
+  if (!appearance) return undefined;
+  return {
+    borderRadiusPx: appearance.borderRadiusPx ?? undefined,
+    colors: appearance.colors ?? undefined,
+  };
 }
 
 export function fullOfferToQuantityDraft(offer: QuantityOfferFull): QuantityOfferDraft {
@@ -10,13 +36,8 @@ export function fullOfferToQuantityDraft(offer: QuantityOfferFull): QuantityOffe
   return {
     info: {
       internalName: offer.internalName,
-      title: {
-        ar: offer.title.ar ?? '',
-        en: offer.title.en,
-      },
-      subtitle: offer.subtitle
-        ? { ar: offer.subtitle.ar, en: offer.subtitle.en }
-        : undefined,
+      title: toLocaleText(offer.title),
+      subtitle: toOptionalLocaleText(offer.subtitle),
       expiryDate: toDateInput(offer.expiryDate),
     },
     targeting: {
@@ -36,8 +57,8 @@ export function fullOfferToQuantityDraft(offer: QuantityOfferFull): QuantityOffe
         .sort((a, b) => a.position - b.position)
         .map((t) => ({
           quantity: t.quantity,
-          mainTitle: { ar: t.mainTitle.ar ?? '', en: t.mainTitle.en },
-          subtitle: t.subtitle ? { ar: t.subtitle.ar, en: t.subtitle.en } : undefined,
+          mainTitle: toLocaleText(t.mainTitle),
+          subtitle: toOptionalLocaleText(t.subtitle),
           pricingType: t.pricingType,
           discountAmount: t.discountAmount,
           isSelectedByDefault: t.isSelectedByDefault,
@@ -45,12 +66,7 @@ export function fullOfferToQuantityDraft(offer: QuantityOfferFull): QuantityOffe
           labelText: t.labelText ?? undefined,
         })),
     },
-    appearance: offer.appearance
-      ? {
-          borderRadiusPx: offer.appearance.borderRadiusPx,
-          colors: offer.appearance.colors,
-        }
-      : undefined,
+    appearance: toAppearance(offer.appearance),
   };
 }
 
@@ -132,3 +148,197 @@ export const APPEARANCE_PRESETS = [
     },
   },
 ] as const;
+
+const DEFAULT_APPEARANCE: OfferAppearance = {
+  borderRadiusPx: 12,
+  colors: {
+    cardBg: '#ffffff',
+    cardBorder: '#e5e7eb',
+    selectedTier: '#f0fdf4',
+    badgeBg: '#004b40',
+    badgeText: '#ffffff',
+    savings: '#16a34a',
+  },
+};
+
+function defaultInfo() {
+  return {
+    internalName: '',
+    title: { ar: '', en: '' },
+    subtitle: { ar: '', en: '' },
+    expiryDate: undefined,
+  };
+}
+
+function defaultTargeting() {
+  return { type: 'all_products' as const, ids: [] as number[] };
+}
+
+export function fullOfferToAddonDraft(offer: AddonOfferFull): AddonOfferDraft {
+  const settings = offer.addonSettings;
+  return {
+    info: {
+      internalName: offer.internalName,
+      title: toLocaleText(offer.title),
+      subtitle: toOptionalLocaleText(offer.subtitle),
+      expiryDate: toDateInput(offer.expiryDate),
+    },
+    targeting: {
+      type: offer.targetType,
+      ids: offer.targets.map((t) => t.sallaEntityId),
+    },
+    settings: {
+      redirectToCartAfterAdd: offer.redirectToCartAfterAdd,
+      hideSallaPopup: offer.hideSallaPopup,
+      maxItems: settings?.maxItems ?? undefined,
+      productsPreselectedByDefault: settings?.productsPreselectedByDefault,
+      showProductOptions: settings?.showProductOptions,
+      displayOrientation: settings?.displayOrientation ?? undefined,
+      discountType: settings?.discountType ?? undefined,
+      discountAmount: settings?.discountAmount ?? undefined,
+      positionDesktop: settings?.positionDesktop ?? undefined,
+      positionMobile: settings?.positionMobile ?? undefined,
+      relatedProducts: [...offer.relatedProducts]
+        .sort((a, b) => a.position - b.position)
+        .map((p) => ({
+          sallaProductId: p.sallaProductId,
+          position: p.position,
+          isPreselected: p.isPreselected,
+        })),
+    },
+    appearance: toAppearance(offer.appearance),
+  };
+}
+
+export const defaultAddonDraft: AddonOfferDraft = {
+  info: defaultInfo(),
+  targeting: defaultTargeting(),
+  settings: {
+    redirectToCartAfterAdd: false,
+    hideSallaPopup: true,
+    maxItems: 4,
+    productsPreselectedByDefault: false,
+    showProductOptions: false,
+    displayOrientation: 'horizontal',
+    discountType: undefined,
+    discountAmount: undefined,
+    positionDesktop: 'after_add_to_cart',
+    positionMobile: 'after_add_to_cart',
+    relatedProducts: [],
+  },
+  appearance: DEFAULT_APPEARANCE,
+};
+
+export function fullOfferToBundleDraft(offer: BundleOfferFull): BundleOfferDraft {
+  const settings = offer.bundleSettings;
+  return {
+    info: {
+      internalName: offer.internalName,
+      title: toLocaleText(offer.title),
+      subtitle: toOptionalLocaleText(offer.subtitle),
+      expiryDate: toDateInput(offer.expiryDate),
+    },
+    targeting: {
+      type: offer.targetType,
+      ids: offer.targets.map((t) => t.sallaEntityId),
+    },
+    settings: {
+      redirectToCartAfterAdd: offer.redirectToCartAfterAdd,
+      hideSallaPopup: offer.hideSallaPopup,
+      discountType: settings?.discountType ?? undefined,
+      discountAmount: settings?.discountAmount ?? undefined,
+      relatedProducts: [...offer.relatedProducts]
+        .sort((a, b) => a.position - b.position)
+        .map((p) => ({
+          sallaProductId: p.sallaProductId,
+          position: p.position,
+          isPreselected: p.isPreselected,
+        })),
+    },
+    appearance: toAppearance(offer.appearance),
+  };
+}
+
+export const defaultBundleDraft: BundleOfferDraft = {
+  info: defaultInfo(),
+  targeting: defaultTargeting(),
+  settings: {
+    redirectToCartAfterAdd: false,
+    hideSallaPopup: true,
+    discountType: 'percentage',
+    discountAmount: 10,
+    relatedProducts: [],
+  },
+  appearance: DEFAULT_APPEARANCE,
+};
+
+export function fullOfferToUpgradeDraft(offer: UpgradeOfferFull): UpgradeOfferDraft {
+  const settings = offer.upgradeSettings;
+  return {
+    info: {
+      internalName: offer.internalName,
+      title: toLocaleText(offer.title),
+      subtitle: toOptionalLocaleText(offer.subtitle),
+      expiryDate: toDateInput(offer.expiryDate),
+    },
+    targeting: {
+      type: offer.targetType,
+      ids: offer.targets.map((t) => t.sallaEntityId),
+    },
+    settings: {
+      redirectToCartAfterAdd: offer.redirectToCartAfterAdd,
+      hideSallaPopup: offer.hideSallaPopup,
+      baseSallaProductId: settings?.baseSallaProductId ?? 0,
+      upgradeSallaProductId: settings?.upgradeSallaProductId ?? 0,
+      couponCode: settings?.couponCode ?? undefined,
+    },
+  };
+}
+
+export const defaultUpgradeDraft: UpgradeOfferDraft = {
+  info: defaultInfo(),
+  targeting: defaultTargeting(),
+  settings: {
+    redirectToCartAfterAdd: false,
+    hideSallaPopup: true,
+    baseSallaProductId: 0,
+    upgradeSallaProductId: 0,
+    couponCode: '',
+  },
+};
+
+export function fullOfferToRecommendationDraft(
+  offer: RecommendationOfferFull,
+): RecommendationOfferDraft {
+  const settings = offer.recommendationSettings;
+  return {
+    info: {
+      internalName: offer.internalName,
+      title: toLocaleText(offer.title),
+      subtitle: toOptionalLocaleText(offer.subtitle),
+      expiryDate: toDateInput(offer.expiryDate),
+    },
+    settings: {
+      mode: settings?.mode ?? 'general',
+      triggerSallaProductId: settings?.triggerSallaProductId ?? undefined,
+      relatedProducts: [...offer.relatedProducts]
+        .sort((a, b) => a.position - b.position)
+        .map((p) => ({
+          sallaProductId: p.sallaProductId,
+          position: p.position,
+          isPreselected: p.isPreselected,
+        })),
+    },
+    appearance: toAppearance(offer.appearance),
+  };
+}
+
+export const defaultRecommendationDraft: RecommendationOfferDraft = {
+  info: defaultInfo(),
+  settings: {
+    mode: 'general',
+    triggerSallaProductId: undefined,
+    relatedProducts: [],
+  },
+  appearance: DEFAULT_APPEARANCE,
+};

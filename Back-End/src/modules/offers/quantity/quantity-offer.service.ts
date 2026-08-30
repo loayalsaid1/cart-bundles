@@ -9,7 +9,10 @@ import {
   quantityOfferTiers,
 } from '../../../database/schema';
 import { MerchantsService } from '../../merchants/merchants.service';
-import { CreateQuantityOfferDto, UpdateQuantityOfferDto } from './quantity-offer.dto';
+import {
+  CreateQuantityOfferDto,
+  UpdateQuantityOfferDto,
+} from './quantity-offer.dto';
 import { toExpiryDate } from '../dto/common-offer.dto';
 import { QuantityOfferFull, ServiceResult } from '../types/offers.types';
 const SALLA_SPECIAL_OFFERS_URL = 'https://api.salla.dev/admin/v2/specialoffers';
@@ -25,22 +28,41 @@ export class QuantityOfferService {
   }
   async list(merchantId: number): Promise<QuantityOfferFull[]> {
     const results = await this.db.query.offers.findMany({
-      where: and(eq(offers.merchantId, merchantId), eq(offers.kind, 'quantity_discount')),
-      with: { targets: true, quantityTiers: true, quantitySettings: true, appearance: true },
+      where: and(
+        eq(offers.merchantId, merchantId),
+        eq(offers.kind, 'quantity_discount'),
+      ),
+      with: {
+        targets: true,
+        quantityTiers: true,
+        quantitySettings: true,
+        appearance: true,
+      },
     });
-    return results as QuantityOfferFull[];
+    return results;
   }
-  async findOne(merchantId: number, offerId: number): Promise<ServiceResult<QuantityOfferFull>> {
+  async findOne(
+    merchantId: number,
+    offerId: number,
+  ): Promise<ServiceResult<QuantityOfferFull>> {
     const offer = await this.db.query.offers.findFirst({
       where: and(eq(offers.id, offerId), eq(offers.merchantId, merchantId)),
-      with: { targets: true, quantityTiers: true, quantitySettings: true, appearance: true },
+      with: {
+        targets: true,
+        quantityTiers: true,
+        quantitySettings: true,
+        appearance: true,
+      },
     });
     if (!offer) {
       return { success: false, reason: 'not_found' };
     }
-    return { success: true, data: offer as QuantityOfferFull };
+    return { success: true, data: offer };
   }
-  async create(merchantId: number, dto: CreateQuantityOfferDto): Promise<ServiceResult<QuantityOfferFull>> {
+  async create(
+    merchantId: number,
+    dto: CreateQuantityOfferDto,
+  ): Promise<ServiceResult<QuantityOfferFull>> {
     const created = await this.db.transaction(async (tx) => {
       const [offer] = await tx
         .insert(offers)
@@ -61,17 +83,22 @@ export class QuantityOfferService {
         await tx.insert(offerTargets).values(
           dto.targeting.ids.map((id) => ({
             offerId: offer.id,
-            entityType: dto.targeting.type === 'selected_categories' ? ('category' as const) : ('product' as const),
+            entityType:
+              dto.targeting.type === 'selected_categories'
+                ? ('category' as const)
+                : ('product' as const),
             sallaEntityId: id,
           })),
         );
       }
       await tx.insert(quantityOfferSettings).values({
         offerId: offer.id,
-        allowDifferentOptionsPerPiece: dto.settings.allowDifferentOptionsPerPiece ?? false,
+        allowDifferentOptionsPerPiece:
+          dto.settings.allowDifferentOptionsPerPiece ?? false,
         hideThemeDefaultOptions: dto.settings.hideThemeDefaultOptions ?? false,
         showPricePerPiece: dto.settings.showPricePerPiece ?? false,
-        roundPriceToNearestInteger: dto.settings.roundPriceToNearestInteger ?? false,
+        roundPriceToNearestInteger:
+          dto.settings.roundPriceToNearestInteger ?? false,
         applyEvenWithCoupon: dto.settings.applyEvenWithCoupon ?? true,
         hideQuantityField: dto.settings.hideQuantityField ?? false,
       });
@@ -132,7 +159,10 @@ export class QuantityOfferService {
         await tx.insert(offerTargets).values(
           dto.targeting.ids.map((id) => ({
             offerId,
-            entityType: dto.targeting.type === 'selected_categories' ? ('category' as const) : ('product' as const),
+            entityType:
+              dto.targeting.type === 'selected_categories'
+                ? ('category' as const)
+                : ('product' as const),
             sallaEntityId: id,
           })),
         );
@@ -140,15 +170,20 @@ export class QuantityOfferService {
       await tx
         .update(quantityOfferSettings)
         .set({
-          allowDifferentOptionsPerPiece: dto.settings.allowDifferentOptionsPerPiece ?? false,
-          hideThemeDefaultOptions: dto.settings.hideThemeDefaultOptions ?? false,
+          allowDifferentOptionsPerPiece:
+            dto.settings.allowDifferentOptionsPerPiece ?? false,
+          hideThemeDefaultOptions:
+            dto.settings.hideThemeDefaultOptions ?? false,
           showPricePerPiece: dto.settings.showPricePerPiece ?? false,
-          roundPriceToNearestInteger: dto.settings.roundPriceToNearestInteger ?? false,
+          roundPriceToNearestInteger:
+            dto.settings.roundPriceToNearestInteger ?? false,
           applyEvenWithCoupon: dto.settings.applyEvenWithCoupon ?? true,
           hideQuantityField: dto.settings.hideQuantityField ?? false,
         })
         .where(eq(quantityOfferSettings.offerId, offerId));
-      await tx.delete(quantityOfferTiers).where(eq(quantityOfferTiers.offerId, offerId));
+      await tx
+        .delete(quantityOfferTiers)
+        .where(eq(quantityOfferTiers.offerId, offerId));
       if (dto.settings.tiers?.length) {
         await tx.insert(quantityOfferTiers).values(
           dto.settings.tiers.map((tier, position) => ({
@@ -182,13 +217,17 @@ export class QuantityOfferService {
     }
     return this.findOne(merchantId, offerId);
   }
-  async delete(merchantId: number, offerId: number): Promise<ServiceResult<void>> {
+  async delete(
+    merchantId: number,
+    offerId: number,
+  ): Promise<ServiceResult<void>> {
     const existing = await this.findOne(merchantId, offerId);
     if (!existing.success) return existing;
     const offer = existing.data;
     if (offer.sallaOfferId) {
       try {
-        const tokenRes = await this.merchantsService.getValidAccessToken(merchantId);
+        const tokenRes =
+          await this.merchantsService.getValidAccessToken(merchantId);
         if (tokenRes.success) {
           await fetch(`${SALLA_SPECIAL_OFFERS_URL}/${offer.sallaOfferId}`, {
             method: 'DELETE',
@@ -196,7 +235,10 @@ export class QuantityOfferService {
           });
         }
       } catch (err) {
-        this.logger.error(`Failed to delete Salla offer ${offer.sallaOfferId}`, err);
+        this.logger.error(
+          `Failed to delete Salla offer ${offer.sallaOfferId}`,
+          err,
+        );
       }
     }
     await this.db.delete(offers).where(eq(offers.id, offerId));
@@ -210,7 +252,8 @@ export class QuantityOfferService {
       const found = await this.findOne(merchantId, offerId);
       if (!found.success) return { success: false, error: 'Offer not found' };
       const offer = found.data;
-      const tokenRes = await this.merchantsService.getValidAccessToken(merchantId);
+      const tokenRes =
+        await this.merchantsService.getValidAccessToken(merchantId);
       if (!tokenRes.success) {
         return { success: false, error: 'Merchant access token unavailable' };
       }
@@ -273,7 +316,10 @@ export class QuantityOfferService {
         body: JSON.stringify(payload),
       });
       if (response.ok) {
-        const json = (await response.json()) as { data?: { id?: number | string }; id?: number | string };
+        const json = (await response.json()) as {
+          data?: { id?: number | string };
+          id?: number | string;
+        };
         const sallaId = Number(json.data?.id ?? json.id ?? offer.sallaOfferId);
         await this.db
           .update(offers)
@@ -282,7 +328,10 @@ export class QuantityOfferService {
         return { success: true, sallaOfferId: sallaId };
       }
       const errText = await response.text();
-      return { success: false, error: `Salla returned ${response.status}: ${errText}` };
+      return {
+        success: false,
+        error: `Salla returned ${response.status}: ${errText}`,
+      };
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown sync error';
       return { success: false, error: msg };

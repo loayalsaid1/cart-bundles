@@ -12,7 +12,11 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import type { QuantityOfferDraft } from "@/lib/schemas/quantity-offer";
+import type { OfferInfo } from "@/lib/schemas/common-offer";
+
+interface InfoDraftShape {
+  info: OfferInfo;
+}
 
 function toDateInputValue(iso?: string): string {
   if (!iso) return "";
@@ -22,7 +26,7 @@ function toDateInputValue(iso?: string): string {
 
 export function GeneralInfoStep() {
   const t = useTranslations("Offers");
-  const form = useFormContext<QuantityOfferDraft>();
+  const form = useFormContext<InfoDraftShape>();
   const noExpiry = form.watch("info.expiryDate") === undefined;
 
   return (
@@ -32,9 +36,9 @@ export function GeneralInfoStep() {
         name="info.internalName"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>{t("quantity.info.internalName")}</FormLabel>
+            <FormLabel>{t("info.internalName")}</FormLabel>
             <FormControl>
-              <Input {...field} placeholder={t("quantity.info.internalNamePlaceholder")} />
+              <Input {...field} placeholder={t("info.internalNamePlaceholder")} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -47,9 +51,9 @@ export function GeneralInfoStep() {
           name="info.title.ar"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("quantity.info.title")} — {t("common.ar")}</FormLabel>
+              <FormLabel>{t("info.title")} — {t("common.ar")}</FormLabel>
               <FormControl>
-                <Input {...field} dir="rtl" placeholder={t("quantity.info.titlePlaceholderAr")} />
+                <Input {...field} dir="rtl" placeholder={t("info.titlePlaceholderAr")} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -60,9 +64,9 @@ export function GeneralInfoStep() {
           name="info.title.en"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("quantity.info.title")} — {t("common.en")}</FormLabel>
+              <FormLabel>{t("info.title")} — {t("common.en")}</FormLabel>
               <FormControl>
-                <Input {...field} placeholder={t("quantity.info.titlePlaceholderEn")} />
+                <Input {...field} placeholder={t("info.titlePlaceholderEn")} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -76,9 +80,9 @@ export function GeneralInfoStep() {
           name="info.subtitle.ar"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("quantity.info.subtitle")} — {t("common.ar")}</FormLabel>
+              <FormLabel>{t("info.subtitle")} — {t("common.ar")}</FormLabel>
               <FormControl>
-                <Input {...field} dir="rtl" placeholder={t("quantity.info.subtitlePlaceholderAr")} />
+                <Input {...field} dir="rtl" placeholder={t("info.subtitlePlaceholderAr")} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -89,9 +93,9 @@ export function GeneralInfoStep() {
           name="info.subtitle.en"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("quantity.info.subtitle")} — {t("common.en")}</FormLabel>
+              <FormLabel>{t("info.subtitle")} — {t("common.en")}</FormLabel>
               <FormControl>
-                <Input {...field} placeholder={t("quantity.info.subtitlePlaceholderEn")} />
+                <Input {...field} placeholder={t("info.subtitlePlaceholderEn")} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -101,7 +105,7 @@ export function GeneralInfoStep() {
 
       <div className="flex flex-wrap items-end gap-4">
         <div className="space-y-2">
-          <Label htmlFor="expiry">{t("quantity.info.expiry")}</Label>
+          <Label htmlFor="expiry">{t("info.expiry")}</Label>
           <Input
             id="expiry"
             type="date"
@@ -123,7 +127,7 @@ export function GeneralInfoStep() {
               form.setValue("info.expiryDate", checked ? undefined : new Date().toISOString().slice(0, 10))
             }
           />
-          {t("quantity.info.noExpiry")}
+          {t("info.noExpiry")}
         </label>
       </div>
     </div>

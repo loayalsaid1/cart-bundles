@@ -20,7 +20,9 @@ export class AddonOfferController {
   constructor(private readonly service: AddonOfferService) {}
 
   @Get()
-  async list(@CurrentUser('merchantId') merchantId: number): Promise<AddonOfferFull[]> {
+  async list(
+    @CurrentUser('merchantId') merchantId: number,
+  ): Promise<AddonOfferFull[]> {
     return this.service.list(merchantId);
   }
 
@@ -43,7 +45,9 @@ export class AddonOfferController {
   ): Promise<AddonOfferFull> {
     const result = await this.service.create(merchantId, dto);
     if (!result.success) {
-      throw new BadRequestException(result.error ?? 'Failed to create addon offer');
+      throw new BadRequestException(
+        result.error ?? 'Failed to create addon offer',
+      );
     }
     return result.data;
   }
@@ -59,7 +63,9 @@ export class AddonOfferController {
       if (result.reason === 'not_found') {
         throw new NotFoundException(`Addon offer ${offerId} not found`);
       }
-      throw new BadRequestException(result.error ?? 'Failed to update addon offer');
+      throw new BadRequestException(
+        result.error ?? 'Failed to update addon offer',
+      );
     }
     return result.data;
   }

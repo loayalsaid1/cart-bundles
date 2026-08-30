@@ -5,6 +5,7 @@ import {
   offerInfoSchema,
   offerKindSchema,
   offerStatusSchema,
+  offerTargetSchema,
   offerTargetingSchema,
   pricingTypeSchema,
   targetTypeSchema,
@@ -53,13 +54,6 @@ export const quantityOfferDraftSchema = z.object({
   targeting: offerTargetingSchema,
   settings: quantityOfferSettingsSchema,
   appearance: offerAppearanceSchema,
-});
-
-const offerTargetSchema = z.object({
-  id: z.number(),
-  offerId: z.number(),
-  entityType: z.enum(['product', 'category']),
-  sallaEntityId: z.coerce.number(),
 });
 
 const quantityTierFullSchema = z.object({

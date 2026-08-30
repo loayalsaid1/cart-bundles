@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { QuantityOfferBuilder } from "@/components/offers/builder/quantity-offer-builder";
+import { slugToKind } from "@/lib/utils/offer-kind";
+import { OfferBuilderByType } from "@/components/offers/builder/offer-builder-by-type";
 
 export default async function NewOfferTypePage({
   params,
@@ -7,6 +8,7 @@ export default async function NewOfferTypePage({
   params: Promise<{ type: string }>;
 }) {
   const { type } = await params;
-  if (type !== "quantity_discount") notFound();
-  return <QuantityOfferBuilder />;
+  const kind = slugToKind(type);
+  if (!kind) notFound();
+  return <OfferBuilderByType kind={kind} />;
 }

@@ -66,6 +66,37 @@ export const dashboardOfferSchema = z.object({
   targetsCount: z.coerce.number(),
 });
 
+export const relatedProductDraftSchema = z.object({
+  sallaProductId: z.number(),
+  position: z.number().optional(),
+  isPreselected: z.boolean().optional(),
+});
+
+export const offerTargetSchema = z.object({
+  id: z.number(),
+  offerId: z.number(),
+  entityType: z.enum(["product", "category"]),
+  sallaEntityId: z.coerce.number(),
+});
+
+export const relatedProductFullSchema = z.object({
+  id: z.number(),
+  offerId: z.number(),
+  sallaProductId: z.coerce.number(),
+  position: z.number(),
+  isPreselected: z.boolean(),
+});
+
+export const appearanceFullSchema = z
+  .object({
+    offerId: z.number(),
+    borderRadiusPx: z.number(),
+    colors: z.record(z.string(), z.string()),
+  })
+  .nullable();
+
+export const displayOrientationSchema = z.enum(["vertical", "horizontal"]);
+
 export type OfferKind = z.infer<typeof offerKindSchema>;
 export type OfferStatus = z.infer<typeof offerStatusSchema>;
 export type TargetType = z.infer<typeof targetTypeSchema>;
@@ -73,3 +104,8 @@ export type OfferInfo = z.infer<typeof offerInfoSchema>;
 export type OfferTargeting = z.infer<typeof offerTargetingSchema>;
 export type OfferAppearance = z.infer<typeof offerAppearanceSchema>;
 export type DashboardOffer = z.infer<typeof dashboardOfferSchema>;
+export type RelatedProductDraft = z.infer<typeof relatedProductDraftSchema>;
+export type OfferTarget = z.infer<typeof offerTargetSchema>;
+export type RelatedProductFull = z.infer<typeof relatedProductFullSchema>;
+export type OfferAppearanceFull = z.infer<typeof appearanceFullSchema>;
+export type DisplayOrientation = z.infer<typeof displayOrientationSchema>;

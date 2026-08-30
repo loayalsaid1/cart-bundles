@@ -21,3 +21,25 @@ export const KIND_LABEL_KEYS = {
   upgrade_offer: "kind.upgrade_offer",
   cart_recommendation: "kind.cart_recommendation",
 } as const;
+
+export const OFFER_SLUGS: Record<OfferKind, string> = {
+  quantity_discount: "quantity",
+  product_add_on: "addon",
+  bundle: "bundle",
+  upgrade_offer: "upgrade",
+  cart_recommendation: "recommendation",
+};
+
+const SLUG_TO_KIND = Object.fromEntries(
+  (Object.entries(OFFER_SLUGS) as Array<[OfferKind, string]>).map(
+    ([kind, slug]) => [slug, kind],
+  ),
+) as Record<string, OfferKind>;
+
+export function kindToSlug(kind: OfferKind): string {
+  return OFFER_SLUGS[kind];
+}
+
+export function slugToKind(slug: string): OfferKind | undefined {
+  return SLUG_TO_KIND[slug];
+}

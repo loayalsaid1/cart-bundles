@@ -13,6 +13,7 @@ import {
   updateQuantityOffer,
 } from "@/lib/api/quantity-offers";
 import type { QuantityOfferDraft } from "@/lib/schemas/quantity-offer";
+import { useTranslations } from "next-intl";
 import { notify } from "@/lib/notify";
 
 export function useQuantityOffers() {
@@ -33,34 +34,37 @@ export function useQuantityOffer(id: number | null) {
 
 export function useCreateQuantityOffer() {
   const qc = useQueryClient();
+  const t = useTranslations("Offers");
   return useMutation({
     mutationFn: (draft: QuantityOfferDraft) => createQuantityOffer(draft),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["offers"] });
-      notify.success("Quantity offer created");
+      notify.success(t("notify.created", { kind: t("kind.quantity_discount") }));
     },
   });
 }
 
 export function useUpdateQuantityOffer() {
   const qc = useQueryClient();
+  const t = useTranslations("Offers");
   return useMutation({
     mutationFn: ({ id, draft }: { id: number; draft: QuantityOfferDraft }) =>
       updateQuantityOffer(id, draft),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["offers"] });
-      notify.success("Quantity offer updated");
+      notify.success(t("notify.updated", { kind: t("kind.quantity_discount") }));
     },
   });
 }
 
 export function useDeleteQuantityOffer() {
   const qc = useQueryClient();
+  const t = useTranslations("Offers");
   return useMutation({
     mutationFn: (id: number) => deleteQuantityOffer(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["offers"] });
-      notify.success("Quantity offer deleted");
+      notify.success(t("notify.deleted", { kind: t("kind.quantity_discount") }));
     },
   });
 }

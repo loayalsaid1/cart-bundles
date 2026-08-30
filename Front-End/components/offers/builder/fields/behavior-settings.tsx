@@ -28,7 +28,7 @@ export function BehaviorSettings() {
           <span className="text-sm">{t(`quantity.settings.${key}`)}</span>
           <Switch
             checked={(values[key] as boolean) ?? false}
-            onCheckedChange={(checked) => form.setValue(`settings.${key}` as any, checked)}
+            onCheckedChange={(checked) => form.setValue(`settings.${key}`, checked)}
           />
         </label>
       ))}

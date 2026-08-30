@@ -5,7 +5,11 @@ import { useFormContext } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import type { QuantityOfferDraft } from "@/lib/schemas/quantity-offer";
+import type { OfferAppearance } from "@/lib/schemas/common-offer";
+
+interface AppearanceDraftShape {
+  appearance?: OfferAppearance;
+}
 
 const PRESETS: Array<{ name: string; radius: number; colors: Record<string, string> }> = [
   {
@@ -36,7 +40,7 @@ const COLOR_KEYS = [
 
 export function AppearanceStep() {
   const t = useTranslations("Offers");
-  const form = useFormContext<QuantityOfferDraft>();
+  const form = useFormContext<AppearanceDraftShape>();
   const radius = form.watch("appearance.borderRadiusPx") ?? 12;
   const colors = form.watch("appearance.colors") ?? {};
 
@@ -49,7 +53,7 @@ export function AppearanceStep() {
     <div className="space-y-6">
       <div>
         <div className="flex items-center justify-between">
-          <Label>{t("quantity.appearance.borderRadius")}</Label>
+          <Label>{t("appearance.borderRadius")}</Label>
           <span className="text-xs text-muted-foreground">{radius}px</span>
         </div>
         <Slider
@@ -57,7 +61,7 @@ export function AppearanceStep() {
           max={24}
           step={1}
           value={[radius]}
-          onValueChange={(val: any) => {
+          onValueChange={(val) => {
             const v = Array.isArray(val) ? val[0] : Number(val);
             if (!Number.isNaN(v)) form.setValue("appearance.borderRadiusPx", v);
           }}
@@ -66,7 +70,7 @@ export function AppearanceStep() {
       </div>
 
       <div className="space-y-2">
-        <Label>{t("quantity.appearance.presetsLabel")}</Label>
+        <Label>{t("appearance.presetsLabel")}</Label>
         <div className="flex flex-wrap gap-2">
           {PRESETS.map((preset) => (
             <Button
@@ -75,7 +79,7 @@ export function AppearanceStep() {
               size="sm"
               onClick={() => applyPreset(preset)}
             >
-              {t(`quantity.appearance.presets.${preset.name}` as any)}
+              {t(`appearance.presets.${preset.name}`)}
             </Button>
           ))}
         </div>
@@ -84,7 +88,7 @@ export function AppearanceStep() {
       <div className="grid grid-cols-2 gap-4">
         {COLOR_KEYS.map((key) => (
           <div key={key} className="space-y-2">
-            <Label>{t(`quantity.appearance.colors.${key}` as any)}</Label>
+            <Label>{t(`appearance.colors.${key}`)}</Label>
             <div className="flex items-center gap-2">
               <input
                 type="color"

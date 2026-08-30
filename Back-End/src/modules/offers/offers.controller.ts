@@ -36,7 +36,8 @@ export class OffersController {
     @Query('search') search?: string,
     @Query('type') type?: string,
     @Query('status') status?: string,
-    @Query('productId', new ParseIntPipe({ optional: true })) productId?: number,
+    @Query('productId', new ParseIntPipe({ optional: true }))
+    productId?: number,
   ): Promise<DashboardOfferShort[]> {
     return this.service.getDashboardOffers(merchantId, {
       search,
@@ -47,7 +48,9 @@ export class OffersController {
   }
 
   @Get()
-  async findAllForMerchant(@CurrentUser('merchantId') merchantId: number): Promise<FullOffer[]> {
+  async findAllForMerchant(
+    @CurrentUser('merchantId') merchantId: number,
+  ): Promise<FullOffer[]> {
     return this.service.findAllForMerchant(merchantId);
   }
 

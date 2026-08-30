@@ -86,7 +86,7 @@ export default function EmbedLayout({ children }: { children: React.ReactNode })
             try {
                 for (const item of EMBED_NAV_ITEMS) {
                     await embedded.nav.addNavItem({
-                        title: t(item.titleKey as any),
+                        title: t(item.titleKey),
                         value: item.value,
                         url: item.url,
                         active: item.matcher(pathname),

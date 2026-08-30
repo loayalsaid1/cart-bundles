@@ -3,7 +3,6 @@
 import { useRouter } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -14,6 +13,7 @@ import {
   ShoppingCart01Icon,
 } from "@hugeicons/core-free-icons";
 import { offerKindSchema, type OfferKind } from "@/lib/schemas/common-offer";
+import { kindToSlug } from "@/lib/utils/offer-kind";
 
 const KIND_ICONS: Record<OfferKind, typeof SaleTag01Icon> = {
   quantity_discount: SaleTag01Icon,
@@ -23,11 +23,12 @@ const KIND_ICONS: Record<OfferKind, typeof SaleTag01Icon> = {
   cart_recommendation: ShoppingCart01Icon,
 };
 
-const ENABLED_KINDS: OfferKind[] = ["quantity_discount"];
-
 export function OfferKindSelector() {
   const t = useTranslations("Offers");
   const router = useRouter();
+
+  const openBuilder = (kind: OfferKind) =>
+    router.push(`/salla/embed/offers/${kindToSlug(kind)}/new`);
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-6">
@@ -37,44 +38,28 @@ export function OfferKindSelector() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {offerKindSchema.options.map((kind) => {
-          const enabled = ENABLED_KINDS.includes(kind);
-          return (
-            <Card
-              key={kind}
-              className={`relative flex flex-col p-5 transition-all ${
-                enabled ? "cursor-pointer hover:shadow-md hover:border-ring" : "opacity-60"
-              }`}
-              onClick={() =>
-                enabled && router.push(`/salla/embed/offers/${kind}/new`)
-              }
-            >
-              <CardContent className="flex flex-col gap-3 p-0">
-                <div className="flex items-center justify-between">
-                  <div className="rounded-lg bg-muted p-2.5">
-                    <HugeiconsIcon icon={KIND_ICONS[kind]} size={22} className="text-primary" />
-                  </div>
-                  {!enabled && (
-                    <Badge variant="outline" className="text-[10px]">
-                      {t("typeSelector.comingSoon")}
-                    </Badge>
-                  )}
-                </div>
-                <div>
-                  <h3 className="text-base font-semibold">{t(`kind.${kind}`)}</h3>
-                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                    {t(`typeSelector.${kind}.description`)}
-                  </p>
-                </div>
-                {enabled && (
-                  <Button size="sm" className="mt-auto" onClick={() => router.push(`/salla/embed/offers/${kind}/new`)}>
-                    {t("typeSelector.create")}
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
+        {offerKindSchema.options.map((kind) => (
+          <Card
+            key={kind}
+            className="relative flex cursor-pointer flex-col p-5 transition-all hover:shadow-md hover:border-ring"
+            onClick={() => openBuilder(kind)}
+          >
+            <CardContent className="flex flex-col gap-3 p-0">
+              <div className="rounded-lg bg-muted p-2.5">
+                <HugeiconsIcon icon={KIND_ICONS[kind]} size={22} className="text-primary" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold">{t(`kind.${kind}`)}</h3>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  {t(`typeSelector.${kind}.description`)}
+                </p>
+              </div>
+              <Button size="sm" className="mt-auto" onClick={() => openBuilder(kind)}>
+                {t("typeSelector.create")}
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     </div>
   );

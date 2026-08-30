@@ -10,13 +10,17 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon, PackageAdd01Icon } from "@hugeicons/core-free-icons";
 import { ProductPickerDialog } from "@/components/offers/shared/product-picker-dialog";
 import { CategoryPickerDialog } from "@/components/offers/shared/category-picker-dialog";
-import type { QuantityOfferDraft } from "@/lib/schemas/quantity-offer";
+import type { OfferTargeting } from "@/lib/schemas/common-offer";
 import type { Product } from "@/types/product";
 import type { Category } from "@/lib/api/categories";
 import { useProductSearch } from "@/hooks/use-product-search";
 import { useCategorySearch } from "@/hooks/use-category-search";
 
-type TargetType = "all_products" | "selected_products" | "selected_categories";
+type TargetType = OfferTargeting["type"];
+
+interface TargetingDraftShape {
+  targeting: OfferTargeting;
+}
 
 export function TargetingStep({
   onProductsPicked,
@@ -24,7 +28,7 @@ export function TargetingStep({
   onProductsPicked: (products: Product[]) => void;
 }) {
   const t = useTranslations("Offers");
-  const form = useFormContext<QuantityOfferDraft>();
+  const form = useFormContext<TargetingDraftShape>();
   const { formState: { errors } } = form;
   const type = form.watch("targeting.type") as TargetType;
   const ids = form.watch("targeting.ids") ?? [];
@@ -93,7 +97,7 @@ export function TargetingStep({
               className="flex items-center gap-2 rounded-lg border p-3 text-sm font-medium has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 cursor-pointer"
             >
               <RadioGroupItem value={option} />
-              {t(`quantity.targeting.${option}` as any)}
+              {t(`targeting.${option}`)}
             </label>
           ),
         )}
@@ -109,7 +113,7 @@ export function TargetingStep({
         <div className="space-y-3">
           <Button type="button" variant="outline" onClick={() => setProductPickerOpen(true)}>
             <HugeiconsIcon icon={PackageAdd01Icon} size={16} />
-            {t("quantity.targeting.pickProducts")}
+            {t("targeting.pickProducts")}
           </Button>
           {products.length > 0 && (
             <div className="space-y-2">
@@ -146,7 +150,7 @@ export function TargetingStep({
         <div className="space-y-3">
           <Button type="button" variant="outline" onClick={() => setCategoryPickerOpen(true)}>
             <HugeiconsIcon icon={PackageAdd01Icon} size={16} />
-            {t("quantity.targeting.pickCategories")}
+            {t("targeting.pickCategories")}
           </Button>
           {categories.length > 0 && (
             <div className="space-y-2">

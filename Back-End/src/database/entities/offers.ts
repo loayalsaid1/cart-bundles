@@ -24,7 +24,6 @@ export const offerKindEnum = pgEnum('offer_kind', [
   'cart_recommendation',
 ]);
 
-
 export const offerStatusEnum = pgEnum('offer_status', [
   'draft',
   'active',
@@ -45,7 +44,10 @@ export const displayOrientationEnum = pgEnum('display_orientation', [
   'horizontal',
 ]);
 
-export const offerTargetTypeEnum = pgEnum('offer_target_entity', ['product', 'category']);
+export const offerTargetTypeEnum = pgEnum('offer_target_entity', [
+  'product',
+  'category',
+]);
 
 export const recommendationModeEnum = pgEnum('recommendation_mode', [
   'cart_related',
@@ -70,18 +72,25 @@ export const offers = pgTable('offers', {
   title: jsonb('title').$type<Record<string, string>>().notNull(),
   subtitle: jsonb('subtitle').$type<Record<string, string>>(),
 
-  targetType: targetTypeEnum('target_type').notNull().default('selected_products'),
+  targetType: targetTypeEnum('target_type')
+    .notNull()
+    .default('selected_products'),
 
   expiryDate: timestamp('expiry_date', { withTimezone: true }),
   status: offerStatusEnum('status').notNull().default('draft'),
 
-  redirectToCartAfterAdd: boolean('redirect_to_cart_after_add').notNull().default(false),
+  redirectToCartAfterAdd: boolean('redirect_to_cart_after_add')
+    .notNull()
+    .default(false),
   hideSallaPopup: boolean('hide_salla_popup').notNull().default(true),
 
   sallaOfferId: bigint('salla_offer_id', { mode: 'number' }),
 
   createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow().$onUpdate(() => new Date()),
+  updatedAt: timestamp('updated_at')
+    .notNull()
+    .defaultNow()
+    .$onUpdate(() => new Date()),
 });
 
 /* ────────────────────────────────────────────────────────────────
@@ -135,13 +144,17 @@ export const quantityOfferSettings = pgTable('quantity_offer_settings', {
   allowDifferentOptionsPerPiece: boolean('allow_different_options_per_piece')
     .notNull()
     .default(false),
-  hideThemeDefaultOptions: boolean('hide_theme_default_options').notNull().default(false),
+  hideThemeDefaultOptions: boolean('hide_theme_default_options')
+    .notNull()
+    .default(false),
 
   showPricePerPiece: boolean('show_price_per_piece').notNull().default(false),
   roundPriceToNearestInteger: boolean('round_price_to_nearest_integer')
     .notNull()
     .default(false),
-  applyEvenWithCoupon: boolean('apply_even_with_coupon').notNull().default(true),
+  applyEvenWithCoupon: boolean('apply_even_with_coupon')
+    .notNull()
+    .default(true),
   hideQuantityField: boolean('hide_quantity_field').notNull().default(false),
 });
 
@@ -157,9 +170,14 @@ export const quantityOfferTiers = pgTable('quantity_offer_tiers', {
   subtitle: jsonb('subtitle').$type<Record<string, string>>(),
 
   pricingType: pricingTypeEnum('pricing_type').notNull(),
-  discountAmount: numeric('discount_amount', { precision: 10, scale: 2 }).notNull(),
+  discountAmount: numeric('discount_amount', {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
 
-  isSelectedByDefault: boolean('is_selected_by_default').notNull().default(false),
+  isSelectedByDefault: boolean('is_selected_by_default')
+    .notNull()
+    .default(false),
   badgeText: varchar('badge_text', { length: 100 }),
   labelText: varchar('label_text', { length: 100 }),
 });
@@ -211,8 +229,12 @@ export const upgradeOfferSettings = pgTable('upgrade_offer_settings', {
   offerId: integer('offer_id')
     .primaryKey()
     .references(() => offers.id, { onDelete: 'cascade' }),
-  baseSallaProductId: bigint('base_salla_product_id', { mode: 'number' }).notNull(),
-  upgradeSallaProductId: bigint('upgrade_salla_product_id', { mode: 'number' }).notNull(),
+  baseSallaProductId: bigint('base_salla_product_id', {
+    mode: 'number',
+  }).notNull(),
+  upgradeSallaProductId: bigint('upgrade_salla_product_id', {
+    mode: 'number',
+  }).notNull(),
   couponCode: varchar('coupon_code', { length: 64 }),
   sallaCouponId: bigint('salla_coupon_id', { mode: 'number' }),
 });
@@ -221,13 +243,18 @@ export const upgradeOfferSettings = pgTable('upgrade_offer_settings', {
    CART RECOMMENDATIONS SETTINGS
    ──────────────────────────────────────────────────────────────── */
 
-export const recommendationOfferSettings = pgTable('recommendation_offer_settings', {
-  offerId: integer('offer_id')
-    .primaryKey()
-    .references(() => offers.id, { onDelete: 'cascade' }),
-  mode: recommendationModeEnum('mode').notNull().default('general'),
-  triggerSallaProductId: bigint('trigger_salla_product_id', { mode: 'number' }),
-});
+export const recommendationOfferSettings = pgTable(
+  'recommendation_offer_settings',
+  {
+    offerId: integer('offer_id')
+      .primaryKey()
+      .references(() => offers.id, { onDelete: 'cascade' }),
+    mode: recommendationModeEnum('mode').notNull().default('general'),
+    triggerSallaProductId: bigint('trigger_salla_product_id', {
+      mode: 'number',
+    }),
+  },
+);
 
 /* ────────────────────────────────────────────────────────────────
    NOTE: Inferred types (Offer, NewOffer, etc.) are exported from

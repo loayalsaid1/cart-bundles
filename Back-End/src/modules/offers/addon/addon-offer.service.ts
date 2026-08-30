@@ -30,24 +30,43 @@ export class AddonOfferService {
 
   async list(merchantId: number): Promise<AddonOfferFull[]> {
     const results = await this.db.query.offers.findMany({
-      where: and(eq(offers.merchantId, merchantId), eq(offers.kind, 'product_add_on')),
-      with: { targets: true, relatedProducts: true, addonSettings: true, appearance: true },
+      where: and(
+        eq(offers.merchantId, merchantId),
+        eq(offers.kind, 'product_add_on'),
+      ),
+      with: {
+        targets: true,
+        relatedProducts: true,
+        addonSettings: true,
+        appearance: true,
+      },
     });
-    return results as AddonOfferFull[];
+    return results;
   }
 
-  async findOne(merchantId: number, offerId: number): Promise<ServiceResult<AddonOfferFull>> {
+  async findOne(
+    merchantId: number,
+    offerId: number,
+  ): Promise<ServiceResult<AddonOfferFull>> {
     const offer = await this.db.query.offers.findFirst({
       where: and(eq(offers.id, offerId), eq(offers.merchantId, merchantId)),
-      with: { targets: true, relatedProducts: true, addonSettings: true, appearance: true },
+      with: {
+        targets: true,
+        relatedProducts: true,
+        addonSettings: true,
+        appearance: true,
+      },
     });
     if (!offer) {
       return { success: false, reason: 'not_found' };
     }
-    return { success: true, data: offer as AddonOfferFull };
+    return { success: true, data: offer };
   }
 
-  async create(merchantId: number, dto: CreateAddonOfferDto): Promise<ServiceResult<AddonOfferFull>> {
+  async create(
+    merchantId: number,
+    dto: CreateAddonOfferDto,
+  ): Promise<ServiceResult<AddonOfferFull>> {
     const created = await this.db.transaction(async (tx) => {
       const [offer] = await tx
         .insert(offers)
@@ -69,7 +88,10 @@ export class AddonOfferService {
         await tx.insert(offerTargets).values(
           dto.targeting.ids.map((id) => ({
             offerId: offer.id,
-            entityType: dto.targeting.type === 'selected_categories' ? ('category' as const) : ('product' as const),
+            entityType:
+              dto.targeting.type === 'selected_categories'
+                ? ('category' as const)
+                : ('product' as const),
             sallaEntityId: id,
           })),
         );
@@ -89,11 +111,15 @@ export class AddonOfferService {
       await tx.insert(addonOfferSettings).values({
         offerId: offer.id,
         maxItems: dto.settings.maxItems ?? 8,
-        productsPreselectedByDefault: dto.settings.productsPreselectedByDefault ?? false,
+        productsPreselectedByDefault:
+          dto.settings.productsPreselectedByDefault ?? false,
         showProductOptions: dto.settings.showProductOptions ?? false,
         displayOrientation: dto.settings.displayOrientation ?? 'horizontal',
         discountType: dto.settings.discountType,
-        discountAmount: dto.settings.discountAmount !== undefined ? String(dto.settings.discountAmount) : null,
+        discountAmount:
+          dto.settings.discountAmount !== undefined
+            ? String(dto.settings.discountAmount)
+            : null,
         positionDesktop: dto.settings.positionDesktop,
         positionMobile: dto.settings.positionMobile,
       });
@@ -109,7 +135,11 @@ export class AddonOfferService {
 
     const syncRes = await this.syncToSalla(merchantId, created.id);
     if (!syncRes.success) {
-      this.logger.warn(`Addon offer ${created.id} created locally, but Salla sync failed: ${syncRes.error}`);
+      this.logger.warn(
+        `Addon offer ${created.id} created locally, but Salla sync failed: ${syncRes.error}`,
+      );
+      await this.db.delete(offers).where(eq(offers.id, created.id));
+      return { success: false, reason: 'salla_sync_failed', error: syncRes.error ?? 'Unknown Salla API error' };
     }
 
     return this.findOne(merchantId, created.id);
@@ -142,13 +172,18 @@ export class AddonOfferService {
         await tx.insert(offerTargets).values(
           dto.targeting.ids.map((id) => ({
             offerId,
-            entityType: dto.targeting.type === 'selected_categories' ? ('category' as const) : ('product' as const),
+            entityType:
+              dto.targeting.type === 'selected_categories'
+                ? ('category' as const)
+                : ('product' as const),
             sallaEntityId: id,
           })),
         );
       }
 
-      await tx.delete(offerRelatedProducts).where(eq(offerRelatedProducts.offerId, offerId));
+      await tx
+        .delete(offerRelatedProducts)
+        .where(eq(offerRelatedProducts.offerId, offerId));
       if (dto.settings.relatedProducts?.length) {
         await tx.insert(offerRelatedProducts).values(
           dto.settings.relatedProducts.map((p, idx) => ({
@@ -164,11 +199,15 @@ export class AddonOfferService {
         .update(addonOfferSettings)
         .set({
           maxItems: dto.settings.maxItems ?? 8,
-          productsPreselectedByDefault: dto.settings.productsPreselectedByDefault ?? false,
+          productsPreselectedByDefault:
+            dto.settings.productsPreselectedByDefault ?? false,
           showProductOptions: dto.settings.showProductOptions ?? false,
           displayOrientation: dto.settings.displayOrientation ?? 'horizontal',
           discountType: dto.settings.discountType,
-          discountAmount: dto.settings.discountAmount !== undefined ? String(dto.settings.discountAmount) : null,
+          discountAmount:
+            dto.settings.discountAmount !== undefined
+              ? String(dto.settings.discountAmount)
+              : null,
           positionDesktop: dto.settings.positionDesktop,
           positionMobile: dto.settings.positionMobile,
         })
@@ -187,20 +226,26 @@ export class AddonOfferService {
 
     const syncRes = await this.syncToSalla(merchantId, offerId);
     if (!syncRes.success) {
-      this.logger.warn(`Addon offer ${offerId} updated locally, but Salla sync failed: ${syncRes.error}`);
+      this.logger.warn(
+        `Addon offer ${offerId} updated locally, but Salla sync failed: ${syncRes.error}`,
+      );
     }
 
     return this.findOne(merchantId, offerId);
   }
 
-  async delete(merchantId: number, offerId: number): Promise<ServiceResult<void>> {
+  async delete(
+    merchantId: number,
+    offerId: number,
+  ): Promise<ServiceResult<void>> {
     const existing = await this.findOne(merchantId, offerId);
     if (!existing.success) return existing;
 
     const offer = existing.data;
     if (offer.sallaOfferId) {
       try {
-        const tokenRes = await this.merchantsService.getValidAccessToken(merchantId);
+        const tokenRes =
+          await this.merchantsService.getValidAccessToken(merchantId);
         if (tokenRes.success) {
           await fetch(`${SALLA_SPECIAL_OFFERS_URL}/${offer.sallaOfferId}`, {
             method: 'DELETE',
@@ -208,7 +253,10 @@ export class AddonOfferService {
           });
         }
       } catch (err) {
-        this.logger.error(`Failed to delete Salla offer ${offer.sallaOfferId}`, err);
+        this.logger.error(
+          `Failed to delete Salla offer ${offer.sallaOfferId}`,
+          err,
+        );
       }
     }
 
@@ -222,30 +270,64 @@ export class AddonOfferService {
   ): Promise<{ success: boolean; sallaOfferId?: number; error?: string }> {
     try {
       const found = await this.findOne(merchantId, offerId);
-      if (!found.success) return { success: false, error: 'Addon offer not found' };
+      if (!found.success)
+        return { success: false, error: 'Addon offer not found' };
 
       const offer = found.data;
-      const tokenRes = await this.merchantsService.getValidAccessToken(merchantId);
+      const tokenRes =
+        await this.merchantsService.getValidAccessToken(merchantId);
       if (!tokenRes.success) {
         return { success: false, error: 'Merchant access token unavailable' };
       }
 
       const isCategory = offer.targetType === 'selected_categories';
-      const entityIds = offer.targets.map((t) => Number(t.sallaEntityId)).filter(Boolean);
-      const offerProductIds = offer.relatedProducts.map((rp) => Number(rp.sallaProductId)).filter(Boolean);
+      const entityIds = offer.targets
+        .map((t) => Number(t.sallaEntityId))
+        .filter(Boolean);
+      const offerProductIds = offer.relatedProducts
+        .map((rp) => Number(rp.sallaProductId))
+        .filter(Boolean);
+
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const formatDate = (d: Date) =>
+        `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+
+      const startDateStr = formatDate(new Date());
+      let expiryDateStr: string | undefined = undefined;
+      if (offer.expiryDate) {
+        const exp = new Date(offer.expiryDate);
+        if (!isNaN(exp.getTime())) {
+          if (exp.getHours() === 0 && exp.getMinutes() === 0 && exp.getSeconds() === 0) {
+            exp.setHours(23, 59, 59);
+          }
+          expiryDateStr = formatDate(exp);
+        }
+      }
 
       const payload: Record<string, unknown> = {
         name: offer.internalName,
         message: offer.title?.['ar'] ?? offer.internalName,
         applied_channel: 'browser_and_application',
-        applied_to: offer.targetType === 'all_products' ? 'all_products' : isCategory ? 'category' : 'product',
-        start_date: new Date().toISOString().slice(0, 10),
-        expiry_date: offer.expiryDate?.toISOString().slice(0, 10),
+        applied_to:
+          offer.targetType === 'all_products'
+            ? 'order'
+            : isCategory
+              ? 'category'
+              : 'product',
+        start_date: startDateStr,
         offer_type: 'product_add_on',
         offer_products: offerProductIds,
+        status: offer.status === 'paused' ? 'inactive' : 'active',
       };
 
-      if (offer.addonSettings?.discountType && offer.addonSettings?.discountAmount) {
+      if (expiryDateStr) {
+        payload.expiry_date = expiryDateStr;
+      }
+
+      if (
+        offer.addonSettings?.discountType &&
+        offer.addonSettings?.discountAmount
+      ) {
         payload.discount_type = offer.addonSettings.discountType;
         payload.discount_amount = Number(offer.addonSettings.discountAmount);
       }
@@ -273,7 +355,10 @@ export class AddonOfferService {
       });
 
       if (response.ok) {
-        const json = (await response.json()) as { data?: { id?: number | string }; id?: number | string };
+        const json = (await response.json()) as {
+          data?: { id?: number | string };
+          id?: number | string;
+        };
         const sallaId = Number(json.data?.id ?? json.id ?? offer.sallaOfferId);
         await this.db
           .update(offers)
@@ -283,7 +368,10 @@ export class AddonOfferService {
       }
 
       const errText = await response.text();
-      return { success: false, error: `Salla returned ${response.status}: ${errText}` };
+      return {
+        success: false,
+        error: `Salla returned ${response.status}: ${errText}`,
+      };
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown sync error';
       return { success: false, error: msg };

@@ -16,7 +16,7 @@ import {
   pricingTypeEnum,
   displayOrientationEnum,
   offerTargetTypeEnum,
-  recommendationModeEnum
+  recommendationModeEnum,
 } from '../../../database/schema';
 
 export type Offer = InferSelectModel<typeof offers>;
@@ -26,22 +26,29 @@ export type OfferTarget = InferSelectModel<typeof offerTargets>;
 export type OfferRelatedProduct = InferSelectModel<typeof offerRelatedProducts>;
 export type OfferAppearance = InferSelectModel<typeof offerAppearance>;
 
-export type QuantityOfferSettings = InferSelectModel<typeof quantityOfferSettings>;
+export type QuantityOfferSettings = InferSelectModel<
+  typeof quantityOfferSettings
+>;
 export type QuantityOfferTier = InferSelectModel<typeof quantityOfferTiers>;
 
 export type AddonOfferSettings = InferSelectModel<typeof addonOfferSettings>;
 export type BundleOfferSettings = InferSelectModel<typeof bundleOfferSettings>;
-export type UpgradeOfferSettings = InferSelectModel<typeof upgradeOfferSettings>;
-export type RecommendationOfferSettings = InferSelectModel<typeof recommendationOfferSettings>;
+export type UpgradeOfferSettings = InferSelectModel<
+  typeof upgradeOfferSettings
+>;
+export type RecommendationOfferSettings = InferSelectModel<
+  typeof recommendationOfferSettings
+>;
 
 export type OfferKind = (typeof offerKindEnum.enumValues)[number];
 export type OfferStatus = (typeof offerStatusEnum.enumValues)[number];
 export type TargetType = (typeof targetTypeEnum.enumValues)[number];
 export type PricingType = (typeof pricingTypeEnum.enumValues)[number];
-export type DisplayOrientation = (typeof displayOrientationEnum.enumValues)[number];
+export type DisplayOrientation =
+  (typeof displayOrientationEnum.enumValues)[number];
 export type OfferTargetType = (typeof offerTargetTypeEnum.enumValues)[number];
-export type RecommendationMode = (typeof recommendationModeEnum.enumValues)[number];
-
+export type RecommendationMode =
+  (typeof recommendationModeEnum.enumValues)[number];
 
 export interface QuantityOfferFull extends Offer {
   targets: OfferTarget[];

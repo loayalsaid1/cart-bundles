@@ -37,7 +37,7 @@ export function BuilderStepNav({
               )}
             >
               <span className="me-1.5 font-bold">{index + 1}.</span>
-              {t(`builder.steps.${step.key}` as any)}
+              {t(`builder.steps.${step.key}`)}
             </button>
             {index < steps.length - 1 && (
               <div className="h-px w-4 bg-border" aria-hidden />

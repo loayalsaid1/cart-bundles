@@ -11,7 +11,10 @@ import {
   Put,
 } from '@nestjs/common';
 import { UpgradeOfferService } from './upgrade-offer.service';
-import { CreateUpgradeOfferDto, UpdateUpgradeOfferDto } from './upgrade-offer.dto';
+import {
+  CreateUpgradeOfferDto,
+  UpdateUpgradeOfferDto,
+} from './upgrade-offer.dto';
 import { UpgradeOfferFull } from '../types/offers.types';
 import { CurrentUser } from '../../../common/decorators';
 
@@ -20,7 +23,9 @@ export class UpgradeOfferController {
   constructor(private readonly service: UpgradeOfferService) {}
 
   @Get()
-  async list(@CurrentUser('merchantId') merchantId: number): Promise<UpgradeOfferFull[]> {
+  async list(
+    @CurrentUser('merchantId') merchantId: number,
+  ): Promise<UpgradeOfferFull[]> {
     return this.service.list(merchantId);
   }
 
@@ -43,7 +48,9 @@ export class UpgradeOfferController {
   ): Promise<UpgradeOfferFull> {
     const result = await this.service.create(merchantId, dto);
     if (!result.success) {
-      throw new BadRequestException(result.error ?? 'Failed to create upgrade offer');
+      throw new BadRequestException(
+        result.error ?? 'Failed to create upgrade offer',
+      );
     }
     return result.data;
   }
@@ -59,7 +66,9 @@ export class UpgradeOfferController {
       if (result.reason === 'not_found') {
         throw new NotFoundException(`Upgrade offer ${offerId} not found`);
       }
-      throw new BadRequestException(result.error ?? 'Failed to update upgrade offer');
+      throw new BadRequestException(
+        result.error ?? 'Failed to update upgrade offer',
+      );
     }
     return result.data;
   }

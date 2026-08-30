@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   Dialog,
@@ -29,6 +29,7 @@ interface ProductPickerDialogProps {
   selectedIds: number[];
   initialProducts?: Product[];
   onApply: (products: Product[]) => void;
+  single?: boolean;
 }
 
 export function ProductPickerDialog({
@@ -37,20 +38,25 @@ export function ProductPickerDialog({
   selectedIds,
   initialProducts = [],
   onApply,
+  single = false,
 }: ProductPickerDialogProps) {
   const t = useTranslations("Offers");
   const [query, setQuery] = useState("");
   const [picked, setPicked] = useState<Map<number, Product>>(new Map());
   const { data: products, isPending } = useProductSearch(query.trim(), open);
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
     if (open) {
       setQuery("");
       const initialMap = new Map<number, Product>();
       initialProducts.forEach((p) => initialMap.set(p.id, p));
       setPicked(initialMap);
     }
-  }, [open]);
+  }
+
+  const selectedIdsSet = new Set(selectedIds);
 
   // Sync search results into picked map if their ID is in selectedIds
   useEffect(() => {
@@ -73,7 +79,12 @@ export function ProductPickerDialog({
     setPicked((prev) => {
       const next = new Map(prev);
       if (next.has(product.id)) next.delete(product.id);
-      else next.set(product.id, product);
+      else if (single) {
+        next.clear();
+        next.set(product.id, product);
+      } else {
+        next.set(product.id, product);
+      }
       return next;
     });
   };
@@ -112,7 +123,7 @@ export function ProductPickerDialog({
             {products && products.length > 0 && (
               <CommandGroup>
                 {products.map((product) => {
-                  const checked = picked.has(product.id);
+                  const checked = picked.has(product.id) || selectedIdsSet.has(product.id);
                   return (
                     <CommandItem
                       key={product.id}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   Dialog,
@@ -43,14 +43,18 @@ export function CategoryPickerDialog({
   const [picked, setPicked] = useState<Map<number, Category>>(new Map());
   const { data: categories, isPending } = useCategorySearch(query.trim(), open);
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
     if (open) {
       setQuery("");
       const initialMap = new Map<number, Category>();
       initialCategories.forEach((c) => initialMap.set(c.id, c));
       setPicked(initialMap);
     }
-  }, [open]);
+  }
+
+  const selectedIdsSet = new Set(selectedIds);
 
   // Sync search results into picked map if their ID is in selectedIds
   useEffect(() => {
@@ -112,7 +116,7 @@ export function CategoryPickerDialog({
             {categories && categories.length > 0 && (
               <CommandGroup>
                 {categories.map((category) => {
-                  const checked = picked.has(category.id);
+                  const checked = picked.has(category.id) || selectedIdsSet.has(category.id);
                   return (
                     <CommandItem
                       key={category.id}

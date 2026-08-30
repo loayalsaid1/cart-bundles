@@ -6,7 +6,10 @@ import {
   offerTargets,
   upgradeOfferSettings,
 } from '../../../database/schema';
-import { CreateUpgradeOfferDto, UpdateUpgradeOfferDto } from './upgrade-offer.dto';
+import {
+  CreateUpgradeOfferDto,
+  UpdateUpgradeOfferDto,
+} from './upgrade-offer.dto';
 import { toExpiryDate } from '../dto/common-offer.dto';
 import { ServiceResult, UpgradeOfferFull } from '../types/offers.types';
 
@@ -20,13 +23,19 @@ export class UpgradeOfferService {
 
   async list(merchantId: number): Promise<UpgradeOfferFull[]> {
     const results = await this.db.query.offers.findMany({
-      where: and(eq(offers.merchantId, merchantId), eq(offers.kind, 'upgrade_offer')),
+      where: and(
+        eq(offers.merchantId, merchantId),
+        eq(offers.kind, 'upgrade_offer'),
+      ),
       with: { targets: true, upgradeSettings: true },
     });
-    return results as UpgradeOfferFull[];
+    return results;
   }
 
-  async findOne(merchantId: number, offerId: number): Promise<ServiceResult<UpgradeOfferFull>> {
+  async findOne(
+    merchantId: number,
+    offerId: number,
+  ): Promise<ServiceResult<UpgradeOfferFull>> {
     const offer = await this.db.query.offers.findFirst({
       where: and(eq(offers.id, offerId), eq(offers.merchantId, merchantId)),
       with: { targets: true, upgradeSettings: true },
@@ -34,10 +43,13 @@ export class UpgradeOfferService {
     if (!offer) {
       return { success: false, reason: 'not_found' };
     }
-    return { success: true, data: offer as UpgradeOfferFull };
+    return { success: true, data: offer };
   }
 
-  async create(merchantId: number, dto: CreateUpgradeOfferDto): Promise<ServiceResult<UpgradeOfferFull>> {
+  async create(
+    merchantId: number,
+    dto: CreateUpgradeOfferDto,
+  ): Promise<ServiceResult<UpgradeOfferFull>> {
     const created = await this.db.transaction(async (tx) => {
       const [offer] = await tx
         .insert(offers)
@@ -59,7 +71,10 @@ export class UpgradeOfferService {
         await tx.insert(offerTargets).values(
           dto.targeting.ids.map((id) => ({
             offerId: offer.id,
-            entityType: dto.targeting.type === 'selected_categories' ? ('category' as const) : ('product' as const),
+            entityType:
+              dto.targeting.type === 'selected_categories'
+                ? ('category' as const)
+                : ('product' as const),
             sallaEntityId: id,
           })),
         );
@@ -106,7 +121,10 @@ export class UpgradeOfferService {
         await tx.insert(offerTargets).values(
           dto.targeting.ids.map((id) => ({
             offerId,
-            entityType: dto.targeting.type === 'selected_categories' ? ('category' as const) : ('product' as const),
+            entityType:
+              dto.targeting.type === 'selected_categories'
+                ? ('category' as const)
+                : ('product' as const),
             sallaEntityId: id,
           })),
         );
@@ -126,7 +144,10 @@ export class UpgradeOfferService {
     return this.findOne(merchantId, offerId);
   }
 
-  async delete(merchantId: number, offerId: number): Promise<ServiceResult<void>> {
+  async delete(
+    merchantId: number,
+    offerId: number,
+  ): Promise<ServiceResult<void>> {
     const existing = await this.findOne(merchantId, offerId);
     if (!existing.success) return existing;
 

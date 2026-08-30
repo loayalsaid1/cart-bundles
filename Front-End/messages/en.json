@@ -139,7 +139,9 @@
         "allTypes": "All types",
         "allStatuses": "All statuses"
       },
-      "tabs": { "all": "All" },
+      "tabs": {
+        "all": "All"
+      },
       "table": {
         "name": "Offer",
         "targets": "Targets",
@@ -151,7 +153,9 @@
         "all": "All store",
         "count": "{count} targets"
       },
-      "status": { "label": "Offer status" },
+      "status": {
+        "label": "Offer status"
+      },
       "never": "Never",
       "empty": "No offers yet. Create your first offer.",
       "error": "Failed to load offers.",
@@ -188,15 +192,15 @@
       }
     },
     "builder": {
-      "titleNew": "New Quantity Discount",
-      "titleEdit": "Edit Quantity Discount",
+      "titleNew": "New {kind}",
+      "titleEdit": "Edit {kind}",
       "cancel": "Cancel",
       "next": "Next",
       "save": "Save offer",
       "steps": {
         "info": "General info",
         "targeting": "Targeting",
-        "settings": "Tiers & behavior",
+        "settings": "Settings",
         "appearance": "Appearance"
       },
       "notifications": {
@@ -300,6 +304,147 @@
       "currency": "SAR",
       "save": "Save {amount}",
       "addToCart": "Add to cart"
+    },
+    "common": {
+      "ar": "Arabic",
+      "en": "English"
+    },
+    "info": {
+      "internalName": "Internal name",
+      "internalNamePlaceholder": "e.g. Winter bundle - VIP",
+      "title": "Display title",
+      "titlePlaceholderAr": "Arabic title",
+      "titlePlaceholderEn": "English title",
+      "subtitle": "Subtitle",
+      "subtitlePlaceholderAr": "Arabic subtitle",
+      "subtitlePlaceholderEn": "English subtitle",
+      "expiry": "End date",
+      "noExpiry": "No end date"
+    },
+    "targeting": {
+      "all_products": "All products",
+      "selected_products": "Selected products",
+      "selected_categories": "Selected categories",
+      "pickProducts": "Choose products",
+      "pickCategories": "Choose categories"
+    },
+    "appearance": {
+      "borderRadius": "Corner radius",
+      "presetsLabel": "Quick presets",
+      "presets": {
+        "minimal": "Minimal",
+        "solid": "Solid",
+        "compact": "Compact"
+      },
+      "colors": {
+        "cardBg": "Card background",
+        "cardBorder": "Card border",
+        "selectedTier": "Selected item",
+        "badgeBg": "Badge background",
+        "badgeText": "Badge text",
+        "savings": "Savings"
+      }
+    },
+    "related": {
+      "addProducts": "Add products",
+      "preselect": "Preselect",
+      "rePickHint": "Products are already saved - pick again to adjust them.",
+      "singleHint": "Product #{id} is saved."
+    },
+    "notify": {
+      "created": "{kind} offer created",
+      "updated": "{kind} offer updated",
+      "deleted": "{kind} offer deleted",
+      "statusChanged": "Status updated"
+    },
+    "addon": {
+      "settings": {
+        "productsTitle": "Add-on products",
+        "productsEmpty": "Add the products customers can attach to the main product.",
+        "maxItems": "Maximum products",
+        "orientation": "Display direction",
+        "orientationHorizontal": "Horizontal",
+        "orientationVertical": "Vertical",
+        "discountTitle": "Discount on add-ons",
+        "percentage": "Percentage",
+        "fixed": "Fixed amount",
+        "noDiscount": "No discount",
+        "discountAmount": "Discount value",
+        "positionDesktop": "Desktop position",
+        "positionMobile": "Mobile position",
+        "positions": {
+          "after_add_to_cart": "After add to cart",
+          "after_price": "After price",
+          "before_add_to_cart": "Before add to cart"
+        },
+        "behavior": "Behavior",
+        "preselectedByDefault": "Preselect products by default",
+        "showOptions": "Show product options",
+        "redirectToCartAfterAdd": "Redirect to cart after adding",
+        "hideSallaPopup": "Hide the Salla confirmation popup"
+      },
+      "preview": {
+        "addonName": "Add-on {index}",
+        "add": "Add"
+      }
+    },
+    "bundle": {
+      "settings": {
+        "productsTitle": "Bundle products",
+        "productsEmpty": "Add the products included in this bundle.",
+        "discountTitle": "Bundle discount",
+        "percentage": "Percentage",
+        "fixed": "Fixed amount",
+        "noDiscount": "No discount",
+        "discountAmount": "Discount value",
+        "behavior": "Behavior",
+        "redirectToCartAfterAdd": "Redirect to cart after adding",
+        "hideSallaPopup": "Hide the Salla confirmation popup"
+      },
+      "preview": {
+        "itemName": "Item {index}",
+        "noItems": "No items added yet",
+        "bundleTotal": "Bundle total",
+        "addBundle": "Add bundle to cart"
+      }
+    },
+    "upgrade": {
+      "settings": {
+        "productsTitle": "Upgrade products",
+        "baseProduct": "Base product",
+        "pickBase": "Choose base product",
+        "upgradeProduct": "Upgrade product",
+        "pickUpgrade": "Choose upgrade product",
+        "change": "Change",
+        "couponCode": "Coupon code",
+        "couponPlaceholder": "e.g. UPGRADE10",
+        "behavior": "Behavior",
+        "redirectToCartAfterAdd": "Redirect to cart after adding",
+        "hideSallaPopup": "Hide the Salla confirmation popup"
+      },
+      "preview": {
+        "upgradeName": "Upgrade",
+        "coupon": "Use code {code} at checkout",
+        "upgrade": "Upgrade now"
+      }
+    },
+    "recommendation": {
+      "settings": {
+        "modeTitle": "Recommendation mode",
+        "modeGeneral": "General recommendations",
+        "modeCartRelated": "Related to a trigger product",
+        "triggerProduct": "Trigger product",
+        "pickTrigger": "Choose trigger product",
+        "change": "Change",
+        "productsTitle": "Recommended products",
+        "productsEmpty": "Add the products you want to recommend."
+      },
+      "preview": {
+        "productName": "Product {index}",
+        "noProducts": "No recommendations yet",
+        "cartHint": "Shown when the trigger product is in the cart",
+        "viewAll": "View all"
+      }
     }
   }
 }

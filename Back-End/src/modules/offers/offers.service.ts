@@ -35,7 +35,7 @@ export class OffersService {
       },
       orderBy: (o, { desc }) => [desc(o.createdAt)],
     });
-    return results as FullOffer[];
+    return results;
   }
 
   async toggleStatus(
@@ -43,7 +43,7 @@ export class OffersService {
     offerId: number,
     status: OfferStatus,
   ): Promise<ServiceResult<Pick<Offer, 'id' | 'status'>>> {
-    const [ offer ] = await this.db
+    const [offer] = await this.db
       .update(offers)
       .set({ status })
       .where(and(eq(offers.id, offerId), eq(offers.merchantId, merchantId))) 
@@ -103,7 +103,8 @@ export class OffersService {
 
           // OR it targets this product or any of its categories in offerTargets
           exists(
-            this.db.select()
+            this.db
+              .select()
               .from(offerTargets)
               .where(
                 and(
@@ -136,7 +137,12 @@ export class OffersService {
 
   async getDashboardOffers(
     merchantId: number,
-    filters?: { search?: string; productId?: number; type?: OfferKind; status?: OfferStatus }
+    filters?: {
+      search?: string;
+      productId?: number;
+      type?: OfferKind;
+      status?: OfferStatus;
+    },
   ): Promise<DashboardOfferShort[]> {
     // 1. Build dynamic WHERE conditions
     const conditions = [eq(offers.merchantId, merchantId)];
@@ -155,13 +161,16 @@ export class OffersService {
     if (filters?.productId) {
       conditions.push(
         exists(
-          this.db.select()
+          this.db
+            .select()
             .from(offerTargets)
-            .where(and(
-              eq(offerTargets.offerId, offers.id),
-              eq(offerTargets.sallaEntityId, filters.productId)
-            ))
-        )
+            .where(
+              and(
+                eq(offerTargets.offerId, offers.id),
+                eq(offerTargets.sallaEntityId, filters.productId),
+              ),
+            ),
+        ),
       );
     }
 
