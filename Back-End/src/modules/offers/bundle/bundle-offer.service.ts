@@ -129,7 +129,11 @@ export class BundleOfferService {
         `Bundle offer ${created.id} created locally, but Salla sync failed: ${syncRes.error}`,
       );
       await this.db.delete(offers).where(eq(offers.id, created.id));
-      return { success: false, reason: 'salla_sync_failed', error: syncRes.error ?? 'Unknown Salla API error' };
+      return {
+        success: false,
+        reason: 'salla_sync_failed',
+        error: syncRes.error ?? 'Unknown Salla API error',
+      };
     }
 
     return this.findOne(merchantId, created.id);
@@ -280,12 +284,32 @@ export class BundleOfferService {
       if (offer.expiryDate) {
         const exp = new Date(offer.expiryDate);
         if (!isNaN(exp.getTime())) {
-          if (exp.getHours() === 0 && exp.getMinutes() === 0 && exp.getSeconds() === 0) {
+          if (
+            exp.getHours() === 0 &&
+            exp.getMinutes() === 0 &&
+            exp.getSeconds() === 0
+          ) {
             exp.setHours(23, 59, 59);
           }
           expiryDateStr = formatDate(exp);
         }
       }
+
+      const buyType = isCategory ? 'category' : 'product';
+      const buyObj =
+        offer.targetType === 'all_products'
+          ? { type: buyType, quantity: 1, products: [] as number[] }
+          : isCategory
+            ? { type: buyType, quantity: 1, categories: entityIds }
+            : { type: buyType, quantity: 1, products: entityIds };
+
+      const getObj = {
+        type: 'product',
+        quantity: 1,
+        products: offerProductIds,
+        discount_type: offer.bundleSettings?.discountType || 'percentage',
+        discount_amount: Number(offer.bundleSettings?.discountAmount || 0),
+      };
 
       const payload: Record<string, unknown> = {
         name: offer.internalName,
@@ -298,29 +322,14 @@ export class BundleOfferService {
               ? 'category'
               : 'product',
         start_date: startDateStr,
-        offer_type: 'bundle',
-        offer_products: offerProductIds,
+        offer_type: 'buy_x_get_y',
+        buy: buyObj,
+        get: getObj,
         status: offer.status === 'paused' ? 'inactive' : 'active',
       };
 
       if (expiryDateStr) {
         payload.expiry_date = expiryDateStr;
-      }
-
-      if (
-        offer.bundleSettings?.discountType &&
-        offer.bundleSettings?.discountAmount
-      ) {
-        payload.discount_type = offer.bundleSettings.discountType;
-        payload.discount_amount = Number(offer.bundleSettings.discountAmount);
-      }
-
-      if (offer.targetType !== 'all_products') {
-        if (isCategory) {
-          payload.categories = entityIds;
-        } else {
-          payload.products = entityIds;
-        }
       }
 
       const url = offer.sallaOfferId
@@ -345,7 +354,10 @@ export class BundleOfferService {
         const sallaId = Number(json.data?.id ?? json.id ?? offer.sallaOfferId);
         await this.db
           .update(offers)
-          .set({ sallaOfferId: sallaId, status: offer.status === 'draft' ? 'active' : offer.status })
+          .set({
+            sallaOfferId: sallaId,
+            status: offer.status === 'draft' ? 'active' : offer.status,
+          })
           .where(eq(offers.id, offerId));
         return { success: true, sallaOfferId: sallaId };
       }

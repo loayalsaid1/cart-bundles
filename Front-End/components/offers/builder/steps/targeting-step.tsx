@@ -29,17 +29,20 @@ export function TargetingStep({
 }) {
   const t = useTranslations("Offers");
   const form = useFormContext<TargetingDraftShape>();
-  const { formState: { errors } } = form;
+  const {
+    formState: { errors },
+  } = form;
   const type = form.watch("targeting.type") as TargetType;
-  const ids = form.watch("targeting.ids") ?? [];
+  const watchedIds = form.watch("targeting.ids");
+  const ids = useMemo(() => watchedIds ?? [], [watchedIds]);
   const [productPickerOpen, setProductPickerOpen] = useState(false);
   const [categoryPickerOpen, setCategoryPickerOpen] = useState(false);
 
-  // Fetch full lists using cached TanStack Query hooks
-  const { data: allProducts = [] } = useProductSearch("", type === "selected_products");
-  const { data: allCategories = [] } = useCategorySearch("", type === "selected_categories");
+  // Fetch full lists using cached TanStack Query hooks (pre-fetched on page open)
+  const { data: allProducts = [] } = useProductSearch("", true);
+  const { data: allCategories = [] } = useCategorySearch("", true);
 
-  // Derive target items directly from form IDs + query data (No duplicate local state)
+  // Derive target items directly from form IDs + query data so that we dont have duplicate local state)
   const products = useMemo(
     () => allProducts.filter((p) => ids.includes(p.id)),
     [allProducts, ids],
@@ -62,11 +65,17 @@ export function TargetingStep({
   }, [products]);
 
   const applyProducts = (picked: Product[]) => {
-    form.setValue("targeting.ids", picked.map((p) => p.id));
+    form.setValue(
+      "targeting.ids",
+      picked.map((p) => p.id),
+    );
   };
 
   const applyCategories = (picked: Category[]) => {
-    form.setValue("targeting.ids", picked.map((c) => c.id));
+    form.setValue(
+      "targeting.ids",
+      picked.map((c) => c.id),
+    );
   };
 
   const removeProduct = (id: number) => {
@@ -90,17 +99,21 @@ export function TargetingStep({
         onValueChange={(v) => form.setValue("targeting.type", v as TargetType)}
         className="space-y-2"
       >
-        {(["all_products", "selected_products", "selected_categories"] as TargetType[]).map(
-          (option) => (
-            <label
-              key={option}
-              className="flex items-center gap-2 rounded-lg border p-3 text-sm font-medium has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 cursor-pointer"
-            >
-              <RadioGroupItem value={option} />
-              {t(`targeting.${option}`)}
-            </label>
-          ),
-        )}
+        {(
+          [
+            "all_products",
+            "selected_products",
+            "selected_categories",
+          ] as TargetType[]
+        ).map((option) => (
+          <label
+            key={option}
+            className="flex items-center gap-2 rounded-lg border p-3 text-sm font-medium has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 cursor-pointer"
+          >
+            <RadioGroupItem value={option} />
+            {t(`targeting.${option}`)}
+          </label>
+        ))}
       </RadioGroup>
 
       {errors.targeting?.ids && (
@@ -111,7 +124,11 @@ export function TargetingStep({
 
       {type === "selected_products" && (
         <div className="space-y-3">
-          <Button type="button" variant="outline" onClick={() => setProductPickerOpen(true)}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setProductPickerOpen(true)}
+          >
             <HugeiconsIcon icon={PackageAdd01Icon} size={16} />
             {t("targeting.pickProducts")}
           </Button>
@@ -121,7 +138,11 @@ export function TargetingStep({
                 <Card key={p.id}>
                   <CardContent className="flex items-center gap-3 p-3">
                     {p.thumbnail && (
-                      <img src={p.thumbnail} alt={p.name} className="size-10 rounded-md object-cover" />
+                      <img
+                        src={p.thumbnail}
+                        alt={p.name}
+                        className="size-10 rounded-md object-cover"
+                      />
                     )}
                     <div className="flex-1 text-sm">
                       <p className="font-medium">{p.name}</p>
@@ -148,7 +169,11 @@ export function TargetingStep({
 
       {type === "selected_categories" && (
         <div className="space-y-3">
-          <Button type="button" variant="outline" onClick={() => setCategoryPickerOpen(true)}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setCategoryPickerOpen(true)}
+          >
             <HugeiconsIcon icon={PackageAdd01Icon} size={16} />
             {t("targeting.pickCategories")}
           </Button>
@@ -176,6 +201,7 @@ export function TargetingStep({
       )}
 
       <ProductPickerDialog
+        key={productPickerOpen ? "product-picker-open" : "product-picker-closed"}
         open={productPickerOpen}
         onOpenChange={setProductPickerOpen}
         selectedIds={ids}
@@ -183,6 +209,7 @@ export function TargetingStep({
         onApply={applyProducts}
       />
       <CategoryPickerDialog
+        key={categoryPickerOpen ? "category-picker-open" : "category-picker-closed"}
         open={categoryPickerOpen}
         onOpenChange={setCategoryPickerOpen}
         selectedIds={ids}

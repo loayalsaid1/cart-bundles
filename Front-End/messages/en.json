@@ -303,13 +303,14 @@
       "productName": "Sample product",
       "currency": "SAR",
       "save": "Save {amount}",
-      "addToCart": "Add to cart"
-    },
-    "common": {
-      "ar": "Arabic",
-      "en": "English"
-    },
-    "info": {
+    "addToCart": "Add to cart"
+  },
+  "common": {
+    "ar": "Arabic",
+    "en": "English"
+  },
+
+  "info": {
       "internalName": "Internal name",
       "internalNamePlaceholder": "e.g. Winter bundle - VIP",
       "title": "Display title",
@@ -355,7 +356,8 @@
       "created": "{kind} offer created",
       "updated": "{kind} offer updated",
       "deleted": "{kind} offer deleted",
-      "statusChanged": "Status updated"
+      "statusChanged": "Status updated",
+      "saveFailed": "Failed to save offer"
     },
     "addon": {
       "settings": {

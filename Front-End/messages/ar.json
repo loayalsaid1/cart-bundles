@@ -303,13 +303,14 @@
       "productName": "منتج تجريبي",
       "currency": "ر.س",
       "save": "وفّر {amount}",
-      "addToCart": "أضف إلى السلة"
-    },
-    "common": {
-      "ar": "العربية",
-      "en": "الإنجليزية"
-    },
-    "info": {
+    "addToCart": "أضف إلى السلة"
+  },
+  "common": {
+    "ar": "العربية",
+    "en": "الإنجليزية"
+  },
+
+  "info": {
       "internalName": "الاسم الداخلي",
       "internalNamePlaceholder": "مثال: حزمة الشتاء - VIP",
       "title": "العنوان المعروض",
@@ -355,7 +356,8 @@
       "created": "تم إنشاء عرض {kind}",
       "updated": "تم تحديث عرض {kind}",
       "deleted": "تم حذف عرض {kind}",
-      "statusChanged": "تم تحديث الحالة"
+      "statusChanged": "تم تحديث الحالة",
+      "saveFailed": "فشل حفظ العرض"
     },
     "addon": {
       "settings": {

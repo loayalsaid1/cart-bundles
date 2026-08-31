@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { PackageAdd01Icon } from "@hugeicons/core-free-icons";
 import { ProductPickerDialog } from "@/components/offers/shared/product-picker-dialog";
+import { useProductSearch } from "@/hooks/use-product-search";
 import type { Product } from "@/types/product";
 
 export function SingleProductField({
@@ -22,12 +23,16 @@ export function SingleProductField({
 }) {
   const t = useTranslations("Offers");
   const [open, setOpen] = useState(false);
-  const [product, setProduct] = useState<Product | undefined>();
+  const { data: allProducts = [] } = useProductSearch("", true);
+
+  const product = useMemo(
+    () => (value ? allProducts.find((p) => p.id === value) : undefined),
+    [allProducts, value],
+  );
 
   const apply = (picked: Product[]) => {
     const p = picked[0];
     if (!p) return;
-    setProduct(p);
     onChange(p.id);
   };
 
@@ -72,9 +77,11 @@ export function SingleProductField({
       )}
 
       <ProductPickerDialog
+        key={open ? "product-picker-open" : "product-picker-closed"}
         open={open}
         onOpenChange={setOpen}
         selectedIds={value !== undefined ? [value] : []}
+        initialProducts={product ? [product] : []}
         onApply={apply}
         single
       />

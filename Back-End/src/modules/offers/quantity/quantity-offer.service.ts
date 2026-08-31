@@ -127,9 +127,15 @@ export class QuantityOfferService {
     });
     const syncRes = await this.syncToSalla(merchantId, created.id);
     if (!syncRes.success) {
-      this.logger.warn(`Offer ${created.id} created locally, but Salla sync failed: ${syncRes.error}`);
+      this.logger.warn(
+        `Offer ${created.id} created locally, but Salla sync failed: ${syncRes.error}`,
+      );
       await this.db.delete(offers).where(eq(offers.id, created.id));
-      return { success: false, reason: 'salla_sync_failed', error: syncRes.error ?? 'Unknown Salla API error' };
+      return {
+        success: false,
+        reason: 'salla_sync_failed',
+        error: syncRes.error ?? 'Unknown Salla API error',
+      };
     }
     return this.findOne(merchantId, created.id);
   }
@@ -212,8 +218,14 @@ export class QuantityOfferService {
     });
     const syncRes = await this.syncToSalla(merchantId, offerId);
     if (!syncRes.success) {
-      this.logger.warn(`Offer ${offerId} updated locally, but Salla sync failed: ${syncRes.error}`);
-      return { success: false, reason: 'salla_sync_failed', error: syncRes.error ?? 'Unknown Salla API error' };
+      this.logger.warn(
+        `Offer ${offerId} updated locally, but Salla sync failed: ${syncRes.error}`,
+      );
+      return {
+        success: false,
+        reason: 'salla_sync_failed',
+        error: syncRes.error ?? 'Unknown Salla API error',
+      };
     }
     return this.findOne(merchantId, offerId);
   }
@@ -259,14 +271,18 @@ export class QuantityOfferService {
       }
       const isCategory = offer.targetType === 'selected_categories';
       const isAll = offer.targetType === 'all_products';
-      const entityIds = offer.targets.map((t) => Number(t.sallaEntityId)).filter(Boolean);
+      const entityIds = offer.targets
+        .map((t) => Number(t.sallaEntityId))
+        .filter(Boolean);
 
       const pad = (n: number) => String(n).padStart(2, '0');
       const formatDate = (d: Date) =>
         `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 
       const startDateStr = formatDate(new Date());
-      const expiryDateStr = offer.expiryDate ? formatDate(new Date(offer.expiryDate)) : undefined;
+      const expiryDateStr = offer.expiryDate
+        ? formatDate(new Date(offer.expiryDate))
+        : undefined;
 
       const tiers = offer.quantityTiers
         .sort((a, b) => a.position - b.position)
@@ -277,6 +293,13 @@ export class QuantityOfferService {
         }));
 
       const appliedTo = isAll ? 'order' : isCategory ? 'category' : 'product';
+      const buyType = isCategory ? 'category' : 'product';
+      const buyObj =
+        offer.targetType === 'all_products'
+          ? { type: buyType, quantity: 1, products: [] as number[] }
+          : isCategory
+            ? { type: buyType, quantity: 1, categories: entityIds }
+            : { type: buyType, quantity: 1, products: entityIds };
 
       const payload: Record<string, unknown> = {
         name: offer.internalName,
@@ -285,20 +308,10 @@ export class QuantityOfferService {
         applied_to: appliedTo,
         start_date: startDateStr,
         offer_type: 'discounts_table',
+        buy: buyObj,
         discounts_table: tiers,
-        options: tiers,
         status: offer.status === 'paused' ? 'inactive' : 'active',
       };
-
-      if (!isAll) {
-        if (isCategory) {
-          payload.buy = { categories: entityIds };
-          payload.categories = entityIds;
-        } else {
-          payload.buy = { products: entityIds };
-          payload.products = entityIds;
-        }
-      }
 
       if (expiryDateStr) {
         payload.expiry_date = expiryDateStr;
@@ -323,7 +336,10 @@ export class QuantityOfferService {
         const sallaId = Number(json.data?.id ?? json.id ?? offer.sallaOfferId);
         await this.db
           .update(offers)
-          .set({ sallaOfferId: sallaId, status: offer.status === 'draft' ? 'active' : offer.status })
+          .set({
+            sallaOfferId: sallaId,
+            status: offer.status === 'draft' ? 'active' : offer.status,
+          })
           .where(eq(offers.id, offerId));
         return { success: true, sallaOfferId: sallaId };
       }

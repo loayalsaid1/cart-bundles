@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { OfferPreviewFrame } from "@/components/offers/builder/preview/offer-preview-frame";
 import type { RecommendationOfferDraft } from "@/lib/schemas/recommendation-offer";
 
+import { useProductSearch } from "@/hooks/use-product-search";
+
 export function RecommendationOfferPreview({
   draft,
   unitPrice,
@@ -18,6 +20,13 @@ export function RecommendationOfferPreview({
   const colors = draft.appearance?.colors ?? {};
   const items = draft.settings.relatedProducts;
   const mode = draft.settings.mode;
+
+  const { data: allProducts = [] } = useProductSearch("", true);
+  const targetId = draft.settings.triggerSallaProductId;
+  const targetProduct = allProducts.find((p) => p.id === targetId);
+
+  const displayImage = targetProduct?.thumbnail;
+  const displayName = targetProduct?.name || t("preview.productName");
 
   const style = {
     borderRadius: `${radius}px`,
@@ -33,10 +42,18 @@ export function RecommendationOfferPreview({
           draft.info.subtitle?.[lang] || draft.info.subtitle?.ar || "";
         return (
           <div className="space-y-3">
-            <div className="mb-2 flex h-20 items-center justify-center rounded-lg bg-muted text-xs text-muted-foreground">
-              {t("preview.productImage")}
+            <div className="mb-2 flex h-20 items-center justify-center overflow-hidden rounded-lg bg-muted text-xs text-muted-foreground">
+              {displayImage ? (
+                <img
+                  src={displayImage}
+                  alt={displayName}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                t("preview.productImage")
+              )}
             </div>
-            <p className="text-sm font-medium">{t("preview.productName")}</p>
+            <p className="text-sm font-medium">{displayName}</p>
 
             <div style={style}>
               <div
@@ -62,7 +79,15 @@ export function RecommendationOfferPreview({
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   {items.length > 0 ? (
                     items.map((item, i) => {
-                      const price = unitPrice * 0.7 + i * 9;
+                      const matchedProduct = allProducts.find(
+                        (p) => p.id === item.sallaProductId,
+                      );
+                      const price = matchedProduct?.price?.amount ?? (unitPrice * 0.7 + i * 9);
+                      const itemThumb = matchedProduct?.thumbnail;
+                      const itemName =
+                        matchedProduct?.name ||
+                        t("recommendation.preview.productName", { index: i + 1 });
+
                       return (
                         <div
                           key={item.sallaProductId}
@@ -71,14 +96,20 @@ export function RecommendationOfferPreview({
                             border: `1px solid ${colors.cardBorder || "#e2e8f0"}`,
                           }}
                         >
-                          <div className="flex h-14 items-center justify-center bg-muted text-[10px] text-muted-foreground">
-                            {t("preview.productImage")}
+                          <div className="flex h-14 items-center justify-center overflow-hidden bg-muted text-[10px] text-muted-foreground">
+                            {itemThumb ? (
+                              <img
+                                src={itemThumb}
+                                alt={itemName}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              t("preview.productImage")
+                            )}
                           </div>
                           <div className="p-2">
-                            <p className="truncate text-[10px] font-medium">
-                              {t("recommendation.preview.productName", {
-                                index: i + 1,
-                              })}
+                            <p className="truncate text-[10px] font-medium" title={itemName}>
+                              {itemName}
                             </p>
                             <p className="text-[10px]" style={{ color: colors.savings }}>
                               {formatter.number(price, {

@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import { tierUnitPrice } from "@/lib/utils/amount";
 import type { QuantityOfferDraft } from "@/lib/schemas/quantity-offer";
 
+import { useProductSearch } from "@/hooks/use-product-search";
+
 type Device = "mobile" | "desktop";
 type PreviewLocale = "ar" | "en";
 
@@ -24,6 +26,14 @@ export function QuantityOfferPreview({
   const locale = useLocale() as PreviewLocale;
   const [device, setDevice] = useState<Device>("desktop");
   const [previewLocale, setPreviewLocale] = useState<PreviewLocale>(locale);
+
+  const { data: allProducts = [] } = useProductSearch("", true);
+  const targetId = draft.targeting?.ids?.[0];
+  const targetProduct = allProducts.find((p) => p.id === targetId);
+
+  const displayImage = targetProduct?.thumbnail;
+  const displayName = targetProduct?.name || t("preview.productName");
+  const displayPrice = targetProduct?.price?.amount ?? unitPrice;
 
   const radius = draft.appearance?.borderRadiusPx ?? 12;
   const colors = draft.appearance?.colors ?? {};
@@ -82,14 +92,22 @@ export function QuantityOfferPreview({
           device === "mobile" ? "mx-auto w-[300px]" : "w-full",
         )}
       >
-        <div className="mb-3 rounded-lg bg-muted">
-          <div className="flex h-24 items-center justify-center text-xs text-muted-foreground">
-            {t("preview.productImage")}
-          </div>
+        <div className="mb-3 overflow-hidden rounded-lg bg-muted">
+          {displayImage ? (
+            <img
+              src={displayImage}
+              alt={displayName}
+              className="h-32 w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-24 items-center justify-center text-xs text-muted-foreground">
+              {t("preview.productImage")}
+            </div>
+          )}
         </div>
-        <p className="text-sm font-medium">{t("preview.productName")}</p>
+        <p className="text-sm font-medium">{displayName}</p>
         <p className="text-lg font-bold">
-          {formatter.number(unitPrice, { style: "currency", currency: "SAR" })}
+          {formatter.number(displayPrice, { style: "currency", currency: "SAR" })}
         </p>
 
         {title && (

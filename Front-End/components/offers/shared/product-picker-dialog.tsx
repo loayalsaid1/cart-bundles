@@ -42,38 +42,15 @@ export function ProductPickerDialog({
 }: ProductPickerDialogProps) {
   const t = useTranslations("Offers");
   const [query, setQuery] = useState("");
-  const [picked, setPicked] = useState<Map<number, Product>>(new Map());
+  const [picked, setPicked] = useState<Map<number, Product>>(
+    () =>
+      new Map<number, Product>(
+        initialProducts.map((product) => [product.id, product]),
+      ),
+  );
   const { data: products, isPending } = useProductSearch(query.trim(), open);
 
-  const [prevOpen, setPrevOpen] = useState(open);
-  if (prevOpen !== open) {
-    setPrevOpen(open);
-    if (open) {
-      setQuery("");
-      const initialMap = new Map<number, Product>();
-      initialProducts.forEach((p) => initialMap.set(p.id, p));
-      setPicked(initialMap);
-    }
-  }
-
   const selectedIdsSet = new Set(selectedIds);
-
-  // Sync search results into picked map if their ID is in selectedIds
-  useEffect(() => {
-    if (open && products && products.length > 0) {
-      setPicked((prev) => {
-        const next = new Map(prev);
-        let changed = false;
-        products.forEach((p) => {
-          if (selectedIds.includes(p.id) && !next.has(p.id)) {
-            next.set(p.id, p);
-            changed = true;
-          }
-        });
-        return changed ? next : prev;
-      });
-    }
-  }, [open, products, selectedIds]);
 
   const toggle = (product: Product) => {
     setPicked((prev) => {
@@ -99,7 +76,9 @@ export function ProductPickerDialog({
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>{t("pickers.products.title")}</DialogTitle>
-          <DialogDescription>{t("pickers.products.description")}</DialogDescription>
+          <DialogDescription>
+            {t("pickers.products.description")}
+          </DialogDescription>
         </DialogHeader>
 
         <Command shouldFilter={false} className="rounded-lg border">
@@ -123,7 +102,8 @@ export function ProductPickerDialog({
             {products && products.length > 0 && (
               <CommandGroup>
                 {products.map((product) => {
-                  const checked = picked.has(product.id) || selectedIdsSet.has(product.id);
+                  const checked =
+                    picked.has(product.id) || selectedIdsSet.has(product.id);
                   return (
                     <CommandItem
                       key={product.id}
@@ -131,7 +111,10 @@ export function ProductPickerDialog({
                       onSelect={() => toggle(product)}
                       className="flex items-center gap-3 cursor-pointer"
                     >
-                      <Checkbox checked={checked} onCheckedChange={() => toggle(product)} />
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={() => toggle(product)}
+                      />
                       {product.thumbnail ? (
                         <img
                           src={product.thumbnail}
@@ -165,9 +148,7 @@ export function ProductPickerDialog({
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               {t("pickers.cancel")}
             </Button>
-            <Button onClick={apply}>
-              {t("pickers.apply")}
-            </Button>
+            <Button onClick={apply}>{t("pickers.apply")}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

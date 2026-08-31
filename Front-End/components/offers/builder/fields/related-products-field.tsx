@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon, PackageAdd01Icon } from "@hugeicons/core-free-icons";
 import { ProductPickerDialog } from "@/components/offers/shared/product-picker-dialog";
+import { useProductSearch } from "@/hooks/use-product-search";
 import type { RelatedProductDraft } from "@/lib/schemas/common-offer";
 import type { Product } from "@/types/product";
 
@@ -24,27 +25,37 @@ export function RelatedProductsField({
 }) {
   const t = useTranslations("Offers");
   const [open, setOpen] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
+  const { data: allProducts = [] } = useProductSearch("", true);
+
+  const sallaProductIds = useMemo(
+    () => value.map((v) => v.sallaProductId),
+    [value],
+  );
+
+  const products = useMemo(
+    () => allProducts.filter((p) => sallaProductIds.includes(p.id)),
+    [allProducts, sallaProductIds],
+  );
 
   const apply = (picked: Product[]) => {
-    setProducts(picked);
     onChange(
       picked.map((p, idx) => ({
         sallaProductId: p.id,
         position: idx,
-        isPreselected: false,
+        isPreselected:
+          value.find((v) => v.sallaProductId === p.id)?.isPreselected ?? false,
       })),
     );
   };
 
   const remove = (id: number) => {
-    const next = products.filter((p) => p.id !== id);
-    setProducts(next);
+    const nextIds = sallaProductIds.filter((pId) => pId !== id);
     onChange(
-      next.map((p, idx) => ({
-        sallaProductId: p.id,
+      nextIds.map((pId, idx) => ({
+        sallaProductId: pId,
         position: idx,
-        isPreselected: value.find((v) => v.sallaProductId === p.id)?.isPreselected ?? false,
+        isPreselected:
+          value.find((v) => v.sallaProductId === pId)?.isPreselected ?? false,
       })),
     );
   };
@@ -121,9 +132,11 @@ export function RelatedProductsField({
       </div>
 
       <ProductPickerDialog
+        key={open ? "product-picker-open" : "product-picker-closed"}
         open={open}
         onOpenChange={setOpen}
         selectedIds={value.map((v) => v.sallaProductId)}
+        initialProducts={products}
         onApply={apply}
       />
     </div>

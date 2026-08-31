@@ -40,38 +40,15 @@ export function CategoryPickerDialog({
 }: CategoryPickerDialogProps) {
   const t = useTranslations("Offers");
   const [query, setQuery] = useState("");
-  const [picked, setPicked] = useState<Map<number, Category>>(new Map());
+  const [picked, setPicked] = useState<Map<number, Category>>(
+    () =>
+      new Map<number, Category>(
+        initialCategories.map((category) => [category.id, category]),
+      ),
+  );
   const { data: categories, isPending } = useCategorySearch(query.trim(), open);
 
-  const [prevOpen, setPrevOpen] = useState(open);
-  if (prevOpen !== open) {
-    setPrevOpen(open);
-    if (open) {
-      setQuery("");
-      const initialMap = new Map<number, Category>();
-      initialCategories.forEach((c) => initialMap.set(c.id, c));
-      setPicked(initialMap);
-    }
-  }
-
   const selectedIdsSet = new Set(selectedIds);
-
-  // Sync search results into picked map if their ID is in selectedIds
-  useEffect(() => {
-    if (open && categories && categories.length > 0) {
-      setPicked((prev) => {
-        const next = new Map(prev);
-        let changed = false;
-        categories.forEach((c) => {
-          if (selectedIds.includes(c.id) && !next.has(c.id)) {
-            next.set(c.id, c);
-            changed = true;
-          }
-        });
-        return changed ? next : prev;
-      });
-    }
-  }, [open, categories, selectedIds]);
 
   const toggle = (category: Category) => {
     setPicked((prev) => {
@@ -92,7 +69,9 @@ export function CategoryPickerDialog({
       <DialogContent className="max-w-xl">
         <DialogHeader>
           <DialogTitle>{t("pickers.categories.title")}</DialogTitle>
-          <DialogDescription>{t("pickers.categories.description")}</DialogDescription>
+          <DialogDescription>
+            {t("pickers.categories.description")}
+          </DialogDescription>
         </DialogHeader>
 
         <Command shouldFilter={false} className="rounded-lg border">
@@ -116,7 +95,8 @@ export function CategoryPickerDialog({
             {categories && categories.length > 0 && (
               <CommandGroup>
                 {categories.map((category) => {
-                  const checked = picked.has(category.id) || selectedIdsSet.has(category.id);
+                  const checked =
+                    picked.has(category.id) || selectedIdsSet.has(category.id);
                   return (
                     <CommandItem
                       key={category.id}
@@ -124,10 +104,18 @@ export function CategoryPickerDialog({
                       onSelect={() => toggle(category)}
                       className="flex items-center gap-3 cursor-pointer"
                     >
-                      <Checkbox checked={checked} onCheckedChange={() => toggle(category)} />
-                      {category.thumbnail ? (
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={() => toggle(category)}
+                      />
+                      {category.thumbnail || category.image ? (
                         <img
-                          src={category.thumbnail}
+                          src={
+                            category.thumbnail ||
+                            (typeof category.image === "string"
+                              ? category.image
+                              : category.image?.url)
+                          }
                           alt={category.name}
                           className="size-10 rounded-md object-cover"
                         />
@@ -136,7 +124,9 @@ export function CategoryPickerDialog({
                           {t("pickers.categories.noImage")}
                         </div>
                       )}
-                      <p className="flex-1 text-sm font-medium">{category.name}</p>
+                      <p className="flex-1 text-sm font-medium">
+                        {category.name}
+                      </p>
                     </CommandItem>
                   );
                 })}
@@ -153,9 +143,7 @@ export function CategoryPickerDialog({
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               {t("pickers.cancel")}
             </Button>
-            <Button onClick={apply}>
-              {t("pickers.apply")}
-            </Button>
+            <Button onClick={apply}>{t("pickers.apply")}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

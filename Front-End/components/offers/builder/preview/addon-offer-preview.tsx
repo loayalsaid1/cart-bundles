@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { OfferPreviewFrame } from "@/components/offers/builder/preview/offer-preview-frame";
 import type { AddonOfferDraft } from "@/lib/schemas/addon-offer";
 
+import { useProductSearch } from "@/hooks/use-product-search";
+
 export function AddonOfferPreview({
   draft,
   unitPrice,
@@ -21,6 +23,14 @@ export function AddonOfferPreview({
   const maxItems = draft.settings.maxItems ?? 8;
   const discountType = draft.settings.discountType;
   const discountAmount = draft.settings.discountAmount ?? 0;
+
+  const { data: allProducts = [] } = useProductSearch("", true);
+  const targetId = draft.targeting?.ids?.[0];
+  const targetProduct = allProducts.find((p) => p.id === targetId);
+
+  const displayImage = targetProduct?.thumbnail;
+  const displayName = targetProduct?.name || t("preview.productName");
+  const displayPrice = targetProduct?.price?.amount ?? unitPrice;
 
   const discounted = (price: number) =>
     discountType === "percentage"
@@ -45,14 +55,22 @@ export function AddonOfferPreview({
           draft.info.subtitle?.[lang] || draft.info.subtitle?.ar || "";
         return (
           <div className="space-y-4">
-            <div className="mb-3 rounded-lg bg-muted">
-              <div className="flex h-24 items-center justify-center text-xs text-muted-foreground">
-                {t("preview.productImage")}
-              </div>
+            <div className="mb-3 overflow-hidden rounded-lg bg-muted">
+              {displayImage ? (
+                <img
+                  src={displayImage}
+                  alt={displayName}
+                  className="h-32 w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-24 items-center justify-center text-xs text-muted-foreground">
+                  {t("preview.productImage")}
+                </div>
+              )}
             </div>
-            <p className="text-sm font-medium">{t("preview.productName")}</p>
+            <p className="text-sm font-medium">{displayName}</p>
             <p className="text-lg font-bold">
-              {formatter.number(unitPrice, { style: "currency", currency: "SAR" })}
+              {formatter.number(displayPrice, { style: "currency", currency: "SAR" })}
             </p>
 
             {visibleItems.length > 0 && (
@@ -85,7 +103,17 @@ export function AddonOfferPreview({
                     }
                   >
                     {visibleItems.map((item, i) => {
-                      const price = discounted(unitPrice * 0.6 + i * 10);
+                      const matchedProduct = allProducts.find(
+                        (p) => p.id === item.sallaProductId,
+                      );
+                      const itemPrice = matchedProduct?.price?.amount
+                        ? discounted(matchedProduct.price.amount)
+                        : discounted(unitPrice * 0.6 + i * 10);
+                      const itemThumb = matchedProduct?.thumbnail;
+                      const itemName =
+                        matchedProduct?.name ||
+                        t("addon.preview.addonName", { index: i + 1 });
+
                       return (
                         <div
                           key={item.sallaProductId}
@@ -99,15 +127,23 @@ export function AddonOfferPreview({
                             border: `1px solid ${colors.cardBorder || "#e2e8f0"}`,
                           }}
                         >
-                          <div className="flex h-16 items-center justify-center bg-muted text-[10px] text-muted-foreground">
-                            {t("preview.productImage")}
+                          <div className="flex h-16 items-center justify-center overflow-hidden bg-muted text-[10px] text-muted-foreground">
+                            {itemThumb ? (
+                              <img
+                                src={itemThumb}
+                                alt={itemName}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              t("preview.productImage")
+                            )}
                           </div>
                           <div className="p-2 text-center">
-                            <p className="truncate text-[10px] font-medium">
-                              {t("addon.preview.addonName", { index: i + 1 })}
+                            <p className="truncate text-[10px] font-medium" title={itemName}>
+                              {itemName}
                             </p>
                             <p className="text-[10px]" style={{ color: colors.savings }}>
-                              {formatter.number(price, {
+                              {formatter.number(itemPrice, {
                                 style: "currency",
                                 currency: "SAR",
                               })}
