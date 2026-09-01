@@ -39,6 +39,7 @@ export function CategoryPickerDialog({
   onApply,
 }: CategoryPickerDialogProps) {
   const t = useTranslations("Offers");
+  const tCommon = useTranslations("Common");
   const [query, setQuery] = useState("");
   const [picked, setPicked] = useState<Map<number, Category>>(
     () =>
@@ -83,7 +84,7 @@ export function CategoryPickerDialog({
           <CommandList className="max-h-72">
             {isPending ? (
               <div className="p-6 text-center text-xs text-muted-foreground">
-                {t("common.loading")}
+                {tCommon("loading")}
               </div>
             ) : (
               <CommandEmpty>

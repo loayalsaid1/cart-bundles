@@ -41,6 +41,7 @@ export function ProductPickerDialog({
   single = false,
 }: ProductPickerDialogProps) {
   const t = useTranslations("Offers");
+  const tCommon = useTranslations("Common");
   const [query, setQuery] = useState("");
   const [picked, setPicked] = useState<Map<number, Product>>(
     () =>
@@ -90,7 +91,7 @@ export function ProductPickerDialog({
           <CommandList className="max-h-72">
             {isPending ? (
               <div className="p-6 text-center text-xs text-muted-foreground">
-                {t("common.loading")}
+                {tCommon("loading")}
               </div>
             ) : (
               <CommandEmpty>

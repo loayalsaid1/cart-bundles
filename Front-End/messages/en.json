@@ -118,6 +118,9 @@
       "paused": "Paused",
       "expired": "Expired"
     },
+    "shared": {
+      "empty": "No items added yet."
+    },
     "common": {
       "ar": "Arabic",
       "en": "English",
@@ -303,14 +306,9 @@
       "productName": "Sample product",
       "currency": "SAR",
       "save": "Save {amount}",
-    "addToCart": "Add to cart"
-  },
-  "common": {
-    "ar": "Arabic",
-    "en": "English"
-  },
-
-  "info": {
+      "addToCart": "Add to cart"
+    },
+    "info": {
       "internalName": "Internal name",
       "internalNamePlaceholder": "e.g. Winter bundle - VIP",
       "title": "Display title",
@@ -369,7 +367,7 @@
         "orientationVertical": "Vertical",
         "discountTitle": "Discount on add-ons",
         "percentage": "Percentage",
-        "fixed": "Fixed amount",
+        "freeProduct": "Free (100% off)",
         "noDiscount": "No discount",
         "discountAmount": "Discount value",
         "positionDesktop": "Desktop position",

@@ -31,6 +31,7 @@ export function TierEditor({
   onDefaultChange,
 }: TierEditorProps) {
   const t = useTranslations("Offers");
+  const tCommon = useTranslations("Common");
   const form = useFormContext<QuantityOfferDraft>();
   const tier = form.watch(`settings.tiers.${index}`) as QuantityTierDraft;
 
@@ -72,7 +73,7 @@ export function TierEditor({
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label>{t("quantity.tiers.mainTitle")} — {t("common.ar")}</Label>
+          <Label>{t("quantity.tiers.mainTitle")} — {tCommon("ar")}</Label>
           <Input
             dir="rtl"
             value={tier.mainTitle.ar}
@@ -80,7 +81,7 @@ export function TierEditor({
           />
         </div>
         <div className="space-y-2">
-          <Label>{t("quantity.tiers.mainTitle")} — {t("common.en")}</Label>
+          <Label>{t("quantity.tiers.mainTitle")} — {tCommon("en")}</Label>
           <Input
             // dir="ltr"
             // className="text-left"

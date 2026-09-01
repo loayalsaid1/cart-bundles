@@ -269,12 +269,7 @@ export class QuantityOfferService {
       if (!tokenRes.success) {
         return { success: false, error: 'Merchant access token unavailable' };
       }
-      const isCategory = offer.targetType === 'selected_categories';
-      const isAll = offer.targetType === 'all_products';
-      const entityIds = offer.targets
-        .map((t) => Number(t.sallaEntityId))
-        .filter(Boolean);
-
+      
       const pad = (n: number) => String(n).padStart(2, '0');
       const formatDate = (d: Date) =>
         `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
@@ -291,15 +286,20 @@ export class QuantityOfferService {
           discount_type: t.pricingType,
           discount_amount: Number(t.discountAmount),
         }));
+const isAll = offer.targetType === 'all_products';
+      const isCategory = offer.targetType === 'selected_categories';
+      const entityIds = offer.targets
+        .map((t) => Number(t.sallaEntityId))
+        .filter(Boolean);
 
-      const appliedTo = isAll ? 'order' : isCategory ? 'category' : 'product';
-      const buyType = isCategory ? 'category' : 'product';
-      const buyObj =
-        offer.targetType === 'all_products'
-          ? { type: buyType, quantity: 1, products: [] as number[] }
-          : isCategory
-            ? { type: buyType, quantity: 1, categories: entityIds }
-            : { type: buyType, quantity: 1, products: entityIds };
+      // 1. Properly set both appliedTo and buyObj based on target type
+      const appliedTo = isAll ? 'order' : (isCategory ? 'category' : 'product');
+      
+      const buyObj = isAll 
+        ? { type: 'order', quantity: 1 } 
+        : isCategory
+          ? { type: 'category', quantity: 1, categories: entityIds }
+          : { type: 'product', quantity: 1, products: entityIds };
 
       const payload: Record<string, unknown> = {
         name: offer.internalName,

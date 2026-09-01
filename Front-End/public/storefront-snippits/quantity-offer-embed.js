@@ -12,7 +12,7 @@
   // Configuration & API Base Detection
   const currentScript = document.currentScript;
   const API_BASE =
-    "https://jq1no5-ip-156-210-130-189.tunnelmole.net/api/v1";
+    "https://9on13j-ip-156-210-130-189.tunnelmole.net/api/v1";
 
   function getTargetAnchor() {
     return (

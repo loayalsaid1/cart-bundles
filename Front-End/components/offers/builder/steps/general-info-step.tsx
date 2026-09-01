@@ -26,6 +26,7 @@ function toDateInputValue(iso?: string): string {
 
 export function GeneralInfoStep() {
   const t = useTranslations("Offers");
+  const tCommon = useTranslations("Common");
   const form = useFormContext<InfoDraftShape>();
   const noExpiry = form.watch("info.expiryDate") === undefined;
 
@@ -51,7 +52,7 @@ export function GeneralInfoStep() {
           name="info.title.ar"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("info.title")} — {t("common.ar")}</FormLabel>
+              <FormLabel>{t("info.title")} — {tCommon("ar")}</FormLabel>
               <FormControl>
                 <Input {...field} dir="rtl" placeholder={t("info.titlePlaceholderAr")} />
               </FormControl>
@@ -64,7 +65,7 @@ export function GeneralInfoStep() {
           name="info.title.en"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("info.title")} — {t("common.en")}</FormLabel>
+              <FormLabel>{t("info.title")} — {tCommon("en")}</FormLabel>
               <FormControl>
                 <Input {...field} placeholder={t("info.titlePlaceholderEn")} />
               </FormControl>
@@ -80,7 +81,7 @@ export function GeneralInfoStep() {
           name="info.subtitle.ar"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("info.subtitle")} — {t("common.ar")}</FormLabel>
+              <FormLabel>{t("info.subtitle")} — {tCommon("ar")}</FormLabel>
               <FormControl>
                 <Input {...field} dir="rtl" placeholder={t("info.subtitlePlaceholderAr")} />
               </FormControl>
@@ -93,7 +94,7 @@ export function GeneralInfoStep() {
           name="info.subtitle.en"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t("info.subtitle")} — {t("common.en")}</FormLabel>
+              <FormLabel>{t("info.subtitle")} — {tCommon("en")}</FormLabel>
               <FormControl>
                 <Input {...field} placeholder={t("info.subtitlePlaceholderEn")} />
               </FormControl>
