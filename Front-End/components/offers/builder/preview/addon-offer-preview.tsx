@@ -35,8 +35,6 @@ export function AddonOfferPreview({
   const discounted = (price: number) =>
     discountType === "percentage"
       ? price * (1 - discountAmount / 100)
-      : discountType === "fixed"
-        ? Math.max(0, price - discountAmount)
         : price;
 
   const style = {
