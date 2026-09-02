@@ -10,7 +10,7 @@ import {
 } from '../../../database/schema';
 import { MerchantsService } from '../../merchants/merchants.service';
 import { CreateAddonOfferDto, UpdateAddonOfferDto } from './addon-offer.dto';
-import { toExpiryDate } from '../dto/common-offer.dto';
+import { toExpiryDate, formatSallaDate, formatSallaStartDate } from '../dto/common-offer.dto';
 import { AddonOfferFull, ServiceResult } from '../types/offers.types';
 
 const SALLA_SPECIAL_OFFERS_URL = 'https://api.salla.dev/admin/v2/specialoffers';
@@ -319,11 +319,7 @@ export class AddonOfferService {
         .map((rp) => Number(rp.sallaProductId))
         .filter(Boolean);
 
-      const pad = (n: number) => String(n).padStart(2, '0');
-      const formatDate = (d: Date) =>
-        `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-
-      const startDateStr = formatDate(new Date());
+      const startDateStr = formatSallaStartDate();
       let expiryDateStr: string | undefined = undefined;
       if (offer.expiryDate) {
         const exp = new Date(offer.expiryDate);
@@ -335,7 +331,7 @@ export class AddonOfferService {
           ) {
             exp.setHours(23, 59, 59);
           }
-          expiryDateStr = formatDate(exp);
+          expiryDateStr = formatSallaDate(exp);
         }
       }
 
