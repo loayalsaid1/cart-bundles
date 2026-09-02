@@ -34,6 +34,9 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -65,68 +68,77 @@
   --font-sans: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  --background: #fafbfc;       /* bg-primary */
+  --background: #f8f8f8;       /* Salla bg-main */
   --foreground: #1a1a2e;       /* text-primary */
 
-  --card: #ffffff;             /* bg-secondary */
+  --card: #ffffff;             /* clean white cards against #f8f8f8 bg */
   --card-foreground: #1a1a2e;
 
   --popover: #ffffff;
   --popover-foreground: #1a1a2e;
 
-  --primary: #004956;          /* accent-primary */
+  --primary: #004d5b;          /* Salla primary (Deep Teal) */
   --primary-foreground: #ffffff;
 
-  --secondary: #f3f4f6;        /* bg-tertiary */
-  --secondary-foreground: #1a1a2e;
+  --secondary: #73fcd7;        /* Salla secondary (Mint) */
+  --secondary-foreground: #004d5b; /* Dark text for contrast on mint */
 
-  --muted: #f3f4f6;            /* bg-tertiary */
+  --success: #00b259;          /* Salla success */
+  --success-foreground: #ffffff;
+
+  --destructive: #f5434a;      /* Salla danger */
+  --destructive-foreground: #ffffff;
+
+  --muted: #e2e8f0;            /* Soft surfaces */
   --muted-foreground: #64748b; /* text-secondary */
 
-  --accent: #f3f4f6;           /* bg-tertiary (hover/subtle surfaces) */
+  --accent: #e2e8f0;           /* hover/subtle surfaces */
   --accent-foreground: #1a1a2e;
-
-  --destructive: #ef4444;      /* accent-danger */
 
   --border: #e2e8f0;           /* border-color */
   --input: #e2e8f0;
-  --ring: #004956;             /* accent-primary */
+  --ring: #004d5b;             /* matches primary */
 
-  /* Mapped from Salla's semantic accents so charts read consistently
-     with success/warning/danger/info states elsewhere in the app. */
-  --chart-1: #004956;          /* accent-primary */
-  --chart-2: #06b6d4;          /* accent-secondary */
-  --chart-3: #10b981;          /* accent-success */
-  --chart-4: #f59e0b;          /* accent-warning */
-  --chart-5: #3b82f6;          /* accent-info */
+  /* Mapped from Salla's semantic accents so charts read consistently */
+  --chart-1: #004d5b;          /* accent-primary */
+  --chart-2: #73fcd7;          /* accent-secondary */
+  --chart-3: #00b259;          /* accent-success */
+  --chart-4: #f59e0b;          /* warning */
+  --chart-5: #3b82f6;          /* info */
 
   --radius: 0.5rem;
 
   --sidebar: #ffffff;
   --sidebar-foreground: #1a1a2e;
-  --sidebar-primary: #004956;
+  --sidebar-primary: #004d5b;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #f3f4f6;
   --sidebar-accent-foreground: #1a1a2e;
   --sidebar-border: #e2e8f0;
-  --sidebar-ring: #004956;
+  --sidebar-ring: #004d5b;
 }
 
 [data-theme="dark"] {
-  --background: #222222;       /* bg-primary */
+  --background: #1d1e20;       /* Salla dark bg-main */
   --foreground: #f1f5f9;       /* text-primary */
 
-  --card: #2a2a2a;             /* bg-secondary */
+  --card: #27282b;             /* Slightly lighter than bg-main for elevation */
   --card-foreground: #f1f5f9;
 
-  --popover: #2a2a2a;
+  --popover: #27282b;
   --popover-foreground: #f1f5f9;
 
-  --primary: #76e8cd;          /* accent-primary (dark) */
-  --primary-foreground: #222222; /* text-inverse */
+  --primary: #baefe3;          /* Salla dark primary (Light Teal) */
+  --primary-foreground: #1d1e20; /* Inverse text */
 
-  --secondary: #333333;        /* bg-tertiary */
-  --secondary-foreground: #f1f5f9;
+  --secondary: #baefe3;        /* Salla dark secondary */
+  --secondary-foreground: #1d1e20;
+
+  --success: #00b259;          /* Salla success */
+  --success-foreground: #ffffff;
+  
+  --destructive: #f5434a;      /* Salla danger */
+  --destructive-foreground: #ffffff;
 
   --muted: #333333;
   --muted-foreground: #cbd5e1; /* text-secondary */
@@ -134,26 +146,24 @@
   --accent: #333333;
   --accent-foreground: #f1f5f9;
 
-  --destructive: #ef4444;
-
   --border: #3a3a3a;           /* border-color */
   --input: #3a3a3a;
-  --ring: #76e8cd;
+  --ring: #baefe3;             /* matches primary */
 
-  --chart-1: #76e8cd;
-  --chart-2: #06b6d4;
-  --chart-3: #10b981;
+  --chart-1: #baefe3;
+  --chart-2: #baefe3;
+  --chart-3: #00b259;
   --chart-4: #f59e0b;
   --chart-5: #3b82f6;
 
-  --sidebar: #2a2a2a;
+  --sidebar: #27282b;
   --sidebar-foreground: #f1f5f9;
-  --sidebar-primary: #76e8cd;
-  --sidebar-primary-foreground: #222222;
+  --sidebar-primary: #baefe3;
+  --sidebar-primary-foreground: #1d1e20;
   --sidebar-accent: #333333;
   --sidebar-accent-foreground: #f1f5f9;
   --sidebar-border: #3a3a3a;
-  --sidebar-ring: #76e8cd;
+  --sidebar-ring: #baefe3;
 }
 
 @layer base {
