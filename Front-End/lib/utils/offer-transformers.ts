@@ -212,7 +212,7 @@ export function fullOfferToAddonDraft(offer: AddonOfferFull): AddonOfferDraft {
 
 export const defaultAddonDraft: AddonOfferDraft = {
   info: defaultInfo(),
-  targeting: defaultTargeting(),
+  targeting: { type: 'selected_products', ids: [] },
   settings: {
     redirectToCartAfterAdd: false,
     hideSallaPopup: true,

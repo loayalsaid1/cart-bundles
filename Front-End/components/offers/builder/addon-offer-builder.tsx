@@ -63,6 +63,7 @@ export function AddonOfferBuilder({ offerId }: { offerId?: number }) {
                   const p = products[0];
                   if (p?.price?.amount) setPreviewPrice(p.price.amount);
                 }}
+                allowedTargetTypes={["selected_products", "selected_categories"]}
               />
             );
           case 2:

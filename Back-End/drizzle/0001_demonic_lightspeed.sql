@@ -1,0 +1,2 @@
+CREATE TYPE "public"."addon_discount_type" AS ENUM('percentage', 'free_product');--> statement-breakpoint
+ALTER TABLE "addon_offer_settings" ALTER COLUMN "discount_type" SET DATA TYPE "public"."addon_discount_type" USING "discount_type"::text::"public"."addon_discount_type";

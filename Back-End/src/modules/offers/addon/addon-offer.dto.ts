@@ -8,7 +8,7 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { AddonOfferSettings, QuantityOfferTier } from '../types/offers.types';
+import { type AddonDiscountType, AddonOfferSettings } from '../types/offers.types';
 import {
   OfferInfoDto,
   OfferTargetingDto,
@@ -53,9 +53,9 @@ export class AddonOfferSettingsDto {
   @IsOptional()
   displayOrientation?: AddonOfferSettings['displayOrientation'];
 
-  @IsEnum(['percentage', 'fixed'])
+  @IsEnum(['percentage', 'free-product'])
   @IsOptional()
-  discountType?: QuantityOfferTier['pricingType'];
+  discountType?: AddonDiscountType;
 
   @IsNumber()
   @IsOptional()
@@ -75,14 +75,24 @@ export class AddonOfferSettingsDto {
   relatedProducts: RelatedProductDto[];
 }
 
+export class AddonOfferTargetingDto {
+  @IsEnum(['selected_products', 'selected_categories'])
+  type: 'selected_products' | 'selected_categories';
+
+  @IsArray()
+  @IsNumber({}, { each: true })
+  @IsOptional()
+  ids?: number[];
+}
+
 export class CreateAddonOfferDto {
   @ValidateNested()
   @Type(() => OfferInfoDto)
   info: OfferInfoDto;
 
   @ValidateNested()
-  @Type(() => OfferTargetingDto)
-  targeting: OfferTargetingDto;
+  @Type(() => AddonOfferTargetingDto)
+  targeting: AddonOfferTargetingDto;
 
   @ValidateNested()
   @Type(() => AddonOfferSettingsDto)
@@ -94,4 +104,4 @@ export class CreateAddonOfferDto {
   appearance?: OfferAppearanceDto;
 }
 
-export class UpdateAddonOfferDto extends CreateAddonOfferDto {}
+export class UpdateAddonOfferDto extends CreateAddonOfferDto { }

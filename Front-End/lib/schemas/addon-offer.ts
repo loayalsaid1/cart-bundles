@@ -7,12 +7,24 @@ import {
   offerKindSchema,
   offerStatusSchema,
   offerTargetSchema,
-  offerTargetingSchema,
-  pricingTypeSchema,
   relatedProductDraftSchema,
   relatedProductFullSchema,
   targetTypeSchema,
 } from './common-offer';
+
+// Addon offers only support 'percentage' or 'free-product' as get.discount_type in Salla
+const addonDiscountTypeSchema = z.enum(['percentage', 'free-product']);
+const addonTargetTypeSchema = targetTypeSchema.exclude(["all_products"]);
+// Addon targeting is restricted — all_products is NOT valid for buy_x_get_y on Salla
+const addonTargetingSchema = z
+  .object({
+    type: addonTargetTypeSchema,
+    ids: z.array(z.number()).optional(),
+  })
+  .refine((t) => t.ids && t.ids.length > 0, {
+    message: 'Select at least one target',
+    path: ['ids'],
+  });
 
 export const addonOfferSettingsSchema = z.object({
   redirectToCartAfterAdd: z.boolean().optional(),
@@ -21,7 +33,7 @@ export const addonOfferSettingsSchema = z.object({
   productsPreselectedByDefault: z.boolean().optional(),
   showProductOptions: z.boolean().optional(),
   displayOrientation: displayOrientationSchema.optional(),
-  discountType: pricingTypeSchema.optional(),
+  discountType: addonDiscountTypeSchema.optional(),
   discountAmount: z.number().positive().optional(),
   positionDesktop: z.string().optional(),
   positionMobile: z.string().optional(),
@@ -30,7 +42,7 @@ export const addonOfferSettingsSchema = z.object({
 
 export const addonOfferDraftSchema = z.object({
   info: offerInfoSchema,
-  targeting: offerTargetingSchema,
+  targeting: addonTargetingSchema,
   settings: addonOfferSettingsSchema,
   appearance: offerAppearanceSchema,
 });
@@ -41,7 +53,7 @@ const addonSettingsFullSchema = z.object({
   productsPreselectedByDefault: z.boolean(),
   showProductOptions: z.boolean(),
   displayOrientation: displayOrientationSchema,
-  discountType: pricingTypeSchema.nullable().optional(),
+  discountType: addonDiscountTypeSchema.nullable().optional(),
   discountAmount: z.coerce.number().nullable().optional(),
   positionDesktop: z.string().nullable().optional(),
   positionMobile: z.string().nullable().optional(),
@@ -54,7 +66,7 @@ export const addonOfferFullSchema = z.object({
   internalName: z.string(),
   title: z.record(z.string(), z.string()),
   subtitle: z.record(z.string(), z.string()).nullable().optional(),
-  targetType: targetTypeSchema,
+  targetType: addonTargetTypeSchema,
   expiryDate: z.string().nullable().optional(),
   status: offerStatusSchema,
   redirectToCartAfterAdd: z.boolean(),

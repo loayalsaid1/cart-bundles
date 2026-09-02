@@ -17,6 +17,7 @@ import {
   displayOrientationEnum,
   offerTargetTypeEnum,
   recommendationModeEnum,
+  addonDiscountTypeEnum,
 } from '../../../database/schema';
 
 export type Offer = InferSelectModel<typeof offers>;
@@ -44,6 +45,7 @@ export type OfferKind = (typeof offerKindEnum.enumValues)[number];
 export type OfferStatus = (typeof offerStatusEnum.enumValues)[number];
 export type TargetType = (typeof targetTypeEnum.enumValues)[number];
 export type PricingType = (typeof pricingTypeEnum.enumValues)[number];
+export type AddonDiscountType = (typeof addonDiscountTypeEnum.enumValues)[number];
 export type DisplayOrientation =
   (typeof displayOrientationEnum.enumValues)[number];
 export type OfferTargetType = (typeof offerTargetTypeEnum.enumValues)[number];

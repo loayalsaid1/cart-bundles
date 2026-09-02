@@ -247,25 +247,34 @@ export class AddonOfferService {
 
     const offer = existing.data;
     if (offer.sallaOfferId) {
-      try {
-        const tokenRes =
-          await this.merchantsService.getValidAccessToken(merchantId);
-        if (tokenRes.success) {
-          await fetch(`${SALLA_SPECIAL_OFFERS_URL}/${offer.sallaOfferId}`, {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${tokenRes.accessToken}` },
-          });
-        }
-      } catch (err) {
-        this.logger.error(
-          `Failed to delete Salla offer ${offer.sallaOfferId}`,
-          err,
-        );
-      }
+      await this.deleteSallaOffer(merchantId, offer.sallaOfferId);
     }
 
     await this.db.delete(offers).where(eq(offers.id, offerId));
     return { success: true, data: undefined };
+  }
+
+  private async deleteSallaOffer(
+    merchantId: number,
+    sallaOfferId: number,
+  ): Promise<boolean> {
+    try {
+      const tokenRes =
+        await this.merchantsService.getValidAccessToken(merchantId);
+      if (tokenRes.success) {
+        const res = await fetch(`${SALLA_SPECIAL_OFFERS_URL}/${sallaOfferId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${tokenRes.accessToken}` },
+        });
+        return res.ok;
+      }
+    } catch (err) {
+      this.logger.error(
+        `Failed to delete Salla offer ${sallaOfferId}`,
+        err,
+      );
+    }
+    return false;
   }
 
   private async syncToSalla(
@@ -282,6 +291,24 @@ export class AddonOfferService {
         await this.merchantsService.getValidAccessToken(merchantId);
       if (!tokenRes.success) {
         return { success: false, error: 'Merchant access token unavailable' };
+      }
+
+      const rawDiscountType = offer.addonSettings?.discountType;
+      const hasDiscount = Boolean(rawDiscountType);
+
+      // --- 1. Handle No Discount State ---
+      if (!hasDiscount) {
+        if (offer.sallaOfferId) {
+          this.logger.log(
+            `Addon offer ${offerId} updated to have no discount. Deleting Salla offer ${offer.sallaOfferId}`,
+          );
+          await this.deleteSallaOffer(merchantId, offer.sallaOfferId);
+          await this.db
+            .update(offers)
+            .set({ sallaOfferId: null })
+            .where(eq(offers.id, offerId));
+        }
+        return { success: true };
       }
 
       const isCategory = offer.targetType === 'selected_categories';
@@ -312,38 +339,51 @@ export class AddonOfferService {
         }
       }
 
-      const buyType = isCategory ? 'category' : 'product';
-      const buyObj = offer.targetType === 'all_products'
-        ? { type: 'order', quantity: 1 } // Native Salla order target
-        : isCategory
-          ? { type: 'category', quantity: 1, categories: entityIds }
-          : { type: 'product', quantity: 1, products: entityIds };
+      // --- 2. Determine discount type for Salla API ---
+      // Salla API expects 'free-product' (with hyphen) for free products
+      const isFreeProduct = rawDiscountType === 'free-product';
+
+      // Currenty, same as the enum from teh API anyway.. but very soon, i'm extending this
+      const sallaDiscountType: 'percentage' | 'free-product' = isFreeProduct
+        ? 'free-product'
+        : 'percentage';
+
+      const discountAmount = isFreeProduct
+        ? 0
+        : Number(offer.addonSettings?.discountAmount || 0);
+
+      const appliedTo = isCategory ? 'category' : 'product';
+      const buyObj = isCategory
+        ? { type: 'category', quantity: 1, categories: entityIds }
+        : { type: 'product', quantity: 1, products: entityIds };
 
       const getObj = {
         type: 'product',
         quantity: 1,
         products: offerProductIds,
-        discount_type: offer.addonSettings?.discountType || 'percentage',
-        discount_amount: Number(offer.addonSettings?.discountAmount || 0),
+        discount_type: sallaDiscountType,
+        ...(!isFreeProduct ? { discount_amount: discountAmount } : {}),
       };
+
+      const sallaStatus =
+        offer.status === 'paused' ? 'inactive' : 'active';
 
       const payload: Record<string, unknown> = {
         name: offer.internalName,
         message: offer.title?.['ar'] ?? offer.internalName,
         applied_channel: 'browser_and_application',
-        applied_to: offer.targetType === 'all_products' ? 'order' : (isCategory ? 'category' : 'product'),
-
+        applied_to: appliedTo,
         start_date: startDateStr,
         offer_type: 'buy_x_get_y',
         buy: buyObj,
         get: getObj,
-        status: offer.status === 'paused' ? 'inactive' : 'active',
+        status: sallaStatus,
       };
 
       if (expiryDateStr) {
         payload.expiry_date = expiryDateStr;
       }
-
+      this.logger.debug('Payload:', JSON.stringify(payload));
       const url = offer.sallaOfferId
         ? `${SALLA_SPECIAL_OFFERS_URL}/${offer.sallaOfferId}`
         : SALLA_SPECIAL_OFFERS_URL;
@@ -385,3 +425,4 @@ export class AddonOfferService {
     }
   }
 }
+

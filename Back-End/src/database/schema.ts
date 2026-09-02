@@ -19,6 +19,7 @@ import {
   displayOrientationEnum,
   offerTargetTypeEnum,
   recommendationModeEnum,
+  addonDiscountTypeEnum,
 } from './entities/offers';
 import {
   usersRelations,
@@ -56,6 +57,7 @@ export {
   pricingTypeEnum,
   displayOrientationEnum,
   offerTargetTypeEnum,
+  addonDiscountTypeEnum,
   recommendationModeEnum,
   usersRelations,
   merchantsRelations,

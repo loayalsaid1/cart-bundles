@@ -24,8 +24,10 @@ interface TargetingDraftShape {
 
 export function TargetingStep({
   onProductsPicked,
+  allowedTargetTypes,
 }: {
   onProductsPicked: (products: Product[]) => void;
+  allowedTargetTypes?: TargetType[];
 }) {
   const t = useTranslations("Offers");
   const form = useFormContext<TargetingDraftShape>();
@@ -100,11 +102,13 @@ export function TargetingStep({
         className="space-y-2"
       >
         {(
-          [
-            "all_products",
-            "selected_products",
-            "selected_categories",
-          ] as TargetType[]
+          (
+            allowedTargetTypes ?? [
+              "all_products",
+              "selected_products",
+              "selected_categories",
+            ]
+          ) as TargetType[]
         ).map((option) => (
           <label
             key={option}

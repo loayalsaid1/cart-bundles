@@ -13,7 +13,7 @@ import {
 import { merchants } from './merchants';
 
 /* ────────────────────────────────────────────────────────────────
-   ENUMS
+  ENUMS
    ──────────────────────────────────────────────────────────────── */
 
 export const offerKindEnum = pgEnum('offer_kind', [
@@ -38,7 +38,6 @@ export const targetTypeEnum = pgEnum('target_type', [
 ]);
 
 export const pricingTypeEnum = pgEnum('pricing_type', ['percentage', 'fixed']);
-
 export const displayOrientationEnum = pgEnum('display_orientation', [
   'vertical',
   'horizontal',
@@ -49,10 +48,16 @@ export const offerTargetTypeEnum = pgEnum('offer_target_entity', [
   'category',
 ]);
 
+export const addonDiscountTypeEnum = pgEnum('addon_discount_type', [
+  'percentage',
+  'free-product',
+]);
+
 export const recommendationModeEnum = pgEnum('recommendation_mode', [
   'cart_related',
   'general',
 ]);
+
 
 /* ────────────────────────────────────────────────────────────────
    BASE TABLE — offers
@@ -201,7 +206,7 @@ export const addonOfferSettings = pgTable('addon_offer_settings', {
     .notNull()
     .default('horizontal'),
 
-  discountType: pricingTypeEnum('discount_type'),
+  discountType: addonDiscountTypeEnum('discount_type'),
   discountAmount: numeric('discount_amount', { precision: 10, scale: 2 }),
 
   positionDesktop: varchar('position_desktop', { length: 50 }),
