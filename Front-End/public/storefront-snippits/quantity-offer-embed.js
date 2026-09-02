@@ -12,7 +12,7 @@
   // Configuration & API Base Detection
   const currentScript = document.currentScript;
   const API_BASE =
-    "https://wx3pj5-ip-197-54-170-189.tunnelmole.net/api/v1";
+    "https://cart-bundles-demo-backend.vercel.app/api/v1";
 
   function getTargetAnchor() {
     return (

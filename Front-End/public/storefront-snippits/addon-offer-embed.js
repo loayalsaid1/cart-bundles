@@ -13,7 +13,7 @@ salla.onReady(async () => {
   const langConfig = salla.config.get("user.language");
   const isAr = langConfig ? langConfig.startsWith("ar") : true; // default ar only if language is unknown
 
-  const API_BASE = "https://wx3pj5-ip-197-54-170-189.tunnelmole.net/api/v1"; // TODO: Update for PROD
+  const API_BASE = "https://cart-bundles-demo-backend.vercel.app/api/v1"; // TODO: Update for PROD
   const currency = salla.config.get("store.currency") || (isAr ? "ر.س" : "SAR");
 
   const formatPrice = (price) => `<bdi>${parseFloat(price).toFixed(2)} ${currency}</bdi>`;
