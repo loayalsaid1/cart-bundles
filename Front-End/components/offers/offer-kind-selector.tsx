@@ -38,7 +38,7 @@ export function OfferKindSelector() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {offerKindSchema.options.map((kind) => (
+        {offerKindSchema.options.slice(0, 2).map((kind) => (
           <Card
             key={kind}
             className="relative flex cursor-pointer flex-col p-5 transition-all hover:shadow-md hover:border-ring"
