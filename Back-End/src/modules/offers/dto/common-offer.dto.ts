@@ -32,6 +32,30 @@ export function toExpiryDate(value?: string): Date | null {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
+export function formatSallaDate(d: Date): string {
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Riyadh',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+
+  const parts = Object.fromEntries(
+    formatter.formatToParts(d).map((p) => [p.type, p.value]),
+  );
+
+  const hour = parts.hour === '24' ? '00' : parts.hour;
+  return `${parts.year}-${parts.month}-${parts.day} ${hour}:${parts.minute}:${parts.second}`;
+}
+
+export function formatSallaStartDate(): string {
+  return formatSallaDate(new Date(Date.now() + 90000));
+}
+
 export class OfferTargetingDto {
   @IsEnum(['all_products', 'selected_products', 'selected_categories'])
   type: Offer['targetType'];
