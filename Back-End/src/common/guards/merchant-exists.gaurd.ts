@@ -4,7 +4,7 @@ import {
   ExecutionContext,
   NotFoundException,
 } from '@nestjs/common';
-import { MerchantsService } from 'src/modules/merchants/merchants.service';
+import { MerchantsService } from '../../modules/merchants/merchants.service';
 
 interface RequestWithMerchant {
   params?: { merchantId?: string };
