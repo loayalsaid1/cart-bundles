@@ -1,0 +1,450 @@
+{
+  "Common": {
+    "appName": "Cart Bundles",
+    "language": "Language",
+    "english": "English",
+    "arabic": "العربية",
+    "ar": "Arabic",
+    "en": "English",
+    "cancel": "Cancel",
+    "apply": "Apply",
+    "loading": "Loading..."
+  },
+  "Home": {
+    "title": "To get started, edit the",
+    "subtitle": "Looking for a starting point or more instructions? Head over to",
+    "templates": "Templates",
+    "or": "or the",
+    "learning": "Learning center.",
+    "deployNow": "Deploy Now",
+    "documentation": "Documentation"
+  },
+  "DiscountModal": {
+    "titleBulk": "Set Sale Price — {count} Products",
+    "titleSingle": "Set Sale Price — \"{name}\"",
+    "descBulk": "Apply a bulk sale price across all selected products.",
+    "descSingle": "Set a sale price discount for this product.",
+    "discountType": "Discount Type",
+    "percentage": "Percentage (%)",
+    "fixed": "Fixed Amount (SAR)",
+    "amountLabelPercent": "Discount %",
+    "amountLabelFixed": "Amount off (SAR)",
+    "placeholderPercent": "e.g. 15",
+    "placeholderFixed": "e.g. 50",
+    "applying": "Applying…",
+    "applySalePrice": "Apply Sale Price",
+    "errInvalidValue": "Please enter a valid discount value greater than 0.",
+    "errMaxPercentage": "Percentage discount cannot exceed 100%.",
+    "errFailed": "Failed to apply discount."
+  },
+  "ProductSearch": {
+    "title": "Products",
+    "headerTitle": "Store Products & Pricing",
+    "headerSubtitle": "Manage store products, set promotional sale prices, and remove discounts in bulk.",
+    "searchPlaceholder": "Search products by name or SKU...",
+    "selectedCount": "{count} product(s) selected",
+    "setSalePrice": "Set Sale Price",
+    "productColumn": "Product",
+    "priceColumn": "Price",
+    "salePriceColumn": "Sale Price",
+    "statusColumn": "Status",
+    "actionsColumn": "Actions",
+    "noProducts": "No products found",
+    "onSale": "On Sale",
+    "regular": "Regular",
+    "searchButton": "Search",
+    "searching": "Searching..."
+  },
+  "EmbedLayout": {
+    "navProducts": "Products",
+    "navTest": "Test",
+    "navOffers": "Offers",
+    "products-page": "Products",
+    "test-page": "Test",
+    "offers-page": "Offers"
+  },
+  "ProductCard": {
+    "selectProduct": "Select product",
+    "idLabel": "ID: {id}",
+    "percentOff": "{percent}% OFF",
+    "onSale": "ON SALE",
+    "standard": "Standard",
+    "noImage": "No Image",
+    "skuLabel": "SKU: {sku}",
+    "saveAmount": "Save {amount} {currency}",
+    "editSalePrice": "Edit Sale Price",
+    "setSalePrice": "Set Sale Price",
+    "removeSalePrice": "Remove sale price"
+  },
+  "TestPage": {
+    "title": "Welcome in test Page"
+  },
+  "Login": {
+    "title": "Cart Bundles",
+    "subtitle": "Sign in with your Salla account to manage your store products.",
+    "signInWithSalla": "Login with Salla",
+    "hint": "You will be redirected to Salla to authorize this app.",
+    "loggingIn": "Signing you in...",
+    "errorTitle": "Sign-in failed",
+    "errorMissingParams": "Missing authorization parameters from Salla.",
+    "errorDenied": "You denied authorization, or the request was cancelled.",
+    "errorFailed": "Something went wrong. Please try again.",
+    "backToLogin": "Back to login"
+  },
+  "ProductsPage": {
+    "title": "Store Products",
+    "subtitle": "Products and recommendations from your Salla store.",
+    "productsTitle": "Your Products",
+    "recommendationsTitle": "Recommendations (On Sale)",
+    "logout": "Logout",
+    "noProducts": "No products found.",
+    "noRecommendations": "No on-sale recommendations right now.",
+    "errorFailed": "Failed to load your products. Please try again.",
+    "noImage": "No Image",
+    "skuLabel": "SKU: {sku}",
+    "salePrice": "Sale"
+  },
+  "Offers": {
+    "kind": {
+      "quantity_discount": "Quantity Discount",
+      "product_add_on": "Additional Products",
+      "bundle": "Product Bundle",
+      "upgrade_offer": "Upgrade Offer",
+      "cart_recommendation": "Cart Recommendations"
+    },
+    "status": {
+      "active": "Active",
+      "draft": "Draft",
+      "paused": "Paused",
+      "expired": "Expired"
+    },
+    "shared": {
+      "empty": "No items added yet."
+    },
+    "common": {
+      "ar": "Arabic",
+      "en": "English",
+      "loading": "Loading..."
+    },
+    "masterList": {
+      "title": "Offers",
+      "subtitle": "Create and manage offers for your storefront.",
+      "newOffer": "New Offer",
+      "kpis": {
+        "active": "Active offers",
+        "targeted": "Targets",
+        "revenue": "Upsell revenue",
+        "conversion": "Conversion rate",
+        "na": "—"
+      },
+      "filters": {
+        "searchPlaceholder": "Search by offer name or product...",
+        "allTypes": "All types",
+        "allStatuses": "All statuses"
+      },
+      "tabs": {
+        "all": "All"
+      },
+      "table": {
+        "name": "Offer",
+        "targets": "Targets",
+        "status": "Status",
+        "expiry": "Expires",
+        "actions": "Actions"
+      },
+      "targets": {
+        "all": "All store",
+        "count": "{count} targets"
+      },
+      "status": {
+        "label": "Offer status"
+      },
+      "never": "Never",
+      "empty": "No offers yet. Create your first offer.",
+      "error": "Failed to load offers.",
+      "retry": "Retry",
+      "actions": {
+        "label": "Offer actions",
+        "edit": "Edit",
+        "duplicate": "Duplicate",
+        "delete": "Delete",
+        "cancel": "Cancel",
+        "deleteTitle": "Delete offer",
+        "deleteText": "Delete \"{name}\"? This cannot be undone."
+      }
+    },
+    "typeSelector": {
+      "title": "Choose an offer type",
+      "subtitle": "Pick the type of offer you want to build.",
+      "create": "Create",
+      "comingSoon": "Coming soon",
+      "quantity_discount": {
+        "description": "Tiered discounts when customers buy more of the same product."
+      },
+      "product_add_on": {
+        "description": "Recommend complementary products on the product page."
+      },
+      "bundle": {
+        "description": "Group products usually bought together at a bundle price."
+      },
+      "upgrade_offer": {
+        "description": "Suggest a higher-value alternative to increase order value."
+      },
+      "cart_recommendation": {
+        "description": "Recommend products based on what is already in the cart."
+      }
+    },
+    "builder": {
+      "titleNew": "New {kind}",
+      "titleEdit": "Edit {kind}",
+      "cancel": "Cancel",
+      "next": "Next",
+      "save": "Save offer",
+      "steps": {
+        "info": "General info",
+        "targeting": "Targeting",
+        "settings": "Settings",
+        "appearance": "Appearance"
+      },
+      "notifications": {
+        "validationFailed": "Please fix the highlighted fields before saving.",
+        "saved": "Offer saved"
+      }
+    },
+    "quantity": {
+      "info": {
+        "internalName": "Internal name",
+        "internalNamePlaceholder": "e.g. Ramadan quantities",
+        "title": "Storefront title",
+        "titlePlaceholderAr": "وفر أكثر عند شراء كميات أكبر",
+        "titlePlaceholderEn": "Save more when you buy more",
+        "subtitle": "Storefront subtitle",
+        "subtitlePlaceholderAr": "خصومات متدرجة على الكميات",
+        "subtitlePlaceholderEn": "Tiered discounts on quantities",
+        "expiry": "Expiry date",
+        "noExpiry": "No expiry date"
+      },
+      "targeting": {
+        "all_products": "All products in the store",
+        "selected_products": "Selected products",
+        "selected_categories": "Selected categories",
+        "pickProducts": "Choose products",
+        "pickCategories": "Choose categories"
+      },
+      "tiers": {
+        "title": "Quantity tiers",
+        "addTier": "Add tier",
+        "tierLabel": "Tier {index}",
+        "quantity": "Quantity",
+        "mainTitle": "Title",
+        "badgeText": "Badge text",
+        "percentage": "Percentage (%)",
+        "fixed": "Fixed amount (SAR)",
+        "discountValue": "Discount value",
+        "defaultSelected": "Selected by default",
+        "moveUp": "Move up",
+        "moveDown": "Move down",
+        "removeTier": "Remove tier"
+      },
+      "settings": {
+        "behavior": "Storefront behavior",
+        "allowDifferentOptionsPerPiece": "Allow different options per piece",
+        "hideThemeDefaultOptions": "Hide the theme quantity dropdown",
+        "showPricePerPiece": "Show price per piece",
+        "roundPriceToNearestInteger": "Round prices to nearest integer",
+        "applyEvenWithCoupon": "Apply even when a coupon is used",
+        "hideQuantityField": "Hide the quantity field",
+        "redirectToCartAfterAdd": "Redirect to cart after adding"
+      },
+      "appearance": {
+        "borderRadius": "Corner radius",
+        "presetsLabel": "Preset templates",
+        "presets": {
+          "minimal": "Minimal bordered",
+          "solid": "Solid card",
+          "compact": "Compact radio list"
+        },
+        "colors": {
+          "cardBg": "Card background",
+          "cardBorder": "Card border",
+          "selectedTier": "Selected tier",
+          "badgeBg": "Badge background",
+          "badgeText": "Badge text",
+          "savings": "Savings highlight"
+        }
+      }
+    },
+    "pickers": {
+      "cancel": "Cancel",
+      "apply": "Apply",
+      "remove": "Remove",
+      "products": {
+        "title": "Choose products",
+        "description": "Select the products this offer applies to.",
+        "searchPlaceholder": "Search products...",
+        "empty": "No products found.",
+        "typeToSearch": "Type to search products.",
+        "noImage": "No image",
+        "selectedCount": "{count} selected"
+      },
+      "categories": {
+        "title": "Choose categories",
+        "description": "Select the categories this offer applies to.",
+        "searchPlaceholder": "Search categories...",
+        "empty": "No categories found.",
+        "typeToSearch": "Type to search categories.",
+        "noImage": "No image",
+        "selectedCount": "{count} selected"
+      }
+    },
+    "preview": {
+      "title": "Live preview",
+      "desktop": "Desktop view",
+      "mobile": "Mobile view",
+      "locale": "Toggle preview language",
+      "productImage": "Product image",
+      "productName": "Sample product",
+      "currency": "SAR",
+      "save": "Save {amount}",
+      "addToCart": "Add to cart"
+    },
+    "info": {
+      "internalName": "Internal name",
+      "internalNamePlaceholder": "e.g. Winter bundle - VIP",
+      "title": "Display title",
+      "titlePlaceholderAr": "Arabic title",
+      "titlePlaceholderEn": "English title",
+      "subtitle": "Subtitle",
+      "subtitlePlaceholderAr": "Arabic subtitle",
+      "subtitlePlaceholderEn": "English subtitle",
+      "expiry": "End date",
+      "noExpiry": "No end date"
+    },
+    "targeting": {
+      "all_products": "All products",
+      "selected_products": "Selected products",
+      "selected_categories": "Selected categories",
+      "pickProducts": "Choose products",
+      "pickCategories": "Choose categories"
+    },
+    "appearance": {
+      "borderRadius": "Corner radius",
+      "presetsLabel": "Quick presets",
+      "presets": {
+        "minimal": "Minimal",
+        "solid": "Solid",
+        "compact": "Compact"
+      },
+      "colors": {
+        "cardBg": "Card background",
+        "cardBorder": "Card border",
+        "selectedTier": "Selected item",
+        "badgeBg": "Badge background",
+        "badgeText": "Badge text",
+        "savings": "Savings"
+      }
+    },
+    "related": {
+      "addProducts": "Add products",
+      "preselect": "Preselect",
+      "rePickHint": "Products are already saved - pick again to adjust them.",
+      "singleHint": "Product #{id} is saved."
+    },
+    "notify": {
+      "created": "{kind} offer created",
+      "updated": "{kind} offer updated",
+      "deleted": "{kind} offer deleted",
+      "statusChanged": "Status updated",
+      "saveFailed": "Failed to save offer"
+    },
+    "addon": {
+      "settings": {
+        "productsTitle": "Add-on products",
+        "productsEmpty": "Add the products customers can attach to the main product.",
+        "maxItems": "Maximum products",
+        "orientation": "Display direction",
+        "orientationHorizontal": "Horizontal",
+        "orientationVertical": "Vertical",
+        "discountTitle": "Discount on add-ons",
+        "percentage": "Percentage",
+        "freeProduct": "Free (100% off)",
+        "noDiscount": "No discount",
+        "discountAmount": "Discount value",
+        "positionDesktop": "Desktop position",
+        "positionMobile": "Mobile position",
+        "positions": {
+          "after_add_to_cart": "After add to cart",
+          "after_price": "After price",
+          "before_add_to_cart": "Before add to cart"
+        },
+        "behavior": "Behavior",
+        "preselectedByDefault": "Preselect products by default",
+        "showOptions": "Show product options",
+        "redirectToCartAfterAdd": "Redirect to cart after adding",
+        "hideSallaPopup": "Hide the Salla confirmation popup"
+      },
+      "preview": {
+        "addonName": "Add-on {index}",
+        "add": "Add"
+      }
+    },
+    "bundle": {
+      "settings": {
+        "productsTitle": "Bundle products",
+        "productsEmpty": "Add the products included in this bundle.",
+        "discountTitle": "Bundle discount",
+        "percentage": "Percentage",
+        "fixed": "Fixed amount",
+        "noDiscount": "No discount",
+        "discountAmount": "Discount value",
+        "behavior": "Behavior",
+        "redirectToCartAfterAdd": "Redirect to cart after adding",
+        "hideSallaPopup": "Hide the Salla confirmation popup"
+      },
+      "preview": {
+        "itemName": "Item {index}",
+        "noItems": "No items added yet",
+        "bundleTotal": "Bundle total",
+        "addBundle": "Add bundle to cart"
+      }
+    },
+    "upgrade": {
+      "settings": {
+        "productsTitle": "Upgrade products",
+        "baseProduct": "Base product",
+        "pickBase": "Choose base product",
+        "upgradeProduct": "Upgrade product",
+        "pickUpgrade": "Choose upgrade product",
+        "change": "Change",
+        "couponCode": "Coupon code",
+        "couponPlaceholder": "e.g. UPGRADE10",
+        "behavior": "Behavior",
+        "redirectToCartAfterAdd": "Redirect to cart after adding",
+        "hideSallaPopup": "Hide the Salla confirmation popup"
+      },
+      "preview": {
+        "upgradeName": "Upgrade",
+        "coupon": "Use code {code} at checkout",
+        "upgrade": "Upgrade now"
+      }
+    },
+    "recommendation": {
+      "settings": {
+        "modeTitle": "Recommendation mode",
+        "modeGeneral": "General recommendations",
+        "modeCartRelated": "Related to a trigger product",
+        "triggerProduct": "Trigger product",
+        "pickTrigger": "Choose trigger product",
+        "change": "Change",
+        "productsTitle": "Recommended products",
+        "productsEmpty": "Add the products you want to recommend."
+      },
+      "preview": {
+        "productName": "Product {index}",
+        "noProducts": "No recommendations yet",
+        "cartHint": "Shown when the trigger product is in the cart",
+        "viewAll": "View all"
+      }
+    }
+  }
+}
