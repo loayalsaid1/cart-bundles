@@ -1,3 +1,7 @@
+-- Current sql file was generated after introspecting the database
+-- If you want to run this migration please uncomment this code before executing migrations
+/*
+CREATE TYPE "public"."addon_discount_type" AS ENUM('percentage', 'free-product');--> statement-breakpoint
 CREATE TYPE "public"."display_orientation" AS ENUM('vertical', 'horizontal');--> statement-breakpoint
 CREATE TYPE "public"."offer_kind" AS ENUM('quantity_discount', 'product_add_on', 'bundle', 'upgrade_offer', 'cart_recommendation');--> statement-breakpoint
 CREATE TYPE "public"."offer_status" AS ENUM('draft', 'active', 'paused', 'expired');--> statement-breakpoint
@@ -11,7 +15,7 @@ CREATE TABLE "addon_offer_settings" (
 	"products_preselected_by_default" boolean DEFAULT false NOT NULL,
 	"show_product_options" boolean DEFAULT false NOT NULL,
 	"display_orientation" "display_orientation" DEFAULT 'horizontal' NOT NULL,
-	"discount_type" "pricing_type",
+	"discount_type" "addon_discount_type",
 	"discount_amount" numeric(10, 2),
 	"position_desktop" varchar(50),
 	"position_mobile" varchar(50)
@@ -23,44 +27,19 @@ CREATE TABLE "bundle_offer_settings" (
 	"discount_amount" numeric(10, 2)
 );
 --> statement-breakpoint
-CREATE TABLE "event_logs" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"event_name" text NOT NULL,
-	"event_data" jsonb NOT NULL,
-	"event_date" timestamp DEFAULT now() NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE "merchants" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"merchant_id" integer NOT NULL,
-	"access_token" varchar(255) NOT NULL,
-	"refresh_token" varchar(255) NOT NULL,
-	"expires_at" timestamp NOT NULL,
-	"is_active" boolean DEFAULT true NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "merchants_merchant_id_unique" UNIQUE("merchant_id")
-);
---> statement-breakpoint
-CREATE TABLE "offer_appearance" (
-	"offer_id" integer PRIMARY KEY NOT NULL,
-	"border_radius_px" integer DEFAULT 0 NOT NULL,
-	"colors" jsonb DEFAULT '{}'::jsonb NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE "offer_related_products" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"offer_id" integer NOT NULL,
-	"salla_product_id" bigint NOT NULL,
-	"position" integer DEFAULT 0 NOT NULL,
-	"is_preselected" boolean DEFAULT false NOT NULL
-);
---> statement-breakpoint
 CREATE TABLE "offer_targets" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"offer_id" integer NOT NULL,
 	"entity_type" "offer_target_entity" NOT NULL,
 	"salla_entity_id" bigint NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "upgrade_offer_settings" (
+	"offer_id" integer PRIMARY KEY NOT NULL,
+	"base_salla_product_id" bigint NOT NULL,
+	"upgrade_salla_product_id" bigint NOT NULL,
+	"coupon_code" varchar(64),
+	"salla_coupon_id" bigint
 );
 --> statement-breakpoint
 CREATE TABLE "offers" (
@@ -78,6 +57,20 @@ CREATE TABLE "offers" (
 	"salla_offer_id" bigint,
 	"created_at" timestamp DEFAULT now() NOT NULL,
 	"updated_at" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "offer_appearance" (
+	"offer_id" integer PRIMARY KEY NOT NULL,
+	"border_radius_px" integer DEFAULT 0 NOT NULL,
+	"colors" jsonb DEFAULT '{}'::jsonb NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "offer_related_products" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"offer_id" integer NOT NULL,
+	"salla_product_id" bigint NOT NULL,
+	"position" integer DEFAULT 0 NOT NULL,
+	"is_preselected" boolean DEFAULT false NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "quantity_offer_settings" (
@@ -110,12 +103,11 @@ CREATE TABLE "recommendation_offer_settings" (
 	"trigger_salla_product_id" bigint
 );
 --> statement-breakpoint
-CREATE TABLE "upgrade_offer_settings" (
-	"offer_id" integer PRIMARY KEY NOT NULL,
-	"base_salla_product_id" bigint NOT NULL,
-	"upgrade_salla_product_id" bigint NOT NULL,
-	"coupon_code" varchar(64),
-	"salla_coupon_id" bigint
+CREATE TABLE "event_logs" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"event_name" text NOT NULL,
+	"event_data" jsonb NOT NULL,
+	"event_date" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
@@ -126,13 +118,26 @@ CREATE TABLE "users" (
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
+CREATE TABLE "merchants" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"merchant_id" integer NOT NULL,
+	"access_token" varchar(255) NOT NULL,
+	"refresh_token" varchar(255) NOT NULL,
+	"expires_at" timestamp NOT NULL,
+	"is_active" boolean DEFAULT true NOT NULL,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "merchants_merchant_id_unique" UNIQUE("merchant_id")
+);
+--> statement-breakpoint
 ALTER TABLE "addon_offer_settings" ADD CONSTRAINT "addon_offer_settings_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "bundle_offer_settings" ADD CONSTRAINT "bundle_offer_settings_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "offer_targets" ADD CONSTRAINT "offer_targets_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "upgrade_offer_settings" ADD CONSTRAINT "upgrade_offer_settings_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "offers" ADD CONSTRAINT "offers_merchant_id_merchants_merchant_id_fk" FOREIGN KEY ("merchant_id") REFERENCES "public"."merchants"("merchant_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "offer_appearance" ADD CONSTRAINT "offer_appearance_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "offer_related_products" ADD CONSTRAINT "offer_related_products_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "offer_targets" ADD CONSTRAINT "offer_targets_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "offers" ADD CONSTRAINT "offers_merchant_id_merchants_merchant_id_fk" FOREIGN KEY ("merchant_id") REFERENCES "public"."merchants"("merchant_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "quantity_offer_settings" ADD CONSTRAINT "quantity_offer_settings_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "quantity_offer_tiers" ADD CONSTRAINT "quantity_offer_tiers_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "recommendation_offer_settings" ADD CONSTRAINT "recommendation_offer_settings_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "upgrade_offer_settings" ADD CONSTRAINT "upgrade_offer_settings_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "recommendation_offer_settings" ADD CONSTRAINT "recommendation_offer_settings_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE cascade ON UPDATE no action;
+*/
