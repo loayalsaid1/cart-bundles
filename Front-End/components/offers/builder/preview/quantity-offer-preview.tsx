@@ -97,7 +97,7 @@ export function QuantityOfferPreview({
             <img
               src={displayImage}
               alt={displayName}
-              className="h-32 w-full object-cover"
+              className="aspect-3/4 w-40 h-50 mx-auto object-cover"
             />
           ) : (
             <div className="flex h-24 items-center justify-center text-xs text-muted-foreground">
