@@ -18,6 +18,12 @@ import { RolesGuard } from './common/guards/roles.guard';
 @Module({
   imports: [
     ConfigModule.forRoot({
+      envFilePath: [
+        `.env.${process.env.NODE_ENV}.local`,
+        '.env.local',
+        `.env.${process.env.NODE_ENV}`,
+        '.env',
+      ],
       isGlobal: true,
     }),
     CacheModule.register({
