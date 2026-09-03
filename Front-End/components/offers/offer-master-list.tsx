@@ -84,7 +84,7 @@ export function OfferMasterList() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">{t("masterList.filters.allTypes")}</SelectItem>
-            {offerKindSchema.options.slice(0, 2).map((k) => (
+            {offerKindSchema.options.map((k) => (
               <SelectItem key={k} value={k}>
                 {t(`kind.${k}`)}
               </SelectItem>

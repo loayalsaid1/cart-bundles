@@ -12,7 +12,7 @@
   // Configuration & API Base Detection
   const currentScript = document.currentScript;
   const API_BASE =
-    "https://sacred-resolved-gazelle.ngrok-free.app/api/v1";
+    "https://hjerg2-ip-197-54-145-249.tunnelmole.net/api/v1";
 
   function getTargetAnchor() {
     return (

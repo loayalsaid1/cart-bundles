@@ -13,7 +13,7 @@ salla.onReady(async () => {
   const langConfig = salla.config.get("user.language");
   const isAr = langConfig ? langConfig.startsWith("ar") : true; // default ar only if language is unknown
 
-  const API_BASE = "https://sacred-resolved-gazelle.ngrok-free.app//api/v1"; 
+  const API_BASE = "https://hjerg2-ip-197-54-145-249.tunnelmole.net/api/v1"; 
   const currency = salla.config.get("store.currency") || (isAr ? "ر.س" : "SAR");
 
   const formatPrice = (price) => `<bdi>${parseFloat(price).toFixed(2)} ${currency}</bdi>`;
