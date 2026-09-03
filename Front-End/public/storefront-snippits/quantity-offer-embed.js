@@ -12,7 +12,7 @@
   // Configuration & API Base Detection
   const currentScript = document.currentScript;
   const API_BASE =
-    "https://cart-bundles-demo-backend.vercel.app/api/v1";
+    "https://sacred-resolved-gazelle.ngrok-free.app/api/v1";
 
   function getTargetAnchor() {
     return (
