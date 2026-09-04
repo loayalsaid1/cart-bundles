@@ -3,7 +3,6 @@
 import { useFormatter, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { OfferPreviewFrame } from "@/components/offers/builder/preview/offer-preview-frame";
-import { tierTotalPrice } from "@/lib/utils/amount";
 import type { BundleOfferDraft } from "@/lib/schemas/bundle-offer";
 
 export function BundleOfferPreview({
@@ -18,16 +17,17 @@ export function BundleOfferPreview({
   const radius = draft.appearance?.borderRadiusPx ?? 12;
   const colors = draft.appearance?.colors ?? {};
   const items = draft.settings.relatedProducts;
-  const discountType = draft.settings.discountType ?? "none";
+  const discountType = draft.settings.discountType;
   const discountAmount = draft.settings.discountAmount ?? 0;
 
   const itemPrices = items.map((_, i) => unitPrice * 0.6 + i * 12);
+  const discountedItemPrices = itemPrices.map((price) => {
+    if (!discountType) return price;
+    if (discountType === "free-product") return 0;
+    return Math.max(0, price * (1 - discountAmount / 100));
+  });
   const fullTotal = itemPrices.reduce((acc, p) => acc + p, 0);
-  const total =
-    discountType === "none"
-      ? fullTotal
-      : tierTotalPrice(unitPrice, 1, discountType, discountAmount) +
-        itemPrices.slice(1).reduce((acc, p) => acc + p, 0);
+  const total = discountedItemPrices.reduce((acc, p) => acc + p, 0);
   const savings = fullTotal - total;
 
   const style = {
@@ -80,7 +80,7 @@ export function BundleOfferPreview({
                           {t("bundle.preview.itemName", { index: i + 1 })}
                         </span>
                         <span>
-                          {formatter.number(price, {
+                          {formatter.number(discountedItemPrices[i] ?? price, {
                             style: "currency",
                             currency: "SAR",
                           })}

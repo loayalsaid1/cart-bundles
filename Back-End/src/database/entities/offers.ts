@@ -53,11 +53,15 @@ export const addonDiscountTypeEnum = pgEnum('addon_discount_type', [
   'free-product',
 ]);
 
+export const bundleDiscountTypeEnum = pgEnum('bundle_discount_type', [
+  'percentage',
+  'free-product',
+]);
+
 export const recommendationModeEnum = pgEnum('recommendation_mode', [
   'cart_related',
   'general',
 ]);
-
 
 /* ────────────────────────────────────────────────────────────────
    BASE TABLE — offers
@@ -222,7 +226,7 @@ export const bundleOfferSettings = pgTable('bundle_offer_settings', {
     .primaryKey()
     .references(() => offers.id, { onDelete: 'cascade' }),
 
-  discountType: pricingTypeEnum('discount_type'),
+  discountType: bundleDiscountTypeEnum('discount_type'),
   discountAmount: numeric('discount_amount', { precision: 10, scale: 2 }),
 });
 

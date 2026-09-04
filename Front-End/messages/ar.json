@@ -326,7 +326,9 @@
       "all_products": "جميع المنتجات",
       "selected_products": "منتجات محددة",
       "selected_categories": "فئات محددة",
+      "singleProduct": "المنتج الأساسي",
       "pickProducts": "اختيار المنتجات",
+      "pickProduct": "اختيار المنتج",
       "pickCategories": "اختيار الفئات"
     },
     "appearance": {
@@ -395,9 +397,9 @@
       "settings": {
         "productsTitle": "منتجات الحزمة",
         "productsEmpty": "أضف المنتجات المضمّنة في هذه الحزمة.",
-        "discountTitle": "خصم الحزمة",
+        "discountTitle": "خصم على المنتجات المرتبطة",
         "percentage": "نسبة مئوية",
-        "fixed": "مبلغ ثابت",
+        "freeProduct": "مجانا (خصم 100%)",
         "noDiscount": "بدون خصم",
         "discountAmount": "قيمة الخصم",
         "behavior": "السلوك",

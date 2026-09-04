@@ -1,5 +1,7 @@
 import { Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  ArrayMinSize,
   IsArray,
   IsBoolean,
   IsEnum,
@@ -8,12 +10,8 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { RelatedProductDto } from '../addon/addon-offer.dto';
-import { QuantityOfferTier } from '../types/offers.types';
-import {
-  OfferInfoDto,
-  OfferTargetingDto,
-  OfferAppearanceDto,
-} from '../dto/common-offer.dto';
+import { type BundleDiscountType } from '../types/offers.types';
+import { OfferInfoDto, OfferAppearanceDto } from '../dto/common-offer.dto';
 
 export class BundleOfferSettingsDto {
   @IsBoolean()
@@ -24,9 +22,9 @@ export class BundleOfferSettingsDto {
   @IsOptional()
   hideSallaPopup?: boolean;
 
-  @IsEnum(['percentage', 'fixed'])
+  @IsEnum(['percentage', 'free-product'])
   @IsOptional()
-  discountType?: QuantityOfferTier['pricingType'];
+  discountType?: BundleDiscountType;
 
   @IsNumber()
   @IsOptional()
@@ -38,14 +36,25 @@ export class BundleOfferSettingsDto {
   relatedProducts: RelatedProductDto[];
 }
 
+export class BundleOfferTargetingDto {
+  @IsEnum(['selected_products'])
+  type: 'selected_products';
+
+  @IsArray()
+  @IsNumber({}, { each: true })
+  @ArrayMinSize(1)
+  @ArrayMaxSize(1)
+  ids: number[];
+}
+
 export class CreateBundleOfferDto {
   @ValidateNested()
   @Type(() => OfferInfoDto)
   info: OfferInfoDto;
 
   @ValidateNested()
-  @Type(() => OfferTargetingDto)
-  targeting: OfferTargetingDto;
+  @Type(() => BundleOfferTargetingDto)
+  targeting: BundleOfferTargetingDto;
 
   @ValidateNested()
   @Type(() => BundleOfferSettingsDto)

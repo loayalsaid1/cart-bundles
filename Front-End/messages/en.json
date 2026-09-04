@@ -324,7 +324,9 @@
       "all_products": "All products",
       "selected_products": "Selected products",
       "selected_categories": "Selected categories",
+      "singleProduct": "Anchor product",
       "pickProducts": "Choose products",
+      "pickProduct": "Choose product",
       "pickCategories": "Choose categories"
     },
     "appearance": {
@@ -392,9 +394,9 @@
       "settings": {
         "productsTitle": "Bundle products",
         "productsEmpty": "Add the products included in this bundle.",
-        "discountTitle": "Bundle discount",
+        "discountTitle": "Discount on related products",
         "percentage": "Percentage",
-        "fixed": "Fixed amount",
+        "freeProduct": "Free (100% off)",
         "noDiscount": "No discount",
         "discountAmount": "Discount value",
         "behavior": "Behavior",

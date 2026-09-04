@@ -40,7 +40,11 @@ export function BundleSettingsStep() {
             onValueChange={(v) =>
               form.setValue(
                 "settings.discountType",
-                v === "none" ? undefined : v === "fixed" ? "fixed" : "percentage",
+                v === "none"
+                  ? undefined
+                  : v === "free-product"
+                    ? "free-product"
+                    : "percentage",
               )
             }
             className="flex gap-4"
@@ -50,15 +54,15 @@ export function BundleSettingsStep() {
               {t("bundle.settings.percentage")}
             </label>
             <label className="flex items-center gap-2 text-sm">
-              <RadioGroupItem value="fixed" />
-              {t("bundle.settings.fixed")}
+              <RadioGroupItem value="free-product" />
+              {t("bundle.settings.freeProduct")}
             </label>
             <label className="flex items-center gap-2 text-sm text-muted-foreground">
               <RadioGroupItem value="none" />
               {t("bundle.settings.noDiscount")}
             </label>
           </RadioGroup>
-          {settings.discountType && (
+          {settings.discountType === "percentage" && (
             <div className="space-y-2">
               <Label>{t("bundle.settings.discountAmount")}</Label>
               <Input

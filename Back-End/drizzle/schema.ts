@@ -2,6 +2,7 @@ import { pgTable, foreignKey, integer, boolean, numeric, varchar, serial, bigint
 import { sql } from "drizzle-orm"
 
 export const addonDiscountType = pgEnum("addon_discount_type", ['percentage', 'free-product'])
+export const bundleDiscountType = pgEnum("bundle_discount_type", ['percentage', 'free-product'])
 export const displayOrientation = pgEnum("display_orientation", ['vertical', 'horizontal'])
 export const offerKind = pgEnum("offer_kind", ['quantity_discount', 'product_add_on', 'bundle', 'upgrade_offer', 'cart_recommendation'])
 export const offerStatus = pgEnum("offer_status", ['draft', 'active', 'paused', 'expired'])
@@ -31,7 +32,7 @@ export const addonOfferSettings = pgTable("addon_offer_settings", {
 
 export const bundleOfferSettings = pgTable("bundle_offer_settings", {
 	offerId: integer("offer_id").primaryKey().notNull(),
-	discountType: pricingType("discount_type"),
+	discountType: bundleDiscountType("discount_type"),
 	discountAmount: numeric("discount_amount", { precision: 10, scale:  2 }),
 }, (table) => [
 	foreignKey({

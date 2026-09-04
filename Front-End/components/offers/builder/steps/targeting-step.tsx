@@ -25,9 +25,11 @@ interface TargetingDraftShape {
 export function TargetingStep({
   onProductsPicked,
   allowedTargetTypes,
+  single = false,
 }: {
   onProductsPicked: (products: Product[]) => void;
   allowedTargetTypes?: TargetType[];
+  single?: boolean;
 }) {
   const t = useTranslations("Offers");
   const form = useFormContext<TargetingDraftShape>();
@@ -36,7 +38,29 @@ export function TargetingStep({
   } = form;
   const type = form.watch("targeting.type") as TargetType;
   const watchedIds = form.watch("targeting.ids");
-  const ids = useMemo(() => watchedIds ?? [], [watchedIds]);
+  const targetTypeOptions = (
+    allowedTargetTypes ?? [
+      "all_products",
+      "selected_products",
+      "selected_categories",
+    ]
+  ) as TargetType[];
+  const ids = useMemo(() => {
+    const all = watchedIds ?? [];
+    return single ? all.slice(0, 1) : all;
+  }, [watchedIds, single]);
+
+  useEffect(() => {
+    if (allowedTargetTypes?.length && !allowedTargetTypes.includes(type)) {
+      form.setValue("targeting.type", allowedTargetTypes[0]);
+    }
+  }, [allowedTargetTypes, type, form]);
+
+  useEffect(() => {
+    if (single && (watchedIds?.length ?? 0) > 1) {
+      form.setValue("targeting.ids", (watchedIds ?? []).slice(0, 1));
+    }
+  }, [single, watchedIds, form]);
   const [productPickerOpen, setProductPickerOpen] = useState(false);
   const [categoryPickerOpen, setCategoryPickerOpen] = useState(false);
 
@@ -67,9 +91,10 @@ export function TargetingStep({
   }, [products]);
 
   const applyProducts = (picked: Product[]) => {
+    const next = single ? picked.slice(0, 1) : picked;
     form.setValue(
       "targeting.ids",
-      picked.map((p) => p.id),
+      next.map((p) => p.id),
     );
   };
 
@@ -96,29 +121,25 @@ export function TargetingStep({
 
   return (
     <div className="space-y-5">
-      <RadioGroup
-        value={type}
-        onValueChange={(v) => form.setValue("targeting.type", v as TargetType)}
-        className="space-y-2"
-      >
-        {(
-          (
-            allowedTargetTypes ?? [
-              "all_products",
-              "selected_products",
-              "selected_categories",
-            ]
-          ) as TargetType[]
-        ).map((option) => (
-          <label
-            key={option}
-            className="flex items-center gap-2 rounded-lg border p-3 text-sm font-medium has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 cursor-pointer"
-          >
-            <RadioGroupItem value={option} />
-            {t(`targeting.${option}`)}
-          </label>
-        ))}
-      </RadioGroup>
+      {targetTypeOptions.length > 1 ? (
+        <RadioGroup
+          value={type}
+          onValueChange={(v) => form.setValue("targeting.type", v as TargetType)}
+          className="space-y-2"
+        >
+          {targetTypeOptions.map((option) => (
+            <label
+              key={option}
+              className="flex items-center gap-2 rounded-lg border p-3 text-sm font-medium has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 cursor-pointer"
+            >
+              <RadioGroupItem value={option} />
+              {t(`targeting.${option}`)}
+            </label>
+          ))}
+        </RadioGroup>
+      ) : (
+        <h3 className="text-sm font-semibold">{t("targeting.singleProduct")}</h3>
+      )}
 
       {errors.targeting?.ids && (
         <p className="text-xs font-medium text-destructive mt-1">
@@ -134,7 +155,7 @@ export function TargetingStep({
             onClick={() => setProductPickerOpen(true)}
           >
             <HugeiconsIcon icon={PackageAdd01Icon} size={16} />
-            {t("targeting.pickProducts")}
+            {t(single ? "targeting.pickProduct" : "targeting.pickProducts")}
           </Button>
           {products.length > 0 && (
             <div className="space-y-2">
@@ -211,6 +232,7 @@ export function TargetingStep({
         selectedIds={ids}
         initialProducts={products}
         onApply={applyProducts}
+        single={single}
       />
       <CategoryPickerDialog
         key={categoryPickerOpen ? "category-picker-open" : "category-picker-closed"}
