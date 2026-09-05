@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { eq, and } from 'drizzle-orm';
-import { DrizzleService } from '../../../database/drizzle.service';
+import { DrizzleService, DrizzleTransaction } from '../../../database/drizzle.service';
 import {
   offers,
   offerTargets,
@@ -16,7 +16,6 @@ import {
   formatSallaStartDate,
 } from '../dto/common-offer.dto';
 import { BundleOfferFull, ServiceResult } from '../types/offers.types';
-import { PgTransaction } from 'drizzle-orm/pg-core';
 
 const SALLA_SPECIAL_OFFERS_URL = 'https://api.salla.dev/admin/v2/specialoffers';
 
@@ -272,7 +271,7 @@ export class BundleOfferService {
   private async syncToSalla(
     merchantId: number,
     offerId: number,
-    tx?: any,
+    tx?: DrizzleTransaction,
   ): Promise<{ success: boolean; sallaOfferId?: number; error?: string }> {
     try {
       const dbClient = tx ?? this.db;
@@ -351,7 +350,7 @@ export class BundleOfferService {
       const buyObj = { type: 'product', quantity: 1, products: entityIds };
       const getObj = {
         type: 'product',
-        quantity: 1,
+        quantity: offer.relatedProducts.length,
         products: offerProductIds,
         discount_type: sallaDiscountType,
         ...(!isFreeProduct ? { discount_amount: discountAmount } : {}),
