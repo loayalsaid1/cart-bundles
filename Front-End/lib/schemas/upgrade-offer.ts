@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import {
+  appearanceFullSchema,
+  offerAppearanceSchema,
   offerInfoSchema,
   offerKindSchema,
   offerStatusSchema,
@@ -25,6 +27,7 @@ export const upgradeOfferDraftSchema = z.object({
   info: offerInfoSchema,
   targeting: offerTargetingSchema,
   settings: upgradeOfferSettingsSchema,
+  appearance: offerAppearanceSchema,
 });
 
 const upgradeSettingsFullSchema = z.object({
@@ -52,6 +55,7 @@ export const upgradeOfferFullSchema = z.object({
   updatedAt: z.string().optional(),
   targets: z.array(offerTargetSchema),
   upgradeSettings: upgradeSettingsFullSchema.nullable(),
+  appearance: appearanceFullSchema.optional(),
 });
 
 export type UpgradeOfferDraft = z.infer<typeof upgradeOfferDraftSchema>;

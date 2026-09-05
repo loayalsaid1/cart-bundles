@@ -80,6 +80,7 @@ export interface BundleOfferFull extends Offer {
 export interface UpgradeOfferFull extends Offer {
   targets: OfferTarget[];
   upgradeSettings: UpgradeOfferSettings | null;
+  appearance: OfferAppearance | null;
 }
 
 export interface RecommendationOfferFull extends Offer {

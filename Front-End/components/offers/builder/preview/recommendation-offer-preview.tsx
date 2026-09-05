@@ -4,7 +4,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { OfferPreviewFrame } from "@/components/offers/builder/preview/offer-preview-frame";
 import type { RecommendationOfferDraft } from "@/lib/schemas/recommendation-offer";
-
+import { previewCardStyle, resolvePreviewColors } from "@/lib/utils/preview-appearance";
 import { useProductSearch } from "@/hooks/use-product-search";
 
 export function RecommendationOfferPreview({
@@ -17,9 +17,10 @@ export function RecommendationOfferPreview({
   const t = useTranslations("Offers");
   const formatter = useFormatter();
   const radius = draft.appearance?.borderRadiusPx ?? 12;
-  const colors = draft.appearance?.colors ?? {};
+  const colors = resolvePreviewColors(draft.appearance?.colors);
   const items = draft.settings.relatedProducts;
   const mode = draft.settings.mode;
+  const cardStyle = previewCardStyle(draft.appearance?.colors, radius);
 
   const { data: allProducts = [] } = useProductSearch("", true);
   const targetId = draft.settings.triggerSallaProductId;
@@ -28,11 +29,7 @@ export function RecommendationOfferPreview({
   const displayImage = targetProduct?.thumbnail;
   const displayName = targetProduct?.name || t("preview.productName");
 
-  const style = {
-    borderRadius: `${radius}px`,
-    backgroundColor: colors.cardBg,
-    borderColor: colors.cardBorder,
-  } as React.CSSProperties;
+
 
   return (
     <OfferPreviewFrame>
@@ -55,24 +52,17 @@ export function RecommendationOfferPreview({
             </div>
             <p className="text-sm font-medium">{displayName}</p>
 
-            <div style={style}>
-              <div
-                className="p-3"
-                style={{
-                  border: `1px solid ${colors.cardBorder || "#e2e8f0"}`,
-                  borderRadius: `${radius}px`,
-                }}
-              >
+            <div style={cardStyle} className="p-3">
                 {title && (
                   <p
                     className="text-sm font-semibold"
-                    style={{ color: colors.selectedTier || undefined }}
+                    style={{ color: colors.titleColor }}
                   >
                     {title}
                   </p>
                 )}
                 {subtitle && (
-                  <p className="mt-0.5 text-xs text-muted-foreground">
+                  <p className="mt-0.5 text-xs" style={{ color: colors.mutedText }}>
                     {subtitle}
                   </p>
                 )}
@@ -93,7 +83,8 @@ export function RecommendationOfferPreview({
                           key={item.sallaProductId}
                           style={{
                             borderRadius: `${Math.max(0, radius - 4)}px`,
-                            border: `1px solid ${colors.cardBorder || "#e2e8f0"}`,
+                            border: `1px solid ${colors.cardBorder}`,
+                            background: "#ffffff",
                           }}
                         >
                           <div className="flex h-14 items-center justify-center overflow-hidden bg-muted text-[10px] text-muted-foreground">
@@ -108,10 +99,10 @@ export function RecommendationOfferPreview({
                             )}
                           </div>
                           <div className="p-2">
-                            <p className="truncate text-[10px] font-medium" title={itemName}>
+                            <p className="truncate text-[10px] font-medium" style={{ color: colors.bodyText }} title={itemName}>
                               {itemName}
                             </p>
-                            <p className="text-[10px]" style={{ color: colors.savings }}>
+                            <p className="text-[10px]" style={{ color: colors.savings || colors.bodyText }}>
                               {formatter.number(price, {
                                 style: "currency",
                                 currency: "SAR",
@@ -132,10 +123,13 @@ export function RecommendationOfferPreview({
                     {t("recommendation.preview.cartHint")}
                   </p>
                 )}
-                <Button className="mt-3 w-full" size="sm">
-                  {t("recommendation.preview.viewAll")}
-                </Button>
-              </div>
+                  <Button
+                    className="mt-3 w-full"
+                    size="sm"
+                    style={{ background: colors.badgeBg, color: colors.badgeText }}
+                  >
+                    {t("recommendation.preview.viewAll")}
+                  </Button>
             </div>
           </div>
         );

@@ -56,7 +56,7 @@ salla.onReady(async () => {
         name: data.name,
         image: img || "",
         origPrice: parseFloat(data.price?.amount ?? data.price ?? 0),
-        hasOptions: !!data.options,
+        hasOptions: Array.isArray(data.options) && data.options.length > 0,
         url: data.url || data.urls?.customer || '#',
       });
     }
@@ -75,16 +75,19 @@ salla.onReady(async () => {
     `;
 
     productsData.forEach(p => {
-      const finalPrice = discountType === 'percentage'
-        ? p.origPrice - (p.origPrice * (discountAmount / 100))
-        : p.origPrice - discountAmount;
+      const finalPrice =
+        discountType === 'free-product' || discountType === 'free_product'
+          ? 0
+          : discountType === 'percentage'
+            ? Math.max(0, p.origPrice * (1 - discountAmount / 100))
+            : p.origPrice;
       const isSale = p.origPrice > finalPrice && finalPrice >= 0;
       const actualPrice = Math.max(0, finalPrice);
 
       const btnText = p.hasOptions ? (isAr ? 'اختيار الخيارات' : 'Select Options') : (isAr ? 'إضافة للسلة' : 'Add to Cart');
       const checkboxHtml = p.hasOptions
         ? `<span style="width: 16px; height: 16px; flex-shrink: 0;"></span>`
-        : `<input type="checkbox" class="salla-addon-cb" value="${p.id}" ${p.isPreselected ? 'checked' : ''} style="margin-top: 2px; width: 16px; height: 16px; flex-shrink: 0; accent-color: var(--color-primary);" />`;
+        : `<input type="checkbox" class="salla-addon-cb" value="${p.id}" data-has-options="${p.hasOptions ? 'true' : 'false'}" data-url="${escapeHTML(p.url)}" ${p.isPreselected ? 'checked' : ''} style="margin-top: 2px; width: 16px; height: 16px; flex-shrink: 0; accent-color: var(--color-primary);" />`;
 
       html += `
       <a href="${p.url}" style="text-decoration: none; color: inherit;">
@@ -117,14 +120,30 @@ salla.onReady(async () => {
 
     widget.innerHTML = html + `</div>`;
 
+    const addItem = (payload) => {
+      if (typeof salla.cart.addItem === 'function') return salla.cart.addItem(payload);
+      if (salla.cart.api && typeof salla.cart.api.addItem === 'function') {
+        return salla.cart.api.addItem(payload);
+      }
+      return Promise.reject(new Error('salla.cart.addItem unavailable'));
+    };
+
     widget.querySelectorAll('.salla-addon-add-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         e.preventDefault();
+        e.stopPropagation();
         const hasOptions = btn.getAttribute('data-has-options') === 'true';
         if (hasOptions) {
           window.open(btn.getAttribute('data-url'), '_blank');
-        } else {
-          salla.cart.api.addItem({ id: btn.getAttribute('data-id'), quantity: 1 });
+          return;
+        }
+        try {
+          await addItem({ id: btn.getAttribute('data-id'), quantity: 1 });
+        } catch (err) {
+          const text = err && (err.message || err.msg || String(err));
+          if (/option/i.test(text || '') && /required|يجب|خيار/i.test(text || '')) {
+            window.open(btn.getAttribute('data-url'), '_blank');
+          }
         }
       });
     });
@@ -196,9 +215,17 @@ salla.event.on("cart::item-added", async (res) => {
   if (String(addedProductId) !== String(mainProductId)) return;
 
   const checkedBoxes = document.querySelectorAll('.salla-addon-cb:checked');
+  const addItem = (payload) => {
+    if (typeof salla.cart.addItem === 'function') return salla.cart.addItem(payload);
+    if (salla.cart.api && typeof salla.cart.api.addItem === 'function') {
+      return salla.cart.api.addItem(payload);
+    }
+    return Promise.reject(new Error('salla.cart.addItem unavailable'));
+  };
   for (const cb of checkedBoxes) {
+    if (cb.getAttribute('data-has-options') === 'true') continue;
     try {
-      await salla.cart.api.addItem({ id: cb.value, quantity: 1 });
+      await addItem({ id: cb.value, quantity: 1 });
     } catch (e) {
       console.warn("Failed to add addon:", cb.value);
     }

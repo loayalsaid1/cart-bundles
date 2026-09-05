@@ -8,8 +8,14 @@
   window.__STOREFRONT_OFFER_EMBED_LOADED__ = true;
 
   const currentScript = document.currentScript;
-  const API_BASE =
-    "https://jq1no5-ip-156-210-130-189.tunnelmole.net/api/v1";
+  const API_BASE = "https://backend-dev.cartbundles.com/api/v1";
+
+  function escapeHTML(str) {
+    if (!str) return "";
+    return String(str).replace(/[&<>'"]/g, function (t) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[t];
+    });
+  }
 
   const selectedAddonIds = new Set();
 
@@ -83,13 +89,22 @@
 
   function calculateDiscountedPrice(price, discountType, discountAmount) {
     const p = parseFloat(price) || 0;
+    if (!discountType) return p;
+    if (discountType === "free-product" || discountType === "free_product") return 0;
     const amt = parseFloat(discountAmount) || 0;
     if (discountType === "percentage") {
       return Math.max(0, p * (1 - amt / 100));
-    } else if (discountType === "fixed") {
-      return Math.max(0, p - amt);
     }
     return p;
+  }
+
+  function getCartAdder() {
+    if (typeof salla === "undefined" || !salla.cart) return null;
+    if (typeof salla.cart.addItem === "function") return (p) => salla.cart.addItem(p);
+    if (salla.cart.api && typeof salla.cart.api.addItem === "function") {
+      return (p) => salla.cart.api.addItem(p);
+    }
+    return null;
   }
 
   function setSallaQuantity(quantity) {
@@ -330,9 +345,13 @@
       if (addBtn) {
         addBtn.addEventListener("click", async (e) => {
           e.preventDefault();
-          if (typeof salla !== "undefined" && salla.cart) {
-            await salla.cart.addItem({ id: item.sallaProductId, quantity: 1 });
+          const add = getCartAdder();
+          if (!add) return;
+          try {
+            await add({ id: item.sallaProductId, quantity: 1 });
             if (salla.notify) salla.notify.success(isRtl ? "تمت الإضافة إلى السلة" : "Added to cart");
+          } catch (err) {
+            window.open(details.url || `/p/${item.sallaProductId}`, "_blank");
           }
         });
       }
@@ -345,8 +364,10 @@
         if (!selectedAddonIds.size) return;
         const ids = Array.from(selectedAddonIds);
         selectedAddonIds.clear();
+        const add = getCartAdder();
+        if (!add) return;
         for (const addonId of ids) {
-          try { await salla.cart.addItem({ id: addonId, quantity: 1 }); } catch (e) {}
+          try { await add({ id: addonId, quantity: 1 }); } catch (e) {}
         }
       });
     }
@@ -367,7 +388,7 @@
     const colors = offer.appearance?.colors || {};
     const radius = offer.appearance?.borderRadiusPx ?? 12;
     const settings = offer.bundleSettings || {};
-    const discountType = settings.discountType || "percentage";
+    const discountType = settings.discountType || null;
     const discountAmount = parseFloat(settings.discountAmount || 0);
 
     const { productId } = getStoreAndProductInfo();
@@ -458,13 +479,13 @@
 
     function recalc() {
       const active = bundleItems.filter((i) => i.selected);
-      const raw = mainProductData.price + active.reduce((a, b) => a + b.price, 0);
-      let final = raw;
-      if (discountType === "percentage" && discountAmount > 0) {
-        final = raw * (1 - discountAmount / 100);
-      } else if (discountType === "fixed" && discountAmount > 0) {
-        final = Math.max(0, raw - discountAmount);
-      }
+      const relatedRaw = active.reduce((a, b) => a + b.price, 0);
+      const relatedFinal = active.reduce(
+        (a, b) => a + calculateDiscountedPrice(b.price, discountType, discountAmount),
+        0,
+      );
+      const raw = mainProductData.price + relatedRaw;
+      const final = mainProductData.price + relatedFinal;
       const savings = Math.max(0, raw - final);
 
       if (finalValEl) finalValEl.textContent = `${final.toFixed(2)} SAR`;
@@ -486,16 +507,20 @@
     if (submitBtn) {
       submitBtn.addEventListener("click", async (e) => {
         e.preventDefault();
-        if (typeof salla !== "undefined" && salla.cart) {
-          try {
-            await salla.cart.addItem({ id: productId, quantity: 1 });
-            for (const bItem of bundleItems.filter((i) => i.selected)) {
-              await salla.cart.addItem({ id: bItem.id, quantity: 1 });
+        const add = getCartAdder();
+        if (!add) return;
+        try {
+          await add({ id: productId, quantity: 1 });
+          for (const bItem of bundleItems.filter((i) => i.selected)) {
+            try {
+              await add({ id: bItem.id, quantity: 1 });
+            } catch (err) {
+              console.warn("[BundleOffer] Failed to add item", bItem.id, err);
             }
-            if (salla.notify) salla.notify.success(isRtl ? "تمت إضافة المجموعة إلى السلة" : "Bundle added to cart");
-          } catch (err) {
-            console.error("[BundleOffer] Add error:", err);
           }
+          if (salla.notify) salla.notify.success(isRtl ? "تمت إضافة المجموعة إلى السلة" : "Bundle added to cart");
+        } catch (err) {
+          console.error("[BundleOffer] Add error:", err);
         }
       });
     }
