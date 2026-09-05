@@ -354,6 +354,156 @@
     return cardContainer;
   }
 
+  // --- BUNDLE OFFER RENDERER ---
+  async function renderBundleOfferCard(offer) {
+    const lang = getLanguage();
+    const isRtl = lang === "ar";
+    const title = offer.title?.[lang] || offer.title?.ar || "";
+    const subtitle = offer.subtitle?.[lang] || offer.subtitle?.ar || "";
+    const relatedItems = (offer.relatedProducts || []).sort((a, b) => (a.position || 0) - (b.position || 0));
+
+    if (!relatedItems.length) return null;
+
+    const colors = offer.appearance?.colors || {};
+    const radius = offer.appearance?.borderRadiusPx ?? 12;
+    const settings = offer.bundleSettings || {};
+    const discountType = settings.discountType || "percentage";
+    const discountAmount = parseFloat(settings.discountAmount || 0);
+
+    const { productId } = getStoreAndProductInfo();
+    const allProductIds = [productId, ...relatedItems.map((item) => item.sallaProductId)].filter(Boolean);
+
+    const productDetailsList = await Promise.all(
+      allProductIds.map((id) => fetchProductDetails(id))
+    );
+
+    const productMap = new Map();
+    productDetailsList.forEach((d) => {
+      if (d && d.id) productMap.set(String(d.id), d);
+    });
+
+    const mainProductData = productMap.get(String(productId)) || {
+      id: productId,
+      name: isRtl ? "المنتج الحالي" : "Current Product",
+      price: getUnitPrice(),
+      image: null,
+    };
+
+    const bundleItems = relatedItems.map((item) => {
+      const details = productMap.get(String(item.sallaProductId)) || {};
+      return {
+        id: item.sallaProductId,
+        name: details.name || `${isRtl ? "منتج الحزمة" : "Bundle Item"} #${item.sallaProductId}`,
+        price: details.price || 0,
+        image: details.image || null,
+        selected: item.isPreselected ?? true,
+      };
+    });
+
+    const cardContainer = document.createElement("div");
+    cardContainer.className = "salla-bundle-offer-card";
+    cardContainer.setAttribute("dir", isRtl ? "rtl" : "ltr");
+    cardContainer.style.cssText = `
+      margin: 16px 0; padding: 16px; border-radius: ${radius}px;
+      background-color: ${colors.cardBg || "#ffffff"};
+      border: 1px solid ${colors.cardBorder || "#e2e8f0"};
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); font-family: inherit;
+    `;
+
+    let html = "";
+    if (title) html += `<div style="font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 2px;">${escapeHTML(title)}</div>`;
+    if (subtitle) html += `<div style="font-size: 13px; color: #64748b; margin-bottom: 12px;">${escapeHTML(subtitle)}</div>`;
+
+    html += `<div class="bundle-grid" style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 12px;">`;
+
+    // Main product card
+    html += `
+      <div style="flex: 1; min-width: 120px; border: 1.5px solid ${colors.badgeBg || "#004b40"}; border-radius: 8px; padding: 8px; background: #f8fafc; text-align: center;">
+        ${mainProductData.image ? `<img src="${mainProductData.image}" style="width: 100%; height: 70px; object-fit: cover; border-radius: 4px; margin-bottom: 4px;" />` : ''}
+        <div style="font-size: 11px; font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(mainProductData.name)}</div>
+        <div style="font-size: 12px; font-weight: 700; color: #0f172a;">${mainProductData.price.toFixed(2)} SAR</div>
+      </div>
+    `;
+
+    bundleItems.forEach((bItem, idx) => {
+      html += `<div style="font-weight: 700; color: #94a3b8;">+</div>`;
+      html += `
+        <div style="flex: 1; min-width: 120px; border: 1px solid ${colors.cardBorder || "#e2e8f0"}; border-radius: 8px; padding: 8px; background: #fff; text-align: center;">
+          <input type="checkbox" class="bundle-cb" data-idx="${idx}" ${bItem.selected ? "checked" : ""} style="accent-color: ${colors.badgeBg || "#004b40"}; cursor: pointer; margin-bottom: 4px;" />
+          ${bItem.image ? `<img src="${bItem.image}" style="width: 100%; height: 70px; object-fit: cover; border-radius: 4px; margin-bottom: 4px;" />` : ''}
+          <div style="font-size: 11px; font-weight: 600; color: #1e293b; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(bItem.name)}</div>
+          <div style="font-size: 12px; font-weight: 700; color: #0f172a;">${bItem.price.toFixed(2)} SAR</div>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+
+    // Action & Price Summary
+    html += `
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; border-radius: 6px; background: ${colors.selectedTier || "#f0fdf4"}; border: 1px dashed ${colors.cardBorder || "#cbd5e1"};">
+        <div>
+          <span class="bundle-final-val" style="font-size: 16px; font-weight: 800; color: #0f172a;"></span>
+          <span class="bundle-savings-val" style="font-size: 11px; font-weight: 700; color: ${colors.savings || "#16a34a"}; margin-inline-start: 6px;"></span>
+        </div>
+        <button type="button" class="bundle-submit-btn" style="padding: 8px 14px; border: none; border-radius: 6px; background: ${colors.badgeBg || "#004b40"}; color: ${colors.badgeText || "#ffffff"}; font-size: 12px; font-weight: 700; cursor: pointer;">${isRtl ? "إضافة المجموعة للسلة" : "Add Bundle to Cart"}</button>
+      </div>
+    `;
+
+    cardContainer.innerHTML = html;
+
+    const finalValEl = cardContainer.querySelector(".bundle-final-val");
+    const savingsValEl = cardContainer.querySelector(".bundle-savings-val");
+    const submitBtn = cardContainer.querySelector(".bundle-submit-btn");
+
+    function recalc() {
+      const active = bundleItems.filter((i) => i.selected);
+      const raw = mainProductData.price + active.reduce((a, b) => a + b.price, 0);
+      let final = raw;
+      if (discountType === "percentage" && discountAmount > 0) {
+        final = raw * (1 - discountAmount / 100);
+      } else if (discountType === "fixed" && discountAmount > 0) {
+        final = Math.max(0, raw - discountAmount);
+      }
+      const savings = Math.max(0, raw - final);
+
+      if (finalValEl) finalValEl.textContent = `${final.toFixed(2)} SAR`;
+      if (savingsValEl) {
+        savingsValEl.textContent = savings > 0 ? `${isRtl ? "توفير" : "Save"} ${savings.toFixed(2)} SAR` : "";
+      }
+    }
+
+    cardContainer.querySelectorAll(".bundle-cb").forEach((cb) => {
+      cb.addEventListener("change", (e) => {
+        const idx = parseInt(e.target.dataset.idx, 10);
+        if (!isNaN(idx) && bundleItems[idx]) {
+          bundleItems[idx].selected = e.target.checked;
+          recalc();
+        }
+      });
+    });
+
+    if (submitBtn) {
+      submitBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        if (typeof salla !== "undefined" && salla.cart) {
+          try {
+            await salla.cart.addItem({ id: productId, quantity: 1 });
+            for (const bItem of bundleItems.filter((i) => i.selected)) {
+              await salla.cart.addItem({ id: bItem.id, quantity: 1 });
+            }
+            if (salla.notify) salla.notify.success(isRtl ? "تمت إضافة المجموعة إلى السلة" : "Bundle added to cart");
+          } catch (err) {
+            console.error("[BundleOffer] Add error:", err);
+          }
+        }
+      });
+    }
+
+    recalc();
+    return cardContainer;
+  }
+
   async function initStorefrontOffers() {
     const { merchantId, productId } = getStoreAndProductInfo();
     if (!merchantId) return;
@@ -384,6 +534,13 @@
 
       const offers = await response.json();
       if (!Array.isArray(offers) || !offers.length) return;
+
+      // Check for Bundle Offer
+      const bundleOffer = offers.find((o) => o.kind === "bundle");
+      if (bundleOffer) {
+        const bundleCard = await renderBundleOfferCard(bundleOffer);
+        if (bundleCard) anchor.insertAdjacentElement("beforebegin", bundleCard);
+      }
 
       // Check for Addon Offer
       const addonOffer = offers.find((o) => o.kind === "product_add_on");
