@@ -40,7 +40,7 @@ export function BundleOfferPreview({
           ? 0
           : Math.max(0, price * (1 - discountAmount / 100));
     return {
-      name: matched?.name || t("bundle.preview.itemName", { index: i + 1 }),
+      name: matched?.name || t("bundle.preview.itemName", { index: String(i + 1) }),
       thumb: matched?.thumbnail,
       price,
       discounted,

@@ -52,7 +52,6 @@ export function CouponCombobox({
     query.trim(),
     open,
   );
-  console.log(coupons)
 
   const selectedLabel = couponCode?.trim() || t("upgrade.settings.chooseCoupon");
 

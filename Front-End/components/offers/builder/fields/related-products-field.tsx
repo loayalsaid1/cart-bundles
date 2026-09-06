@@ -21,7 +21,11 @@ export function RelatedProductsField({
   value: RelatedProductDraft[];
   onChange: (related: RelatedProductDraft[]) => void;
   showPreselect?: boolean;
-  emptyKey?: string;
+  emptyKey?:
+    | "shared.empty"
+    | "addon.settings.productsEmpty"
+    | "bundle.settings.productsEmpty"
+    | "recommendation.settings.productsEmpty";
 }) {
   const t = useTranslations("Offers");
   const [open, setOpen] = useState(false);

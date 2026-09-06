@@ -148,7 +148,7 @@ export function OfferMasterList() {
                   <TableCell className="text-xs text-muted-foreground">
                     {offer.targetsCount === 0
                       ? t("masterList.targets.all")
-                      : t("masterList.targets.count", { count: offer.targetsCount })}
+                      : t("masterList.targets.count", { count: String(offer.targetsCount) })}
                   </TableCell>
                   <TableCell>
                     <OfferStatusToggle offerId={offer.id} status={offer.status} />

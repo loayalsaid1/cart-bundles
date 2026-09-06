@@ -76,7 +76,7 @@ export function RecommendationOfferPreview({
                       const itemThumb = matchedProduct?.thumbnail;
                       const itemName =
                         matchedProduct?.name ||
-                        t("recommendation.preview.productName", { index: i + 1 });
+                        t("recommendation.preview.productName", { index: String(i + 1) });
 
                       return (
                         <div

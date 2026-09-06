@@ -138,7 +138,7 @@ export function CategoryPickerDialog({
 
         <DialogFooter className="gap-2 sm:justify-between">
           <p className="text-xs text-muted-foreground">
-            {t("pickers.categories.selectedCount", { count: picked.size })}
+            {t("pickers.categories.selectedCount", { count: String(picked.size) })}
           </p>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>

@@ -72,7 +72,7 @@ export function SingleProductField({
 
       {!product && value !== undefined && value > 0 && (
         <p className="text-xs text-muted-foreground">
-          {t("related.singleHint", { id: value })}
+          {t("related.singleHint", { id: String(value) })}
         </p>
       )}
 

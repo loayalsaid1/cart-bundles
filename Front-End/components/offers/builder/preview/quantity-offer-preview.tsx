@@ -23,7 +23,7 @@ export function QuantityOfferPreview({
 }) {
   const t = useTranslations("Offers");
   const formatter = useFormatter();
-  const locale = useLocale() as PreviewLocale;
+  const locale = useLocale();
   const [device, setDevice] = useState<Device>("desktop");
   const [previewLocale, setPreviewLocale] = useState<PreviewLocale>(locale);
 

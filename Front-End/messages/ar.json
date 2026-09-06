@@ -118,6 +118,9 @@
       "paused": "موقوف",
       "expired": "منتهي"
     },
+    "shared": {
+      "empty": "لم تتم إضافة عناصر بعد."
+    },
     "common": {
       "ar": "العربية",
       "en": "الإنجليزية",
@@ -312,14 +315,9 @@
       "productName": "منتج تجريبي",
       "currency": "ر.س",
       "save": "وفّر {amount}",
-    "addToCart": "أضف إلى السلة"
-  },
-  "common": {
-    "ar": "العربية",
-    "en": "الإنجليزية"
-  },
-
-  "info": {
+      "addToCart": "أضف إلى السلة"
+    },
+    "info": {
       "internalName": "الاسم الداخلي",
       "internalNamePlaceholder": "مثال: حزمة الشتاء - VIP",
       "title": "العنوان المعروض",
@@ -381,7 +379,6 @@
         "discountTitle": "خصم على الإضافات",
         "percentage": "نسبة مئوية",
         "freeProduct": "مجانا (خصم 100%)",
-        "fixed": "مبلغ ثابت",
         "noDiscount": "بدون خصم",
         "discountAmount": "قيمة الخصم",
         "positionDesktop": "الموضع على الحاسوب",
@@ -439,6 +436,7 @@
       },
       "preview": {
         "upgradeName": "الترقية",
+        "badge": "ترقية",
         "coupon": "استخدم الكود {code} عند الدفع",
         "upgrade": "الترقية الآن"
       }

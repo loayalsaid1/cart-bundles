@@ -76,7 +76,7 @@ export function AddonOfferPreview({
                   const itemThumb = matchedProduct?.thumbnail;
                   const itemName =
                     matchedProduct?.name ||
-                    t("addon.preview.addonName", { index: i + 1 });
+                    t("addon.preview.addonName", { index: String(i + 1) });
                   const onSale = itemPrice < origPrice;
 
                   return (

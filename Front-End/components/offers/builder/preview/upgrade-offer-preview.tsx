@@ -65,7 +65,7 @@ export function UpgradeOfferPreview({
                   className="absolute top-2 right-2 rounded-full px-2 py-0.5 text-[10px] font-bold shadow-xs"
                   style={{ background: colors.badgeBg, color: colors.badgeText }}
                 >
-                  ✨ {t("upgrade.preview.badge", { defaultValue: "Upgrade" })}
+                  {t("upgrade.preview.badge")}
                 </span>
               </div>
               <p className="truncate text-[14px] font-bold" style={{ color: colors.bodyText }} title={upName}>

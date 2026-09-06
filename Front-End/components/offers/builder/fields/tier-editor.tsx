@@ -38,7 +38,7 @@ export function TierEditor({
   return (
     <div className="space-y-4 rounded-lg border bg-card p-4">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-semibold">{t("quantity.tiers.tierLabel", { index: index + 1 })}</h4>
+        <h4 className="text-sm font-semibold">{t("quantity.tiers.tierLabel", { index: String(index + 1) })}</h4>
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" onClick={onMoveUp} disabled={!canMoveUp} aria-label={t("quantity.tiers.moveUp")}>
             <HugeiconsIcon icon={ArrowUp01Icon} size={16} />

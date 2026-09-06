@@ -436,6 +436,7 @@
       },
       "preview": {
         "upgradeName": "Upgrade",
+        "badge": "Upgrade",
         "coupon": "Use code {code} at checkout",
         "upgrade": "Upgrade now"
       }
