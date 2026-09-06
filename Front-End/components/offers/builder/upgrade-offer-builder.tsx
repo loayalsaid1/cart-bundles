@@ -15,21 +15,18 @@ import {
 import { OfferBuilderShell } from "@/components/offers/builder/offer-builder-shell";
 import type { BuilderStepDef } from "@/components/offers/builder/offer-builder-layout";
 import { GeneralInfoStep } from "@/components/offers/builder/steps/general-info-step";
-import { TargetingStep } from "@/components/offers/builder/steps/targeting-step";
 import { UpgradeSettingsStep } from "@/components/offers/builder/steps/upgrade-settings-step";
 import { AppearanceStep } from "@/components/offers/builder/steps/appearance-step";
 import { UpgradeOfferPreview } from "@/components/offers/builder/preview/upgrade-offer-preview";
 
 const STEPS: BuilderStepDef[] = [
   { key: "info" },
-  { key: "targeting" },
   { key: "settings" },
   { key: "appearance" },
 ];
 
 const STEP_FIELDS: Array<Array<keyof UpgradeOfferDraft>> = [
   ["info"],
-  ["targeting"],
   ["settings"],
   ["appearance"],
 ];
@@ -57,15 +54,6 @@ export function UpgradeOfferBuilder({ offerId }: { offerId?: number }) {
           case 0:
             return <GeneralInfoStep />;
           case 1:
-            return (
-              <TargetingStep
-                onProductsPicked={(products) => {
-                  const p = products[0];
-                  if (p?.price?.amount) setPreviewPrice(p.price.amount);
-                }}
-              />
-            );
-          case 2:
             return <UpgradeSettingsStep />;
           default:
             return <AppearanceStep />;

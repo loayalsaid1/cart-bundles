@@ -18,10 +18,13 @@ export const upgradeOfferSettingsSchema = z
     upgradeSallaProductId: z.number().int().positive(),
     couponCode: z.string().optional(),
   })
-  .refine((s) => s.baseSallaProductId !== s.upgradeSallaProductId, {
-    message: 'Base and upgrade products must be different',
-    path: ['upgradeSallaProductId'],
-  });
+  .refine(
+    (s) => s.baseSallaProductId !== s.upgradeSallaProductId,
+    {
+      message: 'Base and upgrade products must be different',
+      path: ['upgradeSallaProductId'],
+    },
+  );
 
 export const upgradeOfferDraftSchema = z.object({
   info: offerInfoSchema,

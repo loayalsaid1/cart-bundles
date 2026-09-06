@@ -186,16 +186,11 @@ salla.onReady(async () => {
     const redirectToCart = Boolean(offer.redirectToCartAfterAdd);
 
     const results = await Promise.allSettled([
-      salla.product.getDetails(productId, ["options"]),
       salla.product.getDetails(upgradeId, ["options"]),
     ]);
 
-    const baseData = mapProduct(
-      results[0].status === "fulfilled" ? results[0].value?.data : null,
-      productId,
-    );
     const upgradeData = mapProduct(
-      results[1].status === "fulfilled" ? results[1].value?.data : null,
+      results[0].status === "fulfilled" ? results[0].value?.data : null,
       upgradeId,
     );
     if (!upgradeData.name && !upgradeData.price) return null;
@@ -229,26 +224,19 @@ salla.onReady(async () => {
     card.innerHTML = `
       <div style="margin-bottom: 14px;">
         <h3 style="font-size: 1.15rem; font-weight: 700; color: ${titleColor}; margin: 0 0 4px 0;">
-          ${escapeHTML(title || (isAr ? "رقِّ منتجك" : "Upgrade your product"))}
+          ${escapeHTML(title || (isAr ? "عرض ترقية مميز ✨" : "Special Upgrade Offer ✨"))}
         </h3>
         ${subtitle ? `<p style="font-size: 0.85rem; color: ${mutedText}; margin: 0;">${escapeHTML(subtitle)}</p>` : ""}
       </div>
-      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
-        <div style="flex: 1; min-width: 0; border: 1px solid ${cardBorder}; border-radius: 8px; padding: 10px; text-align: center;">
-          <div style="aspect-ratio: 1; border-radius: 6px; overflow: hidden; margin-bottom: 8px; background: #f1f5f9;">
-            ${baseData.image ? `<img src="${escapeHTML(baseData.image)}" alt="${escapeHTML(baseData.name)}" style="width: 100%; height: 100%; object-fit: cover;" />` : ""}
-          </div>
-          <div style="font-size: 0.8rem; font-weight: 600; color: ${bodyText}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(baseData.name)}</div>
-          <div style="font-size: 0.85rem; color: ${mutedText};">${formatPrice(baseData.price)}</div>
+      <div style="margin-bottom: 14px; border: 1.5px solid ${badgeBg}; border-radius: 8px; padding: 12px; text-align: center; background: ${colors.selectedTier || "#f0fdf4"}; position: relative;">
+        <span style="position: absolute; top: -10px; inset-inline-start: 12px; background: ${badgeBg}; color: ${badgeText}; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 9999px;">
+          ${isAr ? "✨ ترقية" : "✨ Upgrade"}
+        </span>
+        <div style="aspect-ratio: 1; max-width: 140px; margin: 4px auto 8px auto; border-radius: 6px; overflow: hidden; background: #f1f5f9;">
+          ${upgradeData.image ? `<img src="${escapeHTML(upgradeData.image)}" alt="${escapeHTML(upgradeData.name)}" style="width: 100%; height: 100%; object-fit: cover;" />` : ""}
         </div>
-        <div style="font-size: 1.25rem; font-weight: 700; color: ${mutedText};">${isAr ? "←" : "→"}</div>
-        <div style="flex: 1; min-width: 0; border: 1.5px solid ${badgeBg}; border-radius: 8px; padding: 10px; text-align: center; background: ${colors.selectedTier || "#f0fdf4"};">
-          <div style="aspect-ratio: 1; border-radius: 6px; overflow: hidden; margin-bottom: 8px; background: #f1f5f9;">
-            ${upgradeData.image ? `<img src="${escapeHTML(upgradeData.image)}" alt="${escapeHTML(upgradeData.name)}" style="width: 100%; height: 100%; object-fit: cover;" />` : ""}
-          </div>
-          <div style="font-size: 0.8rem; font-weight: 600; color: ${bodyText}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHTML(upgradeData.name)}</div>
-          <div style="font-size: 0.85rem; font-weight: 700; color: ${bodyText};">${formatPrice(upgradeData.price)}</div>
-        </div>
+        <div style="font-size: 0.95rem; font-weight: 700; color: ${bodyText}; margin-bottom: 2px;">${escapeHTML(upgradeData.name)}</div>
+        <div style="font-size: 1rem; font-weight: 800; color: ${badgeBg};">${formatPrice(upgradeData.price)}</div>
       </div>
       ${couponCode ? `<p style="margin: 0 0 12px 0; padding: 8px 12px; border-radius: 6px; background: ${colors.selectedTier || "#f0fdf4"}; font-size: 0.8rem; text-align: center;">${isAr ? "استخدم الكود" : "Use code"} <strong>${escapeHTML(couponCode)}</strong></p>` : ""}
       <button type="button" class="upgrade-add-btn" style="width: 100%; padding: 10px 20px; border: none; border-radius: 6px; background: ${badgeBg}; color: ${badgeText}; font-size: 0.9rem; font-weight: 700; cursor: pointer;">

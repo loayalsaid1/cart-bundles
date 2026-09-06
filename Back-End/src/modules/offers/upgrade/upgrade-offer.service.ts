@@ -68,14 +68,16 @@ export class UpgradeOfferService {
         })
         .returning();
 
-      if (dto.targeting.ids?.length) {
+      const targetProductIds =
+        dto.targeting?.ids?.length
+          ? dto.targeting.ids
+          : [dto.settings.baseSallaProductId];
+
+      if (targetProductIds.length) {
         await tx.insert(offerTargets).values(
-          dto.targeting.ids.map((id) => ({
+          targetProductIds.map((id) => ({
             offerId: offer.id,
-            entityType:
-              dto.targeting.type === 'selected_categories'
-                ? ('category' as const)
-                : ('product' as const),
+            entityType: 'product' as const,
             sallaEntityId: id,
           })),
         );
@@ -124,14 +126,16 @@ export class UpgradeOfferService {
         .where(eq(offers.id, offerId));
 
       await tx.delete(offerTargets).where(eq(offerTargets.offerId, offerId));
-      if (dto.targeting.ids?.length) {
+      const targetProductIds =
+        dto.targeting?.ids?.length
+          ? dto.targeting.ids
+          : [dto.settings.baseSallaProductId];
+
+      if (targetProductIds.length) {
         await tx.insert(offerTargets).values(
-          dto.targeting.ids.map((id) => ({
+          targetProductIds.map((id) => ({
             offerId,
-            entityType:
-              dto.targeting.type === 'selected_categories'
-                ? ('category' as const)
-                : ('product' as const),
+            entityType: 'product' as const,
             sallaEntityId: id,
           })),
         );

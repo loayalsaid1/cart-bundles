@@ -2,8 +2,7 @@
 
 import { useFormatter, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRightIcon } from "@hugeicons/core-free-icons";
+
 import { OfferPreviewFrame } from "@/components/offers/builder/preview/offer-preview-frame";
 import type { UpgradeOfferDraft } from "@/lib/schemas/upgrade-offer";
 import { previewCardStyle, resolvePreviewColors } from "@/lib/utils/preview-appearance";
@@ -24,19 +23,17 @@ export function UpgradeOfferPreview({
   const cardStyle = previewCardStyle(draft.appearance?.colors, radius);
 
   const { data: allProducts = [] } = useProductSearch("", true);
-  const targetId = draft.targeting?.ids?.[0] || draft.settings.baseSallaProductId;
-  const targetProduct = allProducts.find((p) => p.id === targetId);
+  const baseProduct = allProducts.find(
+    (p) => p.id === draft.settings.baseSallaProductId,
+  );
   const upgradedProduct = allProducts.find(
     (p) => p.id === draft.settings.upgradeSallaProductId,
   );
 
-  const origImage = targetProduct?.thumbnail;
-  const origName = targetProduct?.name || t("preview.productName");
-  const origPrice = targetProduct?.price?.amount ?? unitPrice;
-
+  const basePrice = baseProduct?.price?.amount ?? unitPrice;
   const upImage = upgradedProduct?.thumbnail;
   const upName = upgradedProduct?.name || t("upgrade.preview.upgradeName");
-  const upPrice = upgradedProduct?.price?.amount ?? origPrice * 1.25;
+  const upPrice = upgradedProduct?.price?.amount ?? basePrice * 1.25;
 
   const money = (n: number) =>
     formatter.number(n, { style: "currency", currency: "SAR" });
@@ -59,52 +56,24 @@ export function UpgradeOfferPreview({
                 {subtitle}
               </p>
             )}
-            <div className="flex items-center gap-3">
-              <div
-                className="min-w-0 flex-1 p-2.5 text-center"
-                style={{
-                  border: `1px solid ${colors.cardBorder}`,
-                  borderRadius: "8px",
-                }}
-              >
-                <div className="mb-2 aspect-square overflow-hidden rounded-md bg-muted">
-                  {origImage ? (
-                    <img src={origImage} alt={origName} className="h-full w-full object-cover" />
-                  ) : null}
-                </div>
-                <p className="truncate text-[13px] font-semibold" style={{ color: colors.bodyText }} title={origName}>
-                  {origName}
-                </p>
-                <p className="text-[13px]" style={{ color: colors.mutedText }}>
-                  {money(origPrice)}
-                </p>
+            <div className="mt-3 overflow-hidden rounded-lg p-3 text-center" style={{ border: `1.5px solid ${colors.badgeBg}`, background: colors.selectedTier }}>
+              <div className="relative mb-2 aspect-square w-full overflow-hidden rounded-md bg-muted">
+                {upImage ? (
+                  <img src={upImage} alt={upName} className="h-full w-full object-cover" />
+                ) : null}
+                <span
+                  className="absolute top-2 right-2 rounded-full px-2 py-0.5 text-[10px] font-bold shadow-xs"
+                  style={{ background: colors.badgeBg, color: colors.badgeText }}
+                >
+                  ✨ {t("upgrade.preview.badge", { defaultValue: "Upgrade" })}
+                </span>
               </div>
-              <HugeiconsIcon
-                icon={ArrowRightIcon}
-                size={18}
-                className="shrink-0 rtl:rotate-180"
-                style={{ color: colors.mutedText }}
-              />
-              <div
-                className="min-w-0 flex-1 p-2.5 text-center"
-                style={{
-                  border: `1.5px solid ${colors.badgeBg}`,
-                  borderRadius: "8px",
-                  background: colors.selectedTier,
-                }}
-              >
-                <div className="mb-2 aspect-square overflow-hidden rounded-md bg-muted">
-                  {upImage ? (
-                    <img src={upImage} alt={upName} className="h-full w-full object-cover" />
-                  ) : null}
-                </div>
-                <p className="truncate text-[13px] font-semibold" style={{ color: colors.bodyText }} title={upName}>
-                  {upName}
-                </p>
-                <p className="text-[13px] font-bold" style={{ color: colors.bodyText }}>
-                  {money(upPrice)}
-                </p>
-              </div>
+              <p className="truncate text-[14px] font-bold" style={{ color: colors.bodyText }} title={upName}>
+                {upName}
+              </p>
+              <p className="mt-0.5 text-[14px] font-extrabold" style={{ color: colors.titleColor }}>
+                {money(upPrice)}
+              </p>
             </div>
             {couponCode && (
               <p

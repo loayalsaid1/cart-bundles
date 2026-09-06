@@ -10,6 +10,7 @@ import type { UpgradeOfferDraft } from "@/lib/schemas/upgrade-offer";
 
 interface UpgradeSettingsShape {
   settings: UpgradeOfferDraft["settings"];
+  targeting: UpgradeOfferDraft["targeting"];
 }
 
 export function UpgradeSettingsStep() {
@@ -25,7 +26,14 @@ export function UpgradeSettingsStep() {
           <Label>{t("upgrade.settings.baseProduct")}</Label>
           <SingleProductField
             value={settings.baseSallaProductId || undefined}
-            onChange={(id) => form.setValue("settings.baseSallaProductId", id)}
+            onChange={(id) => {
+              form.setValue("settings.baseSallaProductId", id);
+              // Auto-sync targeting so base product is targeted on storefront
+              form.setValue("targeting", {
+                type: "selected_products",
+                ids: id ? [id] : [],
+              });
+            }}
             pickLabel={t("upgrade.settings.pickBase")}
             changeLabel={t("upgrade.settings.change")}
           />
