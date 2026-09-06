@@ -292,6 +292,15 @@
         "typeToSearch": "اكتب للبحث عن الفئات.",
         "noImage": "لا توجد صورة",
         "selectedCount": "{count} محدد"
+      },
+      "coupons": {
+        "searchPlaceholder": "ابحث عن الكوبونات...",
+        "empty": "لا توجد كوبونات.",
+        "loading": "جاري تحميل الكوبونات...",
+        "error": "تعذر تحميل الكوبونات.",
+        "retry": "إعادة المحاولة",
+        "none": "بدون كوبون",
+        "inactive": "غير نشط"
       }
     },
     "preview": {
@@ -421,8 +430,9 @@
         "upgradeProduct": "منتج الترقية",
         "pickUpgrade": "اختيار منتج الترقية",
         "change": "تغيير",
-        "couponCode": "رمز الكوبون",
-        "couponPlaceholder": "مثال: UPGRADE10",
+        "couponCode": "الكوبون",
+        "chooseCoupon": "اختيار كوبون",
+        "clearCoupon": "إزالة الكوبون",
         "behavior": "السلوك",
         "redirectToCartAfterAdd": "الانتقال للسلة بعد الإضافة",
         "hideSallaPopup": "إخفاء نافذة تأكيد سلة"

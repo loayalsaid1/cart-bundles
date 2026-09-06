@@ -291,6 +291,7 @@ export function fullOfferToUpgradeDraft(offer: UpgradeOfferFull): UpgradeOfferDr
       baseSallaProductId: settings?.baseSallaProductId ?? 0,
       upgradeSallaProductId: settings?.upgradeSallaProductId ?? 0,
       couponCode: settings?.couponCode ?? undefined,
+      sallaCouponId: settings?.sallaCouponId ?? undefined,
     },
     appearance: toAppearance(offer.appearance),
   };
@@ -304,7 +305,6 @@ export const defaultUpgradeDraft: UpgradeOfferDraft = {
     hideSallaPopup: true,
     baseSallaProductId: 0,
     upgradeSallaProductId: 0,
-    couponCode: '',
   },
   appearance: DEFAULT_APPEARANCE,
 };

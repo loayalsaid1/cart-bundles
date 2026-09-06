@@ -17,6 +17,7 @@ export const upgradeOfferSettingsSchema = z
     baseSallaProductId: z.number().int().positive(),
     upgradeSallaProductId: z.number().int().positive(),
     couponCode: z.string().optional(),
+    sallaCouponId: z.number().int().positive().optional(),
   })
   .refine(
     (s) => s.baseSallaProductId !== s.upgradeSallaProductId,

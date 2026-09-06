@@ -295,6 +295,15 @@
         "typeToSearch": "Type to search categories.",
         "noImage": "No image",
         "selectedCount": "{count} selected"
+      },
+      "coupons": {
+        "searchPlaceholder": "Search coupons...",
+        "empty": "No coupons found.",
+        "loading": "Loading coupons...",
+        "error": "Could not load coupons.",
+        "retry": "Retry",
+        "none": "No coupon",
+        "inactive": "Inactive"
       }
     },
     "preview": {
@@ -418,8 +427,9 @@
         "upgradeProduct": "Upgrade product",
         "pickUpgrade": "Choose upgrade product",
         "change": "Change",
-        "couponCode": "Coupon code",
-        "couponPlaceholder": "e.g. UPGRADE10",
+        "couponCode": "Coupon",
+        "chooseCoupon": "Choose coupon",
+        "clearCoupon": "Clear coupon",
         "behavior": "Behavior",
         "redirectToCartAfterAdd": "Redirect to cart after adding",
         "hideSallaPopup": "Hide the Salla confirmation popup"

@@ -15,7 +15,7 @@ import type { EmbedContext } from '../auth/types/embed-context.interface';
 import { MerchantsService } from '../merchants/merchants.service';
 import { ApplyPricingDto } from './dto';
 import { ProductsService } from './products.service';
-import { ApplyPricingResult, Category, Product } from './product.types';
+import { ApplyPricingResult, Category, Coupon, Product } from './product.types';
 
 @Controller('salla')
 export class ProductsController {
@@ -40,6 +40,15 @@ export class ProductsController {
   ): Promise<Category[]> {
     const accessToken = await this.getOrThrowValidAccessToken(user.merchantId);
     return this.productsService.getCategories(accessToken, keyword);
+  }
+
+  @Get('embed/coupons')
+  async listCoupons(
+    @CurrentUser() user: EmbedContext,
+    @Query('keyword') keyword?: string,
+  ): Promise<Coupon[]> {
+    const accessToken = await this.getOrThrowValidAccessToken(user.merchantId);
+    return this.productsService.getCoupons(accessToken, keyword);
   }
 
   @Post('embed/products/discount')
