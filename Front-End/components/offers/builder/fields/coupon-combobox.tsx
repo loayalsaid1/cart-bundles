@@ -17,19 +17,23 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useCouponSearch } from "@/hooks/use-coupon-search";
-import type { Coupon } from "@/lib/api/coupons";
+import { Coupon } from "@/lib/schemas/coupons";
 
 function isSelectable(coupon: Coupon) {
   const status = (coupon.status ?? "active").toLowerCase();
   return status === "active" || status === "enabled";
 }
 
-function formatSubtitle(coupon: Coupon) {
-  const parts = [
-    coupon.type,
-    coupon.amount != null ? String(coupon.amount) : null,
-  ].filter(Boolean);
-  return parts.join(" · ");
+function formatCoupon(coupon: Coupon) {
+  const parts = [];
+
+  if (coupon.type === "fixed_amount") {
+    parts.push(`${coupon.amount.amount} . ${coupon.amount.currency}`);
+  } else {
+    parts.push(`${coupon.amount.amount}%`);
+  }
+
+  return parts.join("");
 }
 
 export function CouponCombobox({
@@ -48,6 +52,7 @@ export function CouponCombobox({
     query.trim(),
     open,
   );
+  console.log(coupons)
 
   const selectedLabel = couponCode?.trim() || t("upgrade.settings.chooseCoupon");
 
@@ -123,7 +128,7 @@ export function CouponCombobox({
                       <div className="flex min-w-0 flex-1 flex-col">
                         <span className="truncate font-medium">{coupon.code}</span>
                         <span className="truncate text-muted-foreground">
-                          {formatSubtitle(coupon)}
+                          {formatCoupon(coupon)}
                           {!selectable
                             ? ` · ${t("pickers.coupons.inactive")}`
                             : ""}

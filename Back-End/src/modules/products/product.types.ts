@@ -59,6 +59,9 @@ export interface Coupon {
   id: number;
   code: string;
   type?: string;
-  amount?: number | string;
+  amount?: {
+    amount: number;
+    currency: string;
+  };
   status?: string;
 }

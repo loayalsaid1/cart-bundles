@@ -12,7 +12,7 @@ import { ProductPickerDialog } from "@/components/offers/shared/product-picker-d
 import { CategoryPickerDialog } from "@/components/offers/shared/category-picker-dialog";
 import type { OfferTargeting } from "@/lib/schemas/common-offer";
 import type { Product } from "@/types/product";
-import type { Category } from "@/lib/api/categories";
+import { Category } from "@/lib/schemas/common-products";
 import { useProductSearch } from "@/hooks/use-product-search";
 import { useCategorySearch } from "@/hooks/use-category-search";
 

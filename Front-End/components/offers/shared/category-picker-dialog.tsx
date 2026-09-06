@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/command";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useCategorySearch } from "@/hooks/use-category-search";
-import type { Category } from "@/lib/api/categories";
+import { Category } from "@/lib/schemas/common-products";
 
 interface CategoryPickerDialogProps {
   open: boolean;
