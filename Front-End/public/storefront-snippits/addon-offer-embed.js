@@ -56,7 +56,7 @@ salla.onReady(async () => {
         name: data.name,
         image: img || "",
         origPrice: parseFloat(data.price?.amount ?? data.price ?? 0),
-        hasOptions: Array.isArray(data.options) && data.options.length > 0,
+        options: Array.isArray(data.options) ? data.options : [],
         url: data.url || data.urls?.customer || '#',
       });
     }
@@ -84,10 +84,9 @@ salla.onReady(async () => {
       const isSale = p.origPrice > finalPrice && finalPrice >= 0;
       const actualPrice = Math.max(0, finalPrice);
 
-      const btnText = p.hasOptions ? (isAr ? 'اختيار الخيارات' : 'Select Options') : (isAr ? 'إضافة للسلة' : 'Add to Cart');
-      const checkboxHtml = p.hasOptions
-        ? `<span style="width: 16px; height: 16px; flex-shrink: 0;"></span>`
-        : `<input type="checkbox" class="salla-addon-cb" value="${p.id}" data-has-options="${p.hasOptions ? 'true' : 'false'}" data-url="${escapeHTML(p.url)}" ${p.isPreselected ? 'checked' : ''} style="margin-top: 2px; width: 16px; height: 16px; flex-shrink: 0; accent-color: var(--color-primary);" />`;
+      const hasOptions = p.options.length > 0;
+      const btnText = isAr ? 'إضافة للسلة' : 'Add to Cart';
+      const checkboxHtml = `<input type="checkbox" class="salla-addon-cb" value="${p.id}" data-url="${escapeHTML(p.url)}" ${p.isPreselected ? 'checked' : ''} style="margin-top: 2px; width: 16px; height: 16px; flex-shrink: 0; accent-color: var(--color-primary);" />`;
 
       html += `
       <a href="${p.url}" style="text-decoration: none; color: inherit;">
@@ -110,7 +109,7 @@ salla.onReady(async () => {
              ${isSale ? `<span style="font-size: 11px; text-decoration: line-through; color: var(--color-grey-400, #9ca3af);">${formatPrice(p.origPrice)}</span>` : '<span style="height: 16px;"></span>'}
           </div>
 
-          <button type="button" class="btn btn--primary salla-addon-add-btn" data-id="${p.id}" data-has-options="${p.hasOptions}" data-url="${escapeHTML(p.url)}" style="width: 100%; padding: 6px; font-size: 12px; min-height: 32px;">
+          <button type="button" class="btn btn--primary salla-addon-add-btn" data-id="${p.id}" data-url="${escapeHTML(p.url)}" style="width: 100%; padding: 6px; font-size: 12px; min-height: 32px;">
             ${btnText}
           </button>
         </div>
@@ -120,30 +119,46 @@ salla.onReady(async () => {
 
     widget.innerHTML = html + `</div>`;
 
-    const addItem = (payload) => {
+    // Maps productsData by id for quick lookup inside event listeners
+    const productsByIdMap = new Map(productsData.map(p => [String(p.id), p]));
+
+    function resolveCartItem(payload) {
       if (typeof salla.cart.addItem === 'function') return salla.cart.addItem(payload);
-      if (salla.cart.api && typeof salla.cart.api.addItem === 'function') {
-        return salla.cart.api.addItem(payload);
-      }
+      if (salla.cart.api && typeof salla.cart.api.addItem === 'function') return salla.cart.api.addItem(payload);
       return Promise.reject(new Error('salla.cart.addItem unavailable'));
-    };
+    }
+
+    async function addItemWithDefaultOptions(productId, quantity) {
+      const product = productsByIdMap.get(String(productId));
+      const options = product?.options || [];
+      const payload = { id: productId, quantity: quantity || 1 };
+      if (options.length) {
+        const selectedOptions = {};
+        for (const opt of options) {
+          if (!opt.required) continue;
+          const firstAvail = (opt.details || []).find(d => !d.is_out);
+          if (firstAvail) selectedOptions[opt.id] = firstAvail.id;
+        }
+        if (Object.keys(selectedOptions).length) payload.options = selectedOptions;
+      }
+      return resolveCartItem(payload);
+    }
 
     widget.querySelectorAll('.salla-addon-add-btn').forEach(btn => {
       btn.addEventListener('click', async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const hasOptions = btn.getAttribute('data-has-options') === 'true';
-        if (hasOptions) {
-          window.open(btn.getAttribute('data-url'), '_blank');
-          return;
-        }
+        btn.disabled = true;
+        btn.style.opacity = '0.7';
         try {
-          await addItem({ id: btn.getAttribute('data-id'), quantity: 1 });
+          await addItemWithDefaultOptions(btn.getAttribute('data-id'), 1);
+          if (salla.notify) salla.notify.success(isAr ? 'تمت الإضافة للسلة' : 'Added to cart');
         } catch (err) {
-          const text = err && (err.message || err.msg || String(err));
-          if (/option/i.test(text || '') && /required|يجب|خيار/i.test(text || '')) {
-            window.open(btn.getAttribute('data-url'), '_blank');
-          }
+          console.warn('[AddonOffer] addItem failed:', err);
+          if (salla.notify) salla.notify.error(isAr ? 'فشل الإضافة للسلة' : 'Failed to add to cart');
+        } finally {
+          btn.disabled = false;
+          btn.style.opacity = '1';
         }
       });
     });
@@ -207,27 +222,33 @@ salla.onReady(async () => {
   }
 });
 
-// Auto-sync checked add-ons (across ALL rendered offer widgets) when the MAIN product is added to cart
+// Auto-sync checked add-ons when the MAIN product is added to cart via Salla's native button
 salla.event.on("cart::item-added", async (res) => {
   const mainProductId = salla.config.get("page.id");
   const addedProductId = res.data?.product_id;
-
   if (String(addedProductId) !== String(mainProductId)) return;
 
   const checkedBoxes = document.querySelectorAll('.salla-addon-cb:checked');
-  const addItem = (payload) => {
-    if (typeof salla.cart.addItem === 'function') return salla.cart.addItem(payload);
-    if (salla.cart.api && typeof salla.cart.api.addItem === 'function') {
-      return salla.cart.api.addItem(payload);
-    }
-    return Promise.reject(new Error('salla.cart.addItem unavailable'));
-  };
   for (const cb of checkedBoxes) {
-    if (cb.getAttribute('data-has-options') === 'true') continue;
+    const id = cb.value;
     try {
-      await addItem({ id: cb.value, quantity: 1 });
+      // Fetch options fresh so we can auto-select defaults
+      let payload = { id, quantity: 1 };
+      try {
+        const pRes = await salla.product.getDetails(id, ['options']);
+        const opts = pRes?.data?.options || [];
+        const selectedOptions = {};
+        for (const opt of opts) {
+          if (!opt.required) continue;
+          const firstAvail = (opt.details || []).find(d => !d.is_out);
+          if (firstAvail) selectedOptions[opt.id] = firstAvail.id;
+        }
+        if (Object.keys(selectedOptions).length) payload.options = selectedOptions;
+      } catch (_) { /* best-effort */ }
+      if (typeof salla.cart.addItem === 'function') await salla.cart.addItem(payload);
+      else if (salla.cart.api?.addItem) await salla.cart.api.addItem(payload);
     } catch (e) {
-      console.warn("Failed to add addon:", cb.value);
+      console.warn('[AddonOffer] Failed to auto-add checked addon:', id, e);
     }
   }
 });

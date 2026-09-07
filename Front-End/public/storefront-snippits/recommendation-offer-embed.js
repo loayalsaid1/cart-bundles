@@ -62,7 +62,7 @@ salla.onReady(async () => {
       const productsData = [];
       for (const item of offer.relatedProducts) {
         try {
-          const pRes = await salla.api.product.getDetails(item.sallaProductId);
+          const pRes = await salla.product.getDetails(item.sallaProductId, ["options"]);
           if (pRes?.data) {
             const d = pRes.data;
             let img = d.image?.url || d.main_image || d.thumbnail;
@@ -72,8 +72,8 @@ salla.onReady(async () => {
               id: item.sallaProductId,
               name: d.name,
               image: img || "",
-              price: parseFloat(d.price || 0),
-              hasOptions: !!(d.has_options || (d.options && d.options.length > 0)),
+              price: parseFloat(d.price?.amount ?? d.price ?? 0),
+              options: Array.isArray(d.options) ? d.options : [],
               url: d.url || '#'
             });
           }
@@ -104,7 +104,7 @@ salla.onReady(async () => {
       `;
 
       productsData.forEach(p => {
-        const btnText = p.hasOptions ? (isAr ? 'تحديد الخيارات' : 'Select Options') : (isAr ? 'إضافة للسلة' : 'Add to Cart');
+        const btnText = isAr ? 'إضافة للسلة' : 'Add to Cart';
 
         html += `
           <div style="border: 1px solid ${escapeHTML(colors.cardBorder || '#e5e7eb')}; border-radius: ${Math.max(0, radius - 4)}px; padding: 10px; background: var(--color-bg-surface, var(--color-background, #fff)); display: flex; flex-direction: column; transition: transform 0.2s;">
@@ -130,29 +130,40 @@ salla.onReady(async () => {
       widget.innerHTML = html + `</div>`;
 
       // 8. Event Listeners for Add to Cart
+      const productsByIdMap = new Map(productsData.map(p => [String(p.id), p]));
+
+      async function addItemWithDefaultOptions(productId, quantity) {
+        const product = productsByIdMap.get(String(productId));
+        const opts = product?.options || [];
+        const payload = { id: productId, quantity: quantity || 1 };
+        if (opts.length) {
+          const selectedOptions = {};
+          for (const opt of opts) {
+            if (!opt.required) continue;
+            const firstAvail = (opt.details || []).find(d => !d.is_out);
+            if (firstAvail) selectedOptions[opt.id] = firstAvail.id;
+          }
+          if (Object.keys(selectedOptions).length) payload.options = selectedOptions;
+        }
+        if (typeof salla.cart.addItem === 'function') return salla.cart.addItem(payload);
+        if (salla.cart.api?.addItem) return salla.cart.api.addItem(payload);
+        throw new Error('salla.cart.addItem unavailable');
+      }
+
       widget.querySelectorAll('.salla-rec-add-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
           e.preventDefault();
-          const hasOptions = btn.getAttribute('data-has-options') === 'true';
-
-          if (hasOptions) {
-            // Options required: Redirect customer to product page
-            window.open(btn.getAttribute('data-url'), '_blank');
-          } else {
-            try {
-              btn.disabled = true;
-              btn.style.opacity = "0.7";
-
-              // Add item (Salla automatically triggers its native cart drawer update)
-              await salla.cart.api.addItem({ id: btn.getAttribute('data-id'), quantity: 1 });
-
-              btn.disabled = false;
-              btn.style.opacity = "1";
-            } catch (err) {
-              console.error("[CartRecs] Error adding item", err);
-              btn.disabled = false;
-              btn.style.opacity = "1";
-            }
+          btn.disabled = true;
+          btn.style.opacity = "0.7";
+          try {
+            await addItemWithDefaultOptions(btn.getAttribute('data-id'), 1);
+            if (salla.notify) salla.notify.success(isAr ? 'تمت الإضافة للسلة' : 'Added to cart');
+          } catch (err) {
+            console.error("[CartRecs] Error adding item", err);
+            if (salla.notify) salla.notify.error(isAr ? 'فشل الإضافة' : 'Failed to add');
+          } finally {
+            btn.disabled = false;
+            btn.style.opacity = "1";
           }
         });
       });

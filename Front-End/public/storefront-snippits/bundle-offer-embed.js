@@ -110,7 +110,7 @@ salla.onReady(async () => {
           price: parseFloat(d.price?.amount ?? d.price ?? 0),
           image: img || "",
           url: d.url || d.urls?.customer || "#",
-          hasOptions: Boolean(d.options && d.options.length),
+          options: Array.isArray(d.options) ? d.options : [],
         });
       }
     }
@@ -221,6 +221,27 @@ salla.onReady(async () => {
     const savingsBadgeEl = cardContainer.querySelector(".bundle-savings-badge");
     const addAllBtn = cardContainer.querySelector(".bundle-add-all-btn");
 
+    function resolveCartItem(payload) {
+      if (typeof salla.cart.addItem === 'function') return salla.cart.addItem(payload);
+      if (salla.cart.api?.addItem) return salla.cart.api.addItem(payload);
+      return Promise.reject(new Error('salla.cart.addItem unavailable'));
+    }
+
+    async function addItemWithDefaultOptions(product, quantity) {
+      const opts = product.options || [];
+      const payload = { id: product.id, quantity: quantity || 1 };
+      if (opts.length) {
+        const selectedOptions = {};
+        for (const opt of opts) {
+          if (!opt.required) continue;
+          const firstAvail = (opt.details || []).find(d => !d.is_out);
+          if (firstAvail) selectedOptions[opt.id] = firstAvail.id;
+        }
+        if (Object.keys(selectedOptions).length) payload.options = selectedOptions;
+      }
+      return resolveCartItem(payload);
+    }
+
     function updatePricingUI() {
       const pricing = calculateBundlePricing(mainProductData, bundleItemsData, discountType, discountAmount);
 
@@ -263,14 +284,14 @@ salla.onReady(async () => {
       addAllBtn.style.opacity = "0.7";
 
       try {
-        // 1. Add main product
-        await salla.cart.addItem({ id: productId, quantity: 1 });
+        // 1. Add main product with its options auto-selected
+        await addItemWithDefaultOptions(mainProductData, 1);
 
-        // 2. Add selected bundle products
+        // 2. Add selected bundle products with options auto-selected
         const selectedItems = bundleItemsData.filter((i) => i.selected);
         for (const item of selectedItems) {
           try {
-            await salla.cart.addItem({ id: item.id, quantity: 1 });
+            await addItemWithDefaultOptions(item, 1);
           } catch (err) {
             console.warn(`[BundleOffer] Failed to add item ${item.id}:`, err);
           }

@@ -153,25 +153,17 @@ salla.onReady(async () => {
 
   function mapProduct(d, fallbackId) {
     if (!d) {
-      return {
-        id: fallbackId,
-        name: "",
-        price: 0,
-        image: "",
-        url: "",
-        needsOptions: false,
-      };
+      return { id: fallbackId, name: "", price: 0, image: "", url: "", options: [] };
     }
     let img = d.main_image || d.image || d.thumbnail || (d.images && d.images[0]?.url);
     if (typeof img === "object" && img !== null) img = img.url;
-    const options = Array.isArray(d.options) ? d.options : [];
     return {
       id: d.id,
       name: d.name || "",
       price: parseFloat(d.price?.amount ?? d.price ?? 0),
       image: img || "",
       url: d.url || d.urls?.customer || "",
-      needsOptions: options.length > 0,
+      options: Array.isArray(d.options) ? d.options : [],
     };
   }
 
@@ -250,13 +242,34 @@ salla.onReady(async () => {
       btn.disabled = true;
       btn.style.opacity = "0.7";
       try {
-        await addProductToCart({
-          id: upgradeData.id,
-          quantity: 1,
-          isCurrentProduct: String(upgradeData.id) === String(productId),
-          needsOptions: upgradeData.needsOptions,
-          url: upgradeData.url,
-        });
+        const payload = { id: upgradeData.id, quantity: 1 };
+        const opts = upgradeData.options || [];
+        if (opts.length) {
+          const selectedOptions = {};
+          for (const opt of opts) {
+            if (!opt.required) continue;
+            const firstAvail = (opt.details || []).find(d => !d.is_out);
+            if (firstAvail) selectedOptions[opt.id] = firstAvail.id;
+          }
+          if (Object.keys(selectedOptions).length) payload.options = selectedOptions;
+        }
+
+        const add = getCartAdder();
+        if (!add) throw new Error("salla.cart.addItem unavailable");
+        await add(payload);
+
+        if (couponCode) {
+          try {
+            if (typeof salla?.cart?.applyCoupon === "function") {
+              await salla.cart.applyCoupon(couponCode);
+            } else if (salla?.cart?.api && typeof salla.cart.api.addCoupon === "function") {
+              await salla.cart.api.addCoupon({ coupon: couponCode });
+            }
+          } catch (couponErr) {
+            console.warn("[UpgradeOffer] Could not auto-apply coupon:", couponErr);
+          }
+        }
+        
         if (salla.notify) {
           salla.notify.success(isAr ? "تمت إضافة منتج الترقية للسلة" : "Upgrade product added to cart");
         }
