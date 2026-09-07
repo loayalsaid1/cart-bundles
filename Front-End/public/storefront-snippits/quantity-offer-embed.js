@@ -177,7 +177,7 @@
         align-items: center;
         justify-content: space-between;
         padding: 10px 12px;
-        border-radius: ${Math.max(4, radius - 4)}px;
+        border-radius: ${radius}px;
         border: 1.5px solid ${isSelected ? colors.badgeBg || "#004b40" : colors.cardBorder || "#e2e8f0"};
         background-color: ${isSelected ? colors.selectedTier || "#f0fdf4" : "transparent"};
         cursor: pointer;

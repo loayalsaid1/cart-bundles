@@ -52,14 +52,14 @@ export function UpgradeOfferPreview({
         return (
           <div className="space-y-3">
             {/* Base / Current Product Card with clear indication */}
-            <div className="rounded-lg border bg-background/50 p-2.5 space-y-1.5">
+            <div className="border bg-background p-2.5 space-y-1.5" style={{ borderRadius: radius }}>
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
                   {isAr ? "المنتج الحالي في السلة" : "Current Cart Product"}
                 </span>
               </div>
               <div className="flex items-center gap-3">
-                <div className="flex h-14 aspect-[3/4] shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted text-[8px] text-muted-foreground border">
+                <div className="flex h-14 aspect-[3/4] shrink-0 items-center justify-center overflow-hidden bg-muted text-[8px] text-muted-foreground border" style={{ borderRadius: radius }}>
                   {baseImage ? (
                     <img
                       src={baseImage}
@@ -103,10 +103,10 @@ export function UpgradeOfferPreview({
 
               {/* Upgraded Product Details (Horizontal Layout with 3/4 aspect ratio image) */}
               <div
-                className="mt-3 flex items-center gap-3 overflow-hidden rounded-lg p-2.5"
-                style={{ border: `1.5px solid ${colors.badgeBg}`, background: colors.selectedTier }}
+                className="mt-3 flex items-center gap-3 overflow-hidden p-2.5"
+                style={{ border: `1.5px solid ${colors.badgeBg}`, background: colors.selectedTier, borderRadius: radius }}
               >
-                <div className="relative h-20 aspect-[3/4] shrink-0 overflow-hidden rounded-md bg-muted border">
+                <div className="relative h-20 aspect-[3/4] shrink-0 overflow-hidden bg-muted border" style={{ borderRadius: radius }}>
                   {upImage ? (
                     <img src={upImage} alt={upName} className="h-full w-full object-cover" />
                   ) : (
@@ -133,8 +133,8 @@ export function UpgradeOfferPreview({
 
               {couponCode && (
                 <p
-                  className="mt-3 rounded-md px-3 py-2 text-center text-[12px] font-medium"
-                  style={{ background: colors.selectedTier, color: colors.bodyText }}
+                  className="mt-3 px-3 py-2 text-center text-[12px] font-medium"
+                  style={{ background: colors.selectedTier, color: colors.bodyText, borderRadius: radius }}
                 >
                   {t("upgrade.preview.coupon", { code: couponCode })}
                 </p>
@@ -142,7 +142,7 @@ export function UpgradeOfferPreview({
               <Button
                 className="mt-3 w-full font-bold"
                 size="sm"
-                style={{ background: colors.badgeBg, color: colors.badgeText }}
+                style={{ background: colors.badgeBg, color: colors.badgeText, borderRadius: radius }}
               >
                 {t("upgrade.preview.upgrade")}
               </Button>

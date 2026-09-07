@@ -94,8 +94,8 @@ export function QuantityOfferPreview({
           device === "mobile" ? "mx-auto w-[300px]" : "w-full",
         )}
       >
-        <div className="flex items-center gap-3 rounded-lg border p-2 bg-background/50">
-          <div className="flex h-20 aspect-3/4 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted text-[8px] text-muted-foreground">
+        <div className="flex items-center gap-3 border p-2 bg-background" style={{ borderRadius: radius }}>
+          <div className="flex h-20 aspect-3/4 shrink-0 items-center justify-center overflow-hidden bg-muted text-[8px] text-muted-foreground border" style={{ borderRadius: radius }}>
             {displayImage ? (
               <img
                 src={displayImage}
@@ -125,24 +125,29 @@ export function QuantityOfferPreview({
               </p>
             )}
             <div className="space-y-2">
-              {tiers.map((tier, i) => {
+              {tiers.map((tier, index) => {
                 const safeQty = Number.isFinite(tier.quantity) && tier.quantity > 0 ? tier.quantity : 1;
                 const total = tierUnitPrice(unitPrice, safeQty, tier.pricingType, tier.discountAmount || 0, round) * safeQty;
                 const savings = unitPrice * safeQty - total;
-                const selected = tier.isSelectedByDefault ?? false;
+                const isSelected = tier.isSelectedByDefault ?? false;
                 return (
                   <div
-                    key={i}
-                    className="flex items-center justify-between rounded-md px-3 py-2 text-xs"
+                    key={index}
+                    className="flex cursor-pointer items-center justify-between border-[1.5px] p-2.5 transition-colors"
                     style={{
-                      backgroundColor: selected ? colors.selectedTier : "transparent",
-                      border: `1.5px solid ${selected ? colors.badgeBg : colors.cardBorder}`,
+                      borderRadius: radius,
+                      borderColor: isSelected
+                        ? colors.badgeBg
+                        : colors.cardBorder,
+                      backgroundColor: isSelected
+                        ? colors.selectedTier
+                        : "transparent",
                     }}
                   >
                     <div className="flex items-center gap-2">
                       <input
                         type="radio"
-                        checked={selected}
+                        checked={isSelected}
                         readOnly
                         style={{ accentColor: colors.badgeBg }}
                       />
@@ -177,9 +182,9 @@ export function QuantityOfferPreview({
               })}
             </div>
             <Button
-              className="mt-4 w-full"
-              size="sm"
-              style={{ background: colors.badgeBg, color: colors.badgeText }}
+              className="mt-4 w-full font-bold"
+              size="lg"
+              style={{ background: colors.badgeBg, color: colors.badgeText, borderRadius: radius }}
             >
               {t("preview.addToCart")}
             </Button>

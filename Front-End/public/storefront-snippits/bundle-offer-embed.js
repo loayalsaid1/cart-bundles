@@ -166,9 +166,9 @@ salla.onReady(async () => {
 
       <div class="bundle-products-grid" style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px;">
         <!-- Main Product -->
-        <div class="bundle-item-card" style="flex: 1; min-width: 130px; max-width: 160px; border: 1.5px solid ${colors.badgeBg || "#004d5b"}; border-radius: 8px; padding: 10px; background: #f8fafc; text-align: center;">
-          <div style="position: relative; aspect-ratio: 1; border-radius: 6px; overflow: hidden; margin-bottom: 8px; background: #f1f5f9;">
-            <span style="position: absolute; top: 4px; inset-inline-start: 4px; background: ${colors.badgeBg || "#004d5b"}; color: ${colors.badgeText || "#ffffff"}; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; z-index: 2;">${isAr ? "الأساسي" : "Main"}</span>
+        <div class="bundle-item-card" style="flex: 1; min-width: 130px; max-width: 160px; border: 1.5px solid ${colors.badgeBg || "#004d5b"}; border-radius: ${radius}px; padding: 10px; background: #f8fafc; text-align: center;">
+          <div style="position: relative; aspect-ratio: 1; border-radius: ${radius}px; overflow: hidden; margin-bottom: 8px; background: #f1f5f9;">
+            <span style="position: absolute; top: 4px; inset-inline-start: 4px; background: ${colors.badgeBg || "#004d5b"}; color: ${colors.badgeText || "#ffffff"}; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: ${radius}px; z-index: 2;">${isAr ? "الأساسي" : "Main"}</span>
             <img src="${mainProductData.image}" alt="${escapeHTML(mainProductData.name)}" style="width: 100%; height: 100%; object-fit: cover;" />
           </div>
           <div style="font-size: 0.8rem; font-weight: 600; color: #1e293b; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 2.4em; line-height: 1.2; margin-bottom: 4px;">
@@ -181,8 +181,8 @@ salla.onReady(async () => {
     bundleItemsData.forEach((item, idx) => {
       html += `
         <div style="font-size: 1.2rem; font-weight: 700; color: #94a3b8; align-self: center;">+</div>
-        <div class="bundle-item-card" data-idx="${idx}" style="flex: 1; min-width: 130px; max-width: 160px; border: 1px solid ${colors.cardBorder || "#e2e8f0"}; border-radius: 8px; padding: 10px; background: #ffffff; text-align: center; transition: all 0.2s ease;">
-          <div style="position: relative; aspect-ratio: 1; border-radius: 6px; overflow: hidden; margin-bottom: 8px; background: #f1f5f9;">
+        <div class="bundle-item-card" data-idx="${idx}" style="flex: 1; min-width: 130px; max-width: 160px; border: 1px solid ${colors.cardBorder || "#e2e8f0"}; border-radius: ${radius}px; padding: 10px; background: #ffffff; text-align: center; transition: all 0.2s ease;">
+          <div style="position: relative; aspect-ratio: 1; border-radius: ${radius}px; overflow: hidden; margin-bottom: 8px; background: #f1f5f9;">
             <input type="checkbox" class="bundle-item-cb" data-idx="${idx}" ${item.selected ? "checked" : ""} style="position: absolute; top: 6px; inset-inline-start: 6px; width: 18px; height: 18px; accent-color: ${colors.badgeBg || "#004d5b"}; cursor: pointer; z-index: 3;" />
             <img src="${item.image}" alt="${escapeHTML(item.name)}" style="width: 100%; height: 100%; object-fit: cover;" />
           </div>
@@ -198,7 +198,7 @@ salla.onReady(async () => {
       </div>
 
       <!-- Bundle Summary Bar -->
-      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; border-radius: 8px; background: ${colors.selectedTier || "#f0fdf4"}; border: 1px dashed ${colors.cardBorder || "#cbd5e1"};">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; border-radius: ${radius}px; background: ${colors.selectedTier || "#f0fdf4"}; border: 1px dashed ${colors.cardBorder || "#cbd5e1"};">
         <div>
           <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 2px;">${isAr ? "إجمالي الحزمة:" : "Bundle Total:"}</div>
           <div style="display: flex; align-items: baseline; gap: 8px;">
@@ -208,7 +208,7 @@ salla.onReady(async () => {
           </div>
         </div>
 
-        <button type="button" class="bundle-add-all-btn" style="padding: 10px 20px; border: none; border-radius: 6px; background: ${colors.badgeBg || "#004d5b"}; color: ${colors.badgeText || "#ffffff"}; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s ease;">
+        <button type="button" class="bundle-add-all-btn" style="padding: 10px 20px; border: none; border-radius: ${radius}px; background: ${colors.badgeBg || "#004d5b"}; color: ${colors.badgeText || "#ffffff"}; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s ease;">
           ${isAr ? "إضافة المجموعة للسلة" : "Add Bundle to Cart"}
         </button>
       </div>

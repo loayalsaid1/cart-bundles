@@ -107,20 +107,21 @@ salla.onReady(async () => {
         const btnText = isAr ? 'إضافة للسلة' : 'Add to Cart';
 
         html += `
-          <div style="border: 1px solid ${escapeHTML(colors.cardBorder || '#e5e7eb')}; border-radius: ${Math.max(0, radius - 4)}px; padding: 10px; background: var(--color-bg-surface, var(--color-background, #fff)); display: flex; flex-direction: column; transition: transform 0.2s;">
-            <a href="${escapeHTML(p.url)}" style="text-decoration: none; color: inherit; display: block; flex-grow: 1;">
-              <div style="position: relative; aspect-ratio: 1; border-radius: 6px; overflow: hidden; margin-bottom: 10px; background: var(--color-grey-100, #f3f4f6);">
-                ${p.image ? `<img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}" style="width: 100%; height: 100%; object-fit: cover;" />` : ''}
+          <div style="border-radius: ${radius}px; border: 1px solid ${colors.cardBorder || '#e2e8f0'}; overflow: hidden; background: #ffffff;">
+            <a href="${escapeHTML(p.url)}" style="text-decoration: none; color: inherit; display: block;">
+              <div style="position: relative; aspect-ratio: 3/4; border-bottom: 1px solid ${colors.cardBorder || '#e2e8f0'}; background: #f1f5f9; border-top-left-radius: ${radius}px; border-top-right-radius: ${radius}px; overflow: hidden;">
+                ${p.image ? `<img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;" />` : `<div style="display: flex; height: 100%; align-items: center; justify-content: center; font-size: 10px; color: #94a3b8;">...</div>`}
               </div>
-              <div style="font-size: 12px; font-weight: 600; line-height: 1.4; color: var(--color-text, #111827); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 2.8em; margin-bottom: 8px;">
-                ${escapeHTML(p.name)}
-              </div>
-              <div style="font-size: 14px; font-weight: bold; color: ${escapeHTML(colors.savings || 'var(--color-primary, #004d5a)')}; margin-bottom: 12px;">
-                ${formatPrice(p.price)}
+              <div style="padding: 8px;">
+                <div style="font-size: 11px; font-weight: 600; color: ${colors.bodyText || '#0f172a'}; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHTML(p.name)}">
+                  ${escapeHTML(p.name)}
+                </div>
+                <div style="font-size: 11px; font-weight: 700; color: ${colors.savings || colors.bodyText || '#16a34a'}; margin-bottom: 8px;">
+                  ${formatPrice(p.price)}
+                </div>
               </div>
             </a>
-            <!-- Option Crash Protection Button -->
-            <button type="button" class="btn btn--primary salla-rec-add-btn" data-id="${p.id}" data-has-options="${p.hasOptions}" data-url="${escapeHTML(p.url)}" style="width: 100%; padding: 6px; font-size: 12px; min-height: 32px; margin-top: auto; border-radius: 6px; background-color: ${escapeHTML(colors.badgeBg || 'var(--color-primary)')}; color: ${escapeHTML(colors.badgeText || '#fff')}; border: none; cursor: pointer;">
+            <button type="button" class="salla-rec-add-btn" data-id="${p.id}" style="width: 100%; padding: 6px; border: none; border-radius: ${radius}px; background: ${colors.badgeBg || '#004b40'}; color: ${colors.badgeText || '#ffffff'}; font-size: 11px; font-weight: 600; cursor: pointer;">
               ${btnText}
             </button>
           </div>

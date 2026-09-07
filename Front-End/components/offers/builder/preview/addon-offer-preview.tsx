@@ -88,12 +88,13 @@ export function AddonOfferPreview({
                           : "w-full overflow-hidden p-2.5"
                       }
                       style={{
-                        borderRadius: `${Math.max(4, radius - 4)}px`,
+                        borderRadius: radius,
                         border: `1px solid ${colors.cardBorder}`,
                         background: "#ffffff",
+                        overflow: 'hidden'
                       }}
                     >
-                      <div className="relative mb-3 aspect-3/4 overflow-hidden rounded-md bg-muted">
+                      <div className="relative mb-3 aspect-3/4 overflow-hidden bg-muted border-b" style={{ borderColor: colors.cardBorder, borderTopLeftRadius: radius, borderTopRightRadius: radius }}>
                         {onSale && (
                           <span
                             className="absolute start-1.5 top-1.5 z-2 rounded px-1.5 py-0.5 text-[10px] font-bold text-white"
@@ -135,7 +136,7 @@ export function AddonOfferPreview({
                       <Button
                         size="sm"
                         className="mt-3 h-8 w-full text-[12px] font-semibold"
-                        style={{ background: colors.badgeBg, color: colors.badgeText }}
+                        style={{ background: colors.badgeBg, color: colors.badgeText, borderRadius: radius }}
                       >
                         {t("addon.preview.add")}
                       </Button>

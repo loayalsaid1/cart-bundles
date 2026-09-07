@@ -79,11 +79,11 @@ export function BundleOfferPreview({
                 className="min-w-[110px] flex-1 max-w-[160px] p-2.5 text-center"
                 style={{
                   border: `1.5px solid ${colors.badgeBg}`,
-                  borderRadius: "8px",
+                  borderRadius: radius,
                   background: "#f8fafc",
                 }}
               >
-                <div className="relative mb-2 aspect-square overflow-hidden rounded-md bg-muted">
+                <div className="relative mb-2 aspect-square overflow-hidden bg-muted" style={{ borderRadius: radius }}>
                   <span
                     className="absolute start-1 top-1 z-2 rounded px-1.5 py-0.5 text-[9px] font-bold"
                     style={{ background: colors.badgeBg, color: colors.badgeText }}
@@ -108,11 +108,11 @@ export function BundleOfferPreview({
                     className="min-w-[110px] flex-1 max-w-[160px] p-2.5 text-center"
                     style={{
                       border: `1px solid ${colors.cardBorder}`,
-                      borderRadius: "8px",
+                      borderRadius: radius,
                       background: "#ffffff",
                     }}
                   >
-                    <div className="mb-2 aspect-square overflow-hidden rounded-md bg-muted">
+                    <div className="mb-2 aspect-square overflow-hidden bg-muted" style={{ borderRadius: radius }}>
                       {item.thumb ? (
                         <img src={item.thumb} alt={item.name} className="h-full w-full object-cover" />
                       ) : null}
@@ -133,7 +133,7 @@ export function BundleOfferPreview({
             <div
               className="mt-4 flex flex-wrap items-center justify-between gap-3 p-3.5"
               style={{
-                borderRadius: "8px",
+                borderRadius: radius,
                 background: colors.selectedTier,
                 border: `1px dashed ${colors.cardBorder}`,
               }}
@@ -154,7 +154,7 @@ export function BundleOfferPreview({
               <Button
                 size="sm"
                 className="font-bold"
-                style={{ background: colors.badgeBg, color: colors.badgeText }}
+                style={{ background: colors.badgeBg, color: colors.badgeText, borderRadius: radius }}
               >
                 {t("bundle.preview.addBundle")}
               </Button>

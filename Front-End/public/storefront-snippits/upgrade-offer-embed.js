@@ -34,6 +34,30 @@ salla.onReady(async () => {
         )
       : "";
 
+  function hexLuminance(hex) {
+    const clean = String(hex || "").replace("#", "").trim();
+    if (!/^[0-9a-fA-F]{6}$/.test(clean)) return null;
+    const r = parseInt(clean.slice(0, 2), 16) / 255;
+    const g = parseInt(clean.slice(2, 4), 16) / 255;
+    const b = parseInt(clean.slice(4, 6), 16) / 255;
+    const lin = [r, g, b].map((c) =>
+      c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+    );
+    return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2];
+  }
+
+  function contrastTextOn(bg) {
+    const lum = hexLuminance(bg);
+    if (lum == null) return "#0f172a";
+    return lum > 0.45 ? "#0f172a" : "#f8fafc";
+  }
+
+  function mutedTextOn(bg) {
+    const lum = hexLuminance(bg);
+    if (lum == null) return "#64748b";
+    return lum > 0.45 ? "#475569" : "#cbd5e1";
+  }
+
   function getTargetAnchor() {
     return (
       document.querySelector("form#product-form") ||
@@ -193,9 +217,9 @@ salla.onReady(async () => {
     const cardBorder = colors.cardBorder || "#e2e8f0";
     const badgeBg = colors.badgeBg || "#004d5b";
     const badgeText = colors.badgeText || "#ffffff";
-    const titleColor = colors.titleColor || "#0f172a";
-    const bodyText = "#0f172a";
-    const mutedText = "#64748b";
+    const titleColor = colors.titleColor || contrastTextOn(cardBg);
+    const bodyText = contrastTextOn(cardBg);
+    const mutedText = mutedTextOn(cardBg);
 
     const card = document.createElement("div");
     card.className = "custom-upgrade-widget";
@@ -220,18 +244,27 @@ salla.onReady(async () => {
         </h3>
         ${subtitle ? `<p style="font-size: 0.85rem; color: ${mutedText}; margin: 0;">${escapeHTML(subtitle)}</p>` : ""}
       </div>
-      <div style="margin-bottom: 14px; border: 1.5px solid ${badgeBg}; border-radius: 8px; padding: 12px; text-align: center; background: ${colors.selectedTier || "#f0fdf4"}; position: relative;">
-        <span style="position: absolute; top: -10px; inset-inline-start: 12px; background: ${badgeBg}; color: ${badgeText}; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 9999px;">
-          ${isAr ? "✨ ترقية" : "✨ Upgrade"}
-        </span>
-        <div style="aspect-ratio: 1; max-width: 140px; margin: 4px auto 8px auto; border-radius: 6px; overflow: hidden; background: #f1f5f9;">
-          ${upgradeData.image ? `<img src="${escapeHTML(upgradeData.image)}" alt="${escapeHTML(upgradeData.name)}" style="width: 100%; height: 100%; object-fit: cover;" />` : ""}
+      
+      <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 12px; border: 1.5px solid ${badgeBg}; border-radius: ${radius}px; padding: 10px; background: ${colors.selectedTier || "#f0fdf4"}; overflow: hidden; position: relative;">
+        <div style="position: relative; height: 80px; aspect-ratio: 3/4; flex-shrink: 0; overflow: hidden; border-radius: ${radius}px; background: #f1f5f9; border: 1px solid ${cardBorder};">
+          ${upgradeData.image ? `<img src="${escapeHTML(upgradeData.image)}" alt="${escapeHTML(upgradeData.name)}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;" />` : `<div style="display: flex; height: 100%; align-items: center; justify-content: center; font-size: 8px; color: ${mutedText};">...</div>`}
         </div>
-        <div style="font-size: 0.95rem; font-weight: 700; color: ${bodyText}; margin-bottom: 2px;">${escapeHTML(upgradeData.name)}</div>
-        <div style="font-size: 1rem; font-weight: 800; color: ${badgeBg};">${formatPrice(upgradeData.price)}</div>
+        
+        <div style="min-width: 0; flex: 1;">
+          <span style="display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: 700; background: ${badgeBg}; color: ${badgeText}; margin-bottom: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+            ${isAr ? "✨ ترقية" : "✨ Upgrade"}
+          </span>
+          <div style="font-size: 0.85rem; font-weight: 700; color: ${bodyText}; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.2;" title="${escapeHTML(upgradeData.name)}">
+            ${escapeHTML(upgradeData.name)}
+          </div>
+          <div style="font-size: 0.95rem; font-weight: 800; color: ${titleColor};">
+            ${formatPrice(upgradeData.price)}
+          </div>
+        </div>
       </div>
-      ${couponCode ? `<p style="margin: 0 0 12px 0; padding: 8px 12px; border-radius: 6px; background: ${colors.selectedTier || "#f0fdf4"}; font-size: 0.8rem; text-align: center;">${isAr ? "استخدم الكود" : "Use code"} <strong>${escapeHTML(couponCode)}</strong></p>` : ""}
-      <button type="button" class="upgrade-add-btn" style="width: 100%; padding: 10px 20px; border: none; border-radius: 6px; background: ${badgeBg}; color: ${badgeText}; font-size: 0.9rem; font-weight: 700; cursor: pointer;">
+
+      ${couponCode ? `<p style="margin: 0 0 12px 0; padding: 8px 12px; border-radius: ${radius}px; background: ${colors.selectedTier || "#f0fdf4"}; font-size: 0.8rem; font-weight: 500; text-align: center; color: ${bodyText};">${isAr ? "استخدم الكود" : "Use code"} <strong>${escapeHTML(couponCode)}</strong></p>` : ""}
+      <button type="button" class="upgrade-add-btn" style="width: 100%; padding: 10px 20px; border: none; border-radius: ${radius}px; background: ${badgeBg}; color: ${badgeText}; font-size: 0.9rem; font-weight: 700; cursor: pointer;">
         ${isAr ? "الترقية الآن" : "Upgrade now"}
       </button>
     `;

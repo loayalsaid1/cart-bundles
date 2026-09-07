@@ -84,36 +84,35 @@ salla.onReady(async () => {
       const isSale = p.origPrice > finalPrice && finalPrice >= 0;
       const actualPrice = Math.max(0, finalPrice);
 
-      const hasOptions = p.options.length > 0;
       const btnText = isAr ? 'إضافة للسلة' : 'Add to Cart';
-      const checkboxHtml = `<input type="checkbox" class="salla-addon-cb" value="${p.id}" data-url="${escapeHTML(p.url)}" ${p.isPreselected ? 'checked' : ''} style="margin-top: 2px; width: 16px; height: 16px; flex-shrink: 0; accent-color: var(--color-primary);" />`;
+      const checkboxHtml = `<input type="checkbox" class="salla-addon-cb" value="${p.id}" data-url="${escapeHTML(p.url)}" ${p.isPreselected ? 'checked' : ''} style="margin-top: 2px; width: 16px; height: 16px; flex-shrink: 0; accent-color: ${colors.badgeBg || '#004b40'};" />`;
 
       html += `
-      <a href="${p.url}" style="text-decoration: none; color: inherit;">
-        <div style="min-width: 150px; max-width: 170px; flex-shrink: 0; border: 1px solid var(--color-border, #e5e7eb); border-radius: 8px; padding: 10px; background: var(--color-bg-surface, var(--color-background, #fff)); display: flex; flex-direction: column;">
-
-          <div style="position: relative; aspect-ratio: 3/4; border-radius: 6px; overflow: hidden; margin-bottom: 12px; background: var(--color-grey-100, #f3f4f6);">
-            ${isSale ? `<span style="position: absolute; top: 6px; inset-inline-start: 6px; background: var(--color-danger, #ef4444); color: #fff; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; z-index: 2;">${isAr ? 'خصم' : 'Sale'}</span>` : ''}
-            <img src="${p.image}" style="width: 100%; height: 100%; object-fit: cover;" />
+        <div style="border-radius: ${radius}px; border: 1px solid ${colors.cardBorder || '#e2e8f0'}; overflow: hidden; background: #ffffff; display: flex; flex-direction: column; flex-shrink: 0; width: 170px;">
+          <a href="${escapeHTML(p.url)}" style="text-decoration: none; color: inherit; display: block; flex-grow: 1;">
+            <div style="position: relative; aspect-ratio: 3/4; border-bottom: 1px solid ${colors.cardBorder || '#e2e8f0'}; background: #f1f5f9; border-top-left-radius: ${radius}px; border-top-right-radius: ${radius}px; overflow: hidden;">
+              ${onSale ? `<span style="position: absolute; top: 6px; inset-inline-start: 6px; z-index: 2; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; color: #fff; background: #ef4444;">${isAr ? 'خصم' : 'Sale'}</span>` : ''}
+              ${p.image ? `<img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;" />` : `<div style="display: flex; height: 100%; align-items: center; justify-content: center; font-size: 10px; color: #94a3b8;">...</div>`}
+            </div>
+            <div style="padding: 8px;">
+              <label style="display: flex; align-items: flex-start; gap: 6px; cursor: pointer; margin-bottom: 4px;">
+                ${checkboxHtml}
+                <div style="font-size: 11px; font-weight: 600; color: ${colors.bodyText || '#0f172a'}; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;" title="${escapeHTML(p.name)}">
+                  ${escapeHTML(p.name)}
+                </div>
+              </label>
+              <div style="font-size: 11px; font-weight: 700; color: ${colors.savings || colors.bodyText || '#16a34a'}; margin-bottom: 2px;">
+                ${formatPrice(itemPrice)}
+              </div>
+              ${onSale ? `<div style="font-size: 9px; text-decoration: line-through; color: #94a3b8; margin-bottom: 6px;">${formatPrice(p.price)}</div>` : '<div style="height: 13.5px; margin-bottom: 6px;"></div>'}
+            </div>
+          </a>
+          <div style="padding: 0 8px 8px 8px;">
+            <button type="button" class="salla-addon-add-btn" data-id="${p.id}" style="width: 100%; padding: 6px; border: none; border-radius: ${radius}px; background: ${colors.badgeBg || '#004b40'}; color: ${colors.badgeText || '#ffffff'}; font-size: 11px; font-weight: 600; cursor: pointer; min-height: 32px;">
+              ${btnText}
+            </button>
           </div>
-
-          <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer; margin-bottom: 12px;">
-            ${checkboxHtml}
-            <span style="font-size: 12px; font-weight: 600; line-height: 1.4; color: var(--color-text, #111827); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-              ${escapeHTML(p.name)}
-            </span>
-          </label>
-
-          <div style="display: flex; flex-direction: column; gap: 2px; margin-top: auto; margin-bottom: 12px;">
-             <span style="font-size: 14px; font-weight: bold; color: var(--color-primary, #004d5a);">${formatPrice(actualPrice)}</span>
-             ${isSale ? `<span style="font-size: 11px; text-decoration: line-through; color: var(--color-grey-400, #9ca3af);">${formatPrice(p.origPrice)}</span>` : '<span style="height: 16px;"></span>'}
-          </div>
-
-          <button type="button" class="btn btn--primary salla-addon-add-btn" data-id="${p.id}" data-url="${escapeHTML(p.url)}" style="width: 100%; padding: 6px; font-size: 12px; min-height: 32px;">
-            ${btnText}
-          </button>
         </div>
-      </a>
       `;
     });
 
