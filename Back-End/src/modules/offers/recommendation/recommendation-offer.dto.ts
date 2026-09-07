@@ -20,7 +20,7 @@ export class RecommendationOfferSettingsDto {
 
   @IsNumber()
   @IsOptional()
-  triggerSallaProductId?: number;
+  triggerSallaProductId?: RecommendationOfferSettings['triggerSallaProductId'];
 
   @IsArray()
   @ValidateNested({ each: true })
