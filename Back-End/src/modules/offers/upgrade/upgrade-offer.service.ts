@@ -4,6 +4,7 @@ import { DrizzleService } from '../../../database/drizzle.service';
 import {
   offers,
   offerTargets,
+  offerAppearance,
   upgradeOfferSettings,
 } from '../../../database/schema';
 import {
@@ -27,7 +28,7 @@ export class UpgradeOfferService {
         eq(offers.merchantId, merchantId),
         eq(offers.kind, 'upgrade_offer'),
       ),
-      with: { targets: true, upgradeSettings: true },
+      with: { targets: true, upgradeSettings: true, appearance: true },
     });
     return results;
   }
@@ -38,7 +39,7 @@ export class UpgradeOfferService {
   ): Promise<ServiceResult<UpgradeOfferFull>> {
     const offer = await this.db.query.offers.findFirst({
       where: and(eq(offers.id, offerId), eq(offers.merchantId, merchantId)),
-      with: { targets: true, upgradeSettings: true },
+      with: { targets: true, upgradeSettings: true, appearance: true },
     });
     if (!offer) {
       return { success: false, reason: 'not_found' };
@@ -67,14 +68,16 @@ export class UpgradeOfferService {
         })
         .returning();
 
-      if (dto.targeting.ids?.length) {
+      const targetProductIds =
+        dto.targeting?.ids?.length
+          ? dto.targeting.ids
+          : [dto.settings.baseSallaProductId];
+
+      if (targetProductIds.length) {
         await tx.insert(offerTargets).values(
-          dto.targeting.ids.map((id) => ({
+          targetProductIds.map((id) => ({
             offerId: offer.id,
-            entityType:
-              dto.targeting.type === 'selected_categories'
-                ? ('category' as const)
-                : ('product' as const),
+            entityType: 'product' as const,
             sallaEntityId: id,
           })),
         );
@@ -86,6 +89,12 @@ export class UpgradeOfferService {
         upgradeSallaProductId: dto.settings.upgradeSallaProductId,
         couponCode: dto.settings.couponCode,
         sallaCouponId: dto.settings.sallaCouponId,
+      });
+
+      await tx.insert(offerAppearance).values({
+        offerId: offer.id,
+        borderRadiusPx: dto.appearance?.borderRadiusPx ?? 0,
+        colors: dto.appearance?.colors ?? {},
       });
 
       return offer;
@@ -117,14 +126,16 @@ export class UpgradeOfferService {
         .where(eq(offers.id, offerId));
 
       await tx.delete(offerTargets).where(eq(offerTargets.offerId, offerId));
-      if (dto.targeting.ids?.length) {
+      const targetProductIds =
+        dto.targeting?.ids?.length
+          ? dto.targeting.ids
+          : [dto.settings.baseSallaProductId];
+
+      if (targetProductIds.length) {
         await tx.insert(offerTargets).values(
-          dto.targeting.ids.map((id) => ({
+          targetProductIds.map((id) => ({
             offerId,
-            entityType:
-              dto.targeting.type === 'selected_categories'
-                ? ('category' as const)
-                : ('product' as const),
+            entityType: 'product' as const,
             sallaEntityId: id,
           })),
         );
@@ -139,6 +150,23 @@ export class UpgradeOfferService {
           sallaCouponId: dto.settings.sallaCouponId,
         })
         .where(eq(upgradeOfferSettings.offerId, offerId));
+
+      if (dto.appearance) {
+        await tx
+          .insert(offerAppearance)
+          .values({
+            offerId,
+            borderRadiusPx: dto.appearance.borderRadiusPx ?? 0,
+            colors: dto.appearance.colors ?? {},
+          })
+          .onConflictDoUpdate({
+            target: offerAppearance.offerId,
+            set: {
+              borderRadiusPx: dto.appearance.borderRadiusPx ?? 0,
+              colors: dto.appearance.colors ?? {},
+            },
+          });
+      }
     });
 
     return this.findOne(merchantId, offerId);

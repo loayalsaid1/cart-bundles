@@ -2,14 +2,15 @@
 
 import { useTranslations } from "next-intl";
 import { useFormContext } from "react-hook-form";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { SingleProductField } from "@/components/offers/builder/fields/single-product-field";
+import { CouponCombobox } from "@/components/offers/builder/fields/coupon-combobox";
 import type { UpgradeOfferDraft } from "@/lib/schemas/upgrade-offer";
 
 interface UpgradeSettingsShape {
   settings: UpgradeOfferDraft["settings"];
+  targeting: UpgradeOfferDraft["targeting"];
 }
 
 export function UpgradeSettingsStep() {
@@ -25,7 +26,14 @@ export function UpgradeSettingsStep() {
           <Label>{t("upgrade.settings.baseProduct")}</Label>
           <SingleProductField
             value={settings.baseSallaProductId || undefined}
-            onChange={(id) => form.setValue("settings.baseSallaProductId", id)}
+            onChange={(id) => {
+              form.setValue("settings.baseSallaProductId", id);
+              // Auto-sync targeting so base product is targeted on storefront
+              form.setValue("targeting", {
+                type: "selected_products",
+                ids: id ? [id] : [],
+              });
+            }}
             pickLabel={t("upgrade.settings.pickBase")}
             changeLabel={t("upgrade.settings.change")}
           />
@@ -43,11 +51,13 @@ export function UpgradeSettingsStep() {
 
       <div className="space-y-2">
         <Label>{t("upgrade.settings.couponCode")}</Label>
-        <Input
-          value={settings.couponCode ?? ""}
-          onChange={(e) => form.setValue("settings.couponCode", e.target.value)}
-          placeholder={t("upgrade.settings.couponPlaceholder")}
-          className="max-w-xs"
+        <CouponCombobox
+          couponCode={settings.couponCode}
+          sallaCouponId={settings.sallaCouponId}
+          onChange={(next) => {
+            form.setValue("settings.couponCode", next.couponCode);
+            form.setValue("settings.sallaCouponId", next.sallaCouponId);
+          }}
         />
       </div>
 

@@ -143,7 +143,7 @@ export function ProductPickerDialog({
 
         <DialogFooter className="gap-2 sm:justify-between">
           <p className="text-xs text-muted-foreground">
-            {t("pickers.products.selectedCount", { count: picked.size })}
+            {t("pickers.products.selectedCount", { count: String(picked.size) })}
           </p>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>

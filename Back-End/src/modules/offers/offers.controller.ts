@@ -23,14 +23,11 @@ export class OffersController {
     @Param('merchantId', ParseIntPipe) merchantId: number,
     @Query() query: GetStorefrontOffersQueryDto,
   ): Promise<FullOffer[]> {
-    const result =  await this.service.getActiveStorefrontOffers(
+    return this.service.getActiveStorefrontOffers(
       merchantId,
       query.productId,
       query.categoryIds,
     );
-
-    console.log(result);
-    return result;
   }
 
   @Get('dashboard')

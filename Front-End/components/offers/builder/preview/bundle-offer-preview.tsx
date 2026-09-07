@@ -3,8 +3,9 @@
 import { useFormatter, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { OfferPreviewFrame } from "@/components/offers/builder/preview/offer-preview-frame";
-import { tierTotalPrice } from "@/lib/utils/amount";
 import type { BundleOfferDraft } from "@/lib/schemas/bundle-offer";
+import { previewCardStyle, resolvePreviewColors } from "@/lib/utils/preview-appearance";
+import { useProductSearch } from "@/hooks/use-product-search";
 
 export function BundleOfferPreview({
   draft,
@@ -16,25 +17,44 @@ export function BundleOfferPreview({
   const t = useTranslations("Offers");
   const formatter = useFormatter();
   const radius = draft.appearance?.borderRadiusPx ?? 12;
-  const colors = draft.appearance?.colors ?? {};
+  const colors = resolvePreviewColors(draft.appearance?.colors);
   const items = draft.settings.relatedProducts;
-  const discountType = draft.settings.discountType ?? "none";
+  const discountType = draft.settings.discountType;
   const discountAmount = draft.settings.discountAmount ?? 0;
+  const cardStyle = previewCardStyle(draft.appearance?.colors, radius);
 
-  const itemPrices = items.map((_, i) => unitPrice * 0.6 + i * 12);
-  const fullTotal = itemPrices.reduce((acc, p) => acc + p, 0);
-  const total =
-    discountType === "none"
-      ? fullTotal
-      : tierTotalPrice(unitPrice, 1, discountType, discountAmount) +
-        itemPrices.slice(1).reduce((acc, p) => acc + p, 0);
-  const savings = fullTotal - total;
+  const { data: allProducts = [] } = useProductSearch("", true);
+  const targetId = draft.targeting?.ids?.[0];
+  const targetProduct = allProducts.find((p) => p.id === targetId);
+  const mainName = targetProduct?.name || t("preview.productName");
+  const mainPrice = targetProduct?.price?.amount ?? unitPrice;
+  const mainThumb = targetProduct?.thumbnail;
 
-  const style = {
-    borderRadius: `${radius}px`,
-    backgroundColor: colors.cardBg,
-    borderColor: colors.cardBorder,
-  } as React.CSSProperties;
+  const related = items.map((item, i) => {
+    const matched = allProducts.find((p) => p.id === item.sallaProductId);
+    const price = matched?.price?.amount ?? unitPrice * 0.6 + i * 12;
+    const discounted =
+      !discountType
+        ? price
+        : discountType === "free-product"
+          ? 0
+          : Math.max(0, price * (1 - discountAmount / 100));
+    return {
+      name: matched?.name || t("bundle.preview.itemName", { index: String(i + 1) }),
+      thumb: matched?.thumbnail,
+      price,
+      discounted,
+    };
+  });
+
+  const relatedRaw = related.reduce((acc, r) => acc + r.price, 0);
+  const relatedFinal = related.reduce((acc, r) => acc + r.discounted, 0);
+  const rawTotal = mainPrice + relatedRaw;
+  const total = mainPrice + relatedFinal;
+  const savings = Math.max(0, rawTotal - total);
+
+  const money = (n: number) =>
+    formatter.number(n, { style: "currency", currency: "SAR" });
 
   return (
     <OfferPreviewFrame>
@@ -43,79 +63,107 @@ export function BundleOfferPreview({
         const subtitle =
           draft.info.subtitle?.[lang] || draft.info.subtitle?.ar || "";
         return (
-          <div className="space-y-4">
-            <p className="text-sm font-medium">{t("preview.productName")}</p>
-            <div style={style}>
+          <div style={cardStyle} className="p-[18px]">
+            {title && (
+              <p className="text-[15px] font-bold" style={{ color: colors.titleColor }}>
+                {title}
+              </p>
+            )}
+            {subtitle && (
+              <p className="mt-0.5 text-[13px]" style={{ color: colors.mutedText }}>
+                {subtitle}
+              </p>
+            )}
+            <div className="mt-3 flex flex-wrap items-center gap-3">
               <div
-                className="p-3"
+                className="min-w-[110px] flex-1 max-w-[160px] p-2.5 text-center"
                 style={{
-                  border: `1px solid ${colors.cardBorder || "#e2e8f0"}`,
-                  borderRadius: `${radius}px`,
+                  border: `1.5px solid ${colors.badgeBg}`,
+                  borderRadius: radius,
+                  background: "#f8fafc",
                 }}
               >
-                {title && (
-                  <p
-                    className="text-sm font-semibold"
-                    style={{ color: colors.selectedTier || undefined }}
+                <div className="relative mb-2 aspect-square overflow-hidden bg-muted" style={{ borderRadius: radius }}>
+                  <span
+                    className="absolute start-1 top-1 z-2 rounded px-1.5 py-0.5 text-[9px] font-bold"
+                    style={{ background: colors.badgeBg, color: colors.badgeText }}
                   >
-                    {title}
-                  </p>
-                )}
-                {subtitle && (
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {subtitle}
-                  </p>
-                )}
-                <div className="mt-3 space-y-2">
-                  {itemPrices.length > 0 ? (
-                    itemPrices.map((price, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center justify-between rounded-md px-3 py-2 text-xs"
-                        style={{
-                          border: `1px solid ${colors.cardBorder || "#e2e8f0"}`,
-                        }}
-                      >
-                        <span>
-                          {t("bundle.preview.itemName", { index: i + 1 })}
-                        </span>
-                        <span>
-                          {formatter.number(price, {
-                            style: "currency",
-                            currency: "SAR",
-                          })}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="px-3 py-2 text-xs text-muted-foreground">
-                      {t("bundle.preview.noItems")}
+                    {lang === "ar" ? "الأساسي" : "Main"}
+                  </span>
+                  {mainThumb ? (
+                    <img src={mainThumb} alt={mainName} className="h-full w-full object-cover" />
+                  ) : null}
+                </div>
+                <p className="mb-1 line-clamp-2 h-[2.4em] text-[13px] font-semibold" style={{ color: colors.bodyText }}>
+                  {mainName}
+                </p>
+                <p className="text-[13px] font-bold" style={{ color: colors.bodyText }}>
+                  {money(mainPrice)}
+                </p>
+              </div>
+              {related.map((item, i) => (
+                <div key={i} className="flex min-w-0 flex-1 items-center gap-2">
+                  <span className="text-lg font-bold text-slate-400">+</span>
+                  <div
+                    className="min-w-[110px] flex-1 max-w-[160px] p-2.5 text-center"
+                    style={{
+                      border: `1px solid ${colors.cardBorder}`,
+                      borderRadius: radius,
+                      background: "#ffffff",
+                    }}
+                  >
+                    <div className="mb-2 aspect-square overflow-hidden bg-muted" style={{ borderRadius: radius }}>
+                      {item.thumb ? (
+                        <img src={item.thumb} alt={item.name} className="h-full w-full object-cover" />
+                      ) : null}
+                    </div>
+                    <p className="mb-1 line-clamp-2 h-[2.4em] text-[13px] font-semibold" style={{ color: colors.bodyText }}>
+                      {item.name}
                     </p>
+                    <p className="text-[13px] font-bold" style={{ color: colors.bodyText }}>
+                      {money(item.discounted)}
+                    </p>
+                    {item.discounted < item.price && (
+                      <p className="text-[11px] line-through text-slate-400">{money(item.price)}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div
+              className="mt-4 flex flex-wrap items-center justify-between gap-3 p-3.5"
+              style={{
+                borderRadius: radius,
+                background: colors.selectedTier,
+                border: `1px dashed ${colors.cardBorder}`,
+              }}
+            >
+              <div>
+                <p className="text-[12px]" style={{ color: colors.mutedText }}>
+                  {t("bundle.preview.bundleTotal")}
+                </p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-xl font-extrabold" style={{ color: colors.bodyText }}>
+                    {money(total)}
+                  </span>
+                  {savings > 0 && (
+                    <span className="text-[13px] line-through text-slate-400">{money(rawTotal)}</span>
                   )}
                 </div>
-                <div className="mt-3 flex items-center justify-between border-t pt-3">
-                  <span className="text-xs font-medium">
-                    {t("bundle.preview.bundleTotal")}
-                  </span>
-                  <span className="text-sm font-bold" style={{ color: colors.savings }}>
-                    {formatter.number(total, {
-                      style: "currency",
-                      currency: "SAR",
-                    })}
-                  </span>
-                </div>
-                {savings > 0 && (
-                  <p className="mt-1 text-right text-[10px]" style={{ color: colors.savings }}>
-                    {t("preview.save", {
-                      amount: formatter.number(savings),
-                    })}
-                  </p>
-                )}
-                <Button className="mt-3 w-full" size="sm">
-                  {t("bundle.preview.addBundle")}
-                </Button>
               </div>
+              <Button
+                size="sm"
+                className="font-bold"
+                style={{ background: colors.badgeBg, color: colors.badgeText, borderRadius: radius }}
+              >
+                {t("bundle.preview.addBundle")}
+              </Button>
             </div>
+            {savings > 0 && (
+              <p className="mt-1 text-end text-[12px] font-bold" style={{ color: colors.savings }}>
+                {t("preview.save", { amount: formatter.number(savings) })}
+              </p>
+            )}
           </div>
         );
       }}

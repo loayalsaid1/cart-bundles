@@ -4,7 +4,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { OfferPreviewFrame } from "@/components/offers/builder/preview/offer-preview-frame";
 import type { AddonOfferDraft } from "@/lib/schemas/addon-offer";
-
+import { previewCardStyle, resolvePreviewColors } from "@/lib/utils/preview-appearance";
 import { useProductSearch } from "@/hooks/use-product-search";
 
 export function AddonOfferPreview({
@@ -17,27 +17,28 @@ export function AddonOfferPreview({
   const t = useTranslations("Offers");
   const formatter = useFormatter();
   const radius = draft.appearance?.borderRadiusPx ?? 12;
-  const colors = draft.appearance?.colors ?? {};
+  const colors = resolvePreviewColors(draft.appearance?.colors);
   const items = draft.settings.relatedProducts;
   const orientation = draft.settings.displayOrientation ?? "horizontal";
   const maxItems = draft.settings.maxItems ?? 8;
   const discountType = draft.settings.discountType;
   const discountAmount = draft.settings.discountAmount ?? 0;
+  const cardStyle = previewCardStyle(draft.appearance?.colors, radius);
 
   const { data: allProducts = [] } = useProductSearch("", true);
-  const targetId = draft.targeting?.ids?.[0];
-  const targetProduct = allProducts.find((p) => p.id === targetId);
-
-  const displayImage = targetProduct?.thumbnail;
-  const displayName = targetProduct?.name || t("preview.productName");
-  const displayPrice = targetProduct?.price?.amount ?? unitPrice;
-
-  const discounted = (price: number) =>
-    discountType === "percentage"
-      ? price * (1 - discountAmount / 100)
-      : price;
-
   const visibleItems = items.slice(0, Math.max(1, maxItems));
+
+  const discounted = (price: number) => {
+    if (!discountType) return price;
+    if (discountType === "free-product") return 0;
+    if (discountType === "percentage") {
+      return Math.max(0, price * (1 - discountAmount / 100));
+    }
+    return price;
+  };
+
+  const money = (n: number) =>
+    formatter.number(n, { style: "currency", currency: "SAR" });
 
   return (
     <OfferPreviewFrame>
@@ -46,117 +47,102 @@ export function AddonOfferPreview({
         const subtitle =
           draft.info.subtitle?.[lang] || draft.info.subtitle?.ar || "";
         return (
-          <div className="space-y-4 text-foreground">
-            <div className="mb-3 overflow-hidden rounded-lg bg-muted">
-              {displayImage ? (
-                <img
-                  src={displayImage}
-                  alt={displayName}
-              className="aspect-3/4 w-40 h-50 mx-auto object-cover"
-                />
-              ) : (
-                <div className="flex h-24 items-center justify-center text-xs text-muted-foreground">
-                  {t("preview.productImage")}
-                </div>
-              )}
-            </div>
-            
-            {/* Added text-foreground for contrast in dark mode */}
-            <p className="text-sm font-medium text-foreground">{displayName}</p>
-            <p className="text-lg font-bold text-foreground">
-              {formatter.number(displayPrice, { style: "currency", currency: "SAR" })}
-            </p>
-
+          <div style={cardStyle} className="p-4">
+            {title && (
+              <p className="text-[15px] font-bold" style={{ color: colors.titleColor }}>
+                {title}
+              </p>
+            )}
+            {subtitle && (
+              <p className="mt-0.5 text-[13px]" style={{ color: colors.mutedText }}>
+                {subtitle}
+              </p>
+            )}
             {visibleItems.length > 0 && (
-              <div>
-                <div
-                  className="p-3 border border-border bg-card/30! text-card-foreground shadow-sm"
-                  style={{
-                    borderRadius: `${radius}px`,
-                    // Only apply custom inline styles if they exist, otherwise fallback to Tailwind theme classes
-                    ...(colors.cardBorder ? { borderColor: colors.cardBorder } : {}),
-                    ...(colors.cardBg ? { backgroundColor: colors.cardBg } : {}),
-                  }}
-                >
-                  {title && (
-                    <p
-                      className="text-sm font-semibold text-foreground!"
-                      style={colors.selectedTier ? { color: colors.selectedTier } : undefined}
-                    >
-                      {title}
-                    </p>
-                  )}
-                  {subtitle && (
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {subtitle}
-                    </p>
-                  )}
-                  <div
-                    className={
-                      orientation === "horizontal"
-                        ? "mt-3 flex gap-2 overflow-x-auto pb-2"
-                        : "mt-3 space-y-2"
-                    }
-                  >
-                    {visibleItems.map((item, i) => {
-                      const matchedProduct = allProducts.find(
-                        (p) => p.id === item.sallaProductId,
-                      );
-                      const itemPrice = matchedProduct?.price?.amount
-                        ? discounted(matchedProduct.price.amount)
-                        : discounted(unitPrice * 0.6 + i * 10);
-                      const itemThumb = matchedProduct?.thumbnail;
-                      const itemName =
-                        matchedProduct?.name ||
-                        t("addon.preview.addonName", { index: i + 1 });
+              <div
+                className={
+                  orientation === "horizontal"
+                    ? "mt-3 flex gap-2.5 overflow-x-auto pb-2"
+                    : "mt-3 space-y-2.5"
+                }
+              >
+                {visibleItems.map((item, i) => {
+                  const matchedProduct = allProducts.find(
+                    (p) => p.id === item.sallaProductId,
+                  );
+                  const origPrice =
+                    matchedProduct?.price?.amount ?? unitPrice * 0.6 + i * 10;
+                  const itemPrice = discounted(origPrice);
+                  const itemThumb = matchedProduct?.thumbnail;
+                  const itemName =
+                    matchedProduct?.name ||
+                    t("addon.preview.addonName", { index: String(i + 1) });
+                  const onSale = itemPrice < origPrice;
 
-                      return (
-                        <div
-                          key={item.sallaProductId}
-                          className={`border border-border bg-background overflow-hidden ${
-                            orientation === "horizontal"
-                              ? "w-24 shrink-0"
-                              : "w-full"
-                          }`}
-                          style={{
-                            borderRadius: `${Math.max(0, radius - 4)}px`,
-                            ...(colors.cardBorder ? { borderColor: colors.cardBorder } : {}),
-                          }}
-                        >
-                          <div className="flex min-h-16 items-center justify-center overflow-hidden bg-muted text-[10px] text-muted-foreground">
-                            {itemThumb ? (
-                              <img
-                                src={itemThumb}
-                                alt={itemName}
-                                className="aspect-3/4 w-full object-cover"
-                              />
-                            ) : (
-                              t("preview.productImage")
-                            )}
+                  return (
+                    <div
+                      key={item.sallaProductId}
+                      className={
+                        orientation === "horizontal"
+                          ? "w-[150px] shrink-0 overflow-hidden p-2.5"
+                          : "w-full overflow-hidden p-2.5"
+                      }
+                      style={{
+                        borderRadius: radius,
+                        border: `1px solid ${colors.cardBorder}`,
+                        background: "#ffffff",
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <div className="relative mb-3 aspect-3/4 overflow-hidden bg-muted border-b" style={{ borderColor: colors.cardBorder, borderTopLeftRadius: radius, borderTopRightRadius: radius }}>
+                        {onSale && (
+                          <span
+                            className="absolute start-1.5 top-1.5 z-2 rounded px-1.5 py-0.5 text-[10px] font-bold text-white"
+                            style={{ background: "#ef4444" }}
+                          >
+                            {lang === "ar" ? "خصم" : "Sale"}
+                          </span>
+                        )}
+                        {itemThumb ? (
+                          <img
+                            src={itemThumb}
+                            alt={itemName}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div
+                            className="flex h-full items-center justify-center text-[10px]"
+                            style={{ color: colors.mutedText }}
+                          >
+                            {t("preview.productImage")}
                           </div>
-                          <div className="p-2 text-center">
-                            {/* Added text-foreground */}
-                            <p className="truncate text-[10px] font-medium text-foreground" title={itemName}>
-                              {itemName}
-                            </p>
-                            <p 
-                              className="text-[10px] font-semibold text-primary mt-0.5" 
-                              style={colors.savings ? { color: colors.savings } : undefined}
-                            >
-                              {formatter.number(itemPrice, {
-                                style: "currency",
-                                currency: "SAR",
-                              })}
-                            </p>
-                            <Button size="sm" className="mt-2 w-full h-7 text-[10px]">
-                              {t("addon.preview.add")}
-                            </Button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                        )}
+                      </div>
+                      <p
+                        className="mb-2 line-clamp-2 h-[2.4em] text-[12px] font-semibold"
+                        style={{ color: colors.bodyText }}
+                        title={itemName}
+                      >
+                        {itemName}
+                      </p>
+                      <p className="text-[14px] font-bold" style={{ color: colors.badgeBg }}>
+                        {money(itemPrice)}
+                      </p>
+                      {onSale && (
+                        <p className="text-[11px] line-through text-slate-400">
+                          {money(origPrice)}
+                        </p>
+                      )}
+                      <Button
+                        size="sm"
+                        className="mt-3 h-8 w-full text-[12px] font-semibold"
+                        style={{ background: colors.badgeBg, color: colors.badgeText, borderRadius: radius }}
+                      >
+                        {t("addon.preview.add")}
+                      </Button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

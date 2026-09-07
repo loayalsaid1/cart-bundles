@@ -18,6 +18,7 @@ import {
   offerTargetTypeEnum,
   recommendationModeEnum,
   addonDiscountTypeEnum,
+  bundleDiscountTypeEnum,
 } from '../../../database/schema';
 
 export type Offer = InferSelectModel<typeof offers>;
@@ -45,7 +46,10 @@ export type OfferKind = (typeof offerKindEnum.enumValues)[number];
 export type OfferStatus = (typeof offerStatusEnum.enumValues)[number];
 export type TargetType = (typeof targetTypeEnum.enumValues)[number];
 export type PricingType = (typeof pricingTypeEnum.enumValues)[number];
-export type AddonDiscountType = (typeof addonDiscountTypeEnum.enumValues)[number];
+export type AddonDiscountType =
+  (typeof addonDiscountTypeEnum.enumValues)[number];
+export type BundleDiscountType =
+  (typeof bundleDiscountTypeEnum.enumValues)[number];
 export type DisplayOrientation =
   (typeof displayOrientationEnum.enumValues)[number];
 export type OfferTargetType = (typeof offerTargetTypeEnum.enumValues)[number];
@@ -76,6 +80,7 @@ export interface BundleOfferFull extends Offer {
 export interface UpgradeOfferFull extends Offer {
   targets: OfferTarget[];
   upgradeSettings: UpgradeOfferSettings | null;
+  appearance: OfferAppearance | null;
 }
 
 export interface RecommendationOfferFull extends Offer {

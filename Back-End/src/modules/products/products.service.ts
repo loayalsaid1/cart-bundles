@@ -3,6 +3,7 @@ import {
   ApplyPricingPayload,
   ApplyPricingResult,
   Category,
+  Coupon,
   Product,
 } from './product.types';
 
@@ -65,6 +66,46 @@ export class ProductsService {
     }));
 
     return returnValue;
+  }
+
+  async getCoupons(accessToken: string, keyword?: string): Promise<Coupon[]> {
+    const queryParam = keyword ? `?keyword=${encodeURIComponent(keyword)}` : '';
+    const url = `${SALLA_API_BASE_URL}/coupons${queryParam}`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${accessToken}` },
+      redirect: 'follow',
+    });
+
+    if (!response.ok) {
+      throw new BadRequestException(
+        `Salla API error: ${response.status} ${response.statusText}`,
+      );
+    }
+
+    const json = (await response.json()) as {
+      data?: Array<{
+        id: number;
+        code?: string;
+        type?: string;
+        amount?: {
+          amount: number;
+          currency: string;
+        };
+        status?: string;
+      }>;
+    };
+
+    return (json.data ?? [])
+      .filter((coupon) => coupon.code)
+      .map((coupon) => ({
+        id: coupon.id,
+        code: coupon.code as string,
+        type: coupon.type,
+        amount: coupon.amount,
+        status: coupon.status,
+      }));
   }
 
   /**

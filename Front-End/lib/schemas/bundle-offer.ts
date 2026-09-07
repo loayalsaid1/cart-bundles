@@ -6,31 +6,41 @@ import {
   offerKindSchema,
   offerStatusSchema,
   offerTargetSchema,
-  offerTargetingSchema,
-  pricingTypeSchema,
   relatedProductDraftSchema,
   relatedProductFullSchema,
-  targetTypeSchema,
 } from './common-offer';
+
+const bundleDiscountTypeSchema = z.enum(['percentage', 'free-product']);
+const bundleTargetTypeSchema = z.literal('selected_products');
+
+const bundleTargetingSchema = z
+  .object({
+    type: bundleTargetTypeSchema,
+    ids: z.array(z.number()).optional(),
+  })
+  .refine((t) => t.ids && t.ids.length === 1, {
+    message: 'Select one product',
+    path: ['ids'],
+  });
 
 export const bundleOfferSettingsSchema = z.object({
   redirectToCartAfterAdd: z.boolean().optional(),
   hideSallaPopup: z.boolean().optional(),
-  discountType: pricingTypeSchema.optional(),
+  discountType: bundleDiscountTypeSchema.optional(),
   discountAmount: z.number().positive().optional(),
   relatedProducts: z.array(relatedProductDraftSchema).min(1),
 });
 
 export const bundleOfferDraftSchema = z.object({
   info: offerInfoSchema,
-  targeting: offerTargetingSchema,
+  targeting: bundleTargetingSchema,
   settings: bundleOfferSettingsSchema,
   appearance: offerAppearanceSchema,
 });
 
 const bundleSettingsFullSchema = z.object({
   offerId: z.number(),
-  discountType: pricingTypeSchema.nullable().optional(),
+  discountType: bundleDiscountTypeSchema.nullable().optional(),
   discountAmount: z.coerce.number().nullable().optional(),
 });
 
@@ -41,7 +51,7 @@ export const bundleOfferFullSchema = z.object({
   internalName: z.string(),
   title: z.record(z.string(), z.string()),
   subtitle: z.record(z.string(), z.string()).nullable().optional(),
-  targetType: targetTypeSchema,
+  targetType: bundleTargetTypeSchema,
   expiryDate: z.string().nullable().optional(),
   status: offerStatusSchema,
   redirectToCartAfterAdd: z.boolean(),

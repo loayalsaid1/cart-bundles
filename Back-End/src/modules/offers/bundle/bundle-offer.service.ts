@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { eq, and } from 'drizzle-orm';
-import { DrizzleService } from '../../../database/drizzle.service';
+import { DrizzleService, DrizzleTransaction } from '../../../database/drizzle.service';
 import {
   offers,
   offerTargets,
@@ -10,7 +10,11 @@ import {
 } from '../../../database/schema';
 import { MerchantsService } from '../../merchants/merchants.service';
 import { CreateBundleOfferDto, UpdateBundleOfferDto } from './bundle-offer.dto';
-import { toExpiryDate, formatSallaDate, formatSallaStartDate } from '../dto/common-offer.dto';
+import {
+  toExpiryDate,
+  formatSallaDate,
+  formatSallaStartDate,
+} from '../dto/common-offer.dto';
 import { BundleOfferFull, ServiceResult } from '../types/offers.types';
 
 const SALLA_SPECIAL_OFFERS_URL = 'https://api.salla.dev/admin/v2/specialoffers';
@@ -85,10 +89,7 @@ export class BundleOfferService {
         await tx.insert(offerTargets).values(
           dto.targeting.ids.map((id) => ({
             offerId: offer.id,
-            entityType:
-              dto.targeting.type === 'selected_categories'
-                ? ('category' as const)
-                : ('product' as const),
+            entityType: 'product' as const,
             sallaEntityId: id,
           })),
         );
@@ -107,8 +108,9 @@ export class BundleOfferService {
 
       await tx.insert(bundleOfferSettings).values({
         offerId: offer.id,
-        discountType: dto.settings.discountType,
+        discountType: dto.settings.discountType ?? null,
         discountAmount:
+          dto.settings.discountType === 'percentage' &&
           dto.settings.discountAmount !== undefined
             ? String(dto.settings.discountAmount)
             : null,
@@ -147,75 +149,84 @@ export class BundleOfferService {
     const existing = await this.findOne(merchantId, offerId);
     if (!existing.success) return existing;
 
-    await this.db.transaction(async (tx) => {
-      await tx
-        .update(offers)
-        .set({
-          internalName: dto.info.internalName,
-          title: dto.info.title,
-          subtitle: dto.info.subtitle,
-          targetType: dto.targeting.type,
-          expiryDate: toExpiryDate(dto.info.expiryDate),
-          redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
-          hideSallaPopup: dto.settings.hideSallaPopup ?? true,
-        })
-        .where(eq(offers.id, offerId));
-
-      await tx.delete(offerTargets).where(eq(offerTargets.offerId, offerId));
-      if (dto.targeting.ids?.length) {
-        await tx.insert(offerTargets).values(
-          dto.targeting.ids.map((id) => ({
-            offerId,
-            entityType:
-              dto.targeting.type === 'selected_categories'
-                ? ('category' as const)
-                : ('product' as const),
-            sallaEntityId: id,
-          })),
-        );
-      }
-
-      await tx
-        .delete(offerRelatedProducts)
-        .where(eq(offerRelatedProducts.offerId, offerId));
-      if (dto.settings.relatedProducts?.length) {
-        await tx.insert(offerRelatedProducts).values(
-          dto.settings.relatedProducts.map((p, idx) => ({
-            offerId,
-            sallaProductId: p.sallaProductId,
-            position: p.position ?? idx,
-            isPreselected: p.isPreselected ?? true,
-          })),
-        );
-      }
-
-      await tx
-        .update(bundleOfferSettings)
-        .set({
-          discountType: dto.settings.discountType,
-          discountAmount:
-            dto.settings.discountAmount !== undefined
-              ? String(dto.settings.discountAmount)
-              : null,
-        })
-        .where(eq(bundleOfferSettings.offerId, offerId));
-
-      if (dto.appearance) {
+    try {
+      await this.db.transaction(async (tx) => {
         await tx
-          .update(offerAppearance)
+          .update(offers)
           .set({
-            borderRadiusPx: dto.appearance.borderRadiusPx ?? 0,
-            colors: dto.appearance.colors ?? {},
+            internalName: dto.info.internalName,
+            title: dto.info.title,
+            subtitle: dto.info.subtitle,
+            targetType: dto.targeting.type,
+            expiryDate: toExpiryDate(dto.info.expiryDate),
+            redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
+            hideSallaPopup: dto.settings.hideSallaPopup ?? true,
           })
-          .where(eq(offerAppearance.offerId, offerId));
-      }
-    });
+          .where(eq(offers.id, offerId));
 
-    const syncRes = await this.syncToSalla(merchantId, offerId);
-    if (!syncRes.success) {
-      this.logger.warn(
-        `Bundle offer ${offerId} updated locally, but Salla sync failed: ${syncRes.error}`,
+        await tx.delete(offerTargets).where(eq(offerTargets.offerId, offerId));
+        if (dto.targeting.ids?.length) {
+          await tx.insert(offerTargets).values(
+            dto.targeting.ids.map((id) => ({
+              offerId,
+              entityType: 'product' as const,
+              sallaEntityId: id,
+            })),
+          );
+        }
+
+        await tx
+          .delete(offerRelatedProducts)
+          .where(eq(offerRelatedProducts.offerId, offerId));
+        if (dto.settings.relatedProducts?.length) {
+          await tx.insert(offerRelatedProducts).values(
+            dto.settings.relatedProducts.map((p, idx) => ({
+              offerId,
+              sallaProductId: p.sallaProductId,
+              position: p.position ?? idx,
+              isPreselected: p.isPreselected ?? true,
+            })),
+          );
+        }
+
+        await tx
+          .update(bundleOfferSettings)
+          .set({
+            discountType: dto.settings.discountType ?? null,
+            discountAmount:
+              dto.settings.discountType === 'percentage' &&
+              dto.settings.discountAmount !== undefined
+                ? String(dto.settings.discountAmount)
+                : null,
+          })
+          .where(eq(bundleOfferSettings.offerId, offerId));
+
+        if (dto.appearance) {
+          await tx
+            .update(offerAppearance)
+            .set({
+              borderRadiusPx: dto.appearance.borderRadiusPx ?? 0,
+              colors: dto.appearance.colors ?? {},
+            })
+            .where(eq(offerAppearance.offerId, offerId));
+        }
+
+        // Execute Salla sync using the transactional context (tx)
+        const syncRes = await this.syncToSalla(merchantId, offerId, tx);
+        if (!syncRes.success) {
+          throw new Error(syncRes.error ?? 'Unknown Salla sync error');
+        }
+      });
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Unknown sync error';
+      this.logger.error(
+        `Failed to update bundle offer ${offerId} due to Salla sync error: ${errorMsg}`,
       );
+      return {
+        success: false,
+        reason: 'salla_sync_failed',
+        error: errorMsg,
+      };
     }
 
     return this.findOne(merchantId, offerId);
@@ -230,44 +241,80 @@ export class BundleOfferService {
 
     const offer = existing.data;
     if (offer.sallaOfferId) {
-      try {
-        const tokenRes =
-          await this.merchantsService.getValidAccessToken(merchantId);
-        if (tokenRes.success) {
-          await fetch(`${SALLA_SPECIAL_OFFERS_URL}/${offer.sallaOfferId}`, {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${tokenRes.accessToken}` },
-          });
-        }
-      } catch (err) {
-        this.logger.error(
-          `Failed to delete Salla offer ${offer.sallaOfferId}`,
-          err,
-        );
-      }
+      await this.deleteSallaOffer(merchantId, offer.sallaOfferId);
     }
 
     await this.db.delete(offers).where(eq(offers.id, offerId));
     return { success: true, data: undefined };
   }
 
+  private async deleteSallaOffer(
+    merchantId: number,
+    sallaOfferId: number,
+  ): Promise<boolean> {
+    try {
+      const tokenRes =
+        await this.merchantsService.getValidAccessToken(merchantId);
+      if (tokenRes.success) {
+        const res = await fetch(`${SALLA_SPECIAL_OFFERS_URL}/${sallaOfferId}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${tokenRes.accessToken}` },
+        });
+        return res.ok;
+      }
+    } catch (err) {
+      this.logger.error(`Failed to delete Salla offer ${sallaOfferId}`, err);
+    }
+    return false;
+  }
+
   private async syncToSalla(
     merchantId: number,
     offerId: number,
+    tx?: DrizzleTransaction,
   ): Promise<{ success: boolean; sallaOfferId?: number; error?: string }> {
     try {
-      const found = await this.findOne(merchantId, offerId);
-      if (!found.success)
+      const dbClient = tx ?? this.db;
+      
+      const offer = await dbClient.query.offers.findFirst({
+        where: and(eq(offers.id, offerId), eq(offers.merchantId, merchantId)),
+        with: {
+          targets: true,
+          relatedProducts: true,
+          bundleSettings: true,
+          appearance: true,
+        },
+      });
+
+      if (!offer)
         return { success: false, error: 'Bundle offer not found' };
 
-      const offer = found.data;
+      const rawDiscountType = offer.bundleSettings?.discountType;
+      const hasDiscount = Boolean(rawDiscountType);
+
+      if (!hasDiscount) {
+        if (offer.sallaOfferId) {
+          this.logger.log(
+            `Bundle offer ${offerId} updated to have no discount. Deleting Salla offer ${offer.sallaOfferId}`,
+          );
+          await this.deleteSallaOffer(merchantId, offer.sallaOfferId);
+        }
+        await dbClient
+          .update(offers)
+          .set({
+            sallaOfferId: null,
+            status: offer.status === 'draft' ? 'active' : offer.status,
+          })
+          .where(eq(offers.id, offerId));
+        return { success: true };
+      }
+
       const tokenRes =
         await this.merchantsService.getValidAccessToken(merchantId);
       if (!tokenRes.success) {
         return { success: false, error: 'Merchant access token unavailable' };
       }
 
-      const isCategory = offer.targetType === 'selected_categories';
       const entityIds = offer.targets
         .map((t) => Number(t.sallaEntityId))
         .filter(Boolean);
@@ -291,42 +338,42 @@ export class BundleOfferService {
         }
       }
 
-      const buyType = isCategory ? 'category' : 'product';
-      const buyObj =
-        offer.targetType === 'all_products'
-          ? { type: buyType, quantity: 1, products: [] as number[] }
-          : isCategory
-            ? { type: buyType, quantity: 1, categories: entityIds }
-            : { type: buyType, quantity: 1, products: entityIds };
+      const isFreeProduct = rawDiscountType === 'free-product';
+      // TODO: USE THE dto TYPE OR DRIZZLE ENUM INSTEAD
+      const sallaDiscountType: 'percentage' | 'free-product' = isFreeProduct
+        ? 'free-product'
+        : 'percentage';
+      const discountAmount = isFreeProduct
+        ? 0
+        : Number(offer.bundleSettings?.discountAmount || 0);
 
+      const buyObj = { type: 'product', quantity: 1, products: entityIds };
       const getObj = {
         type: 'product',
-        quantity: 1,
+        quantity: offer.relatedProducts.length,
         products: offerProductIds,
-        discount_type: offer.bundleSettings?.discountType || 'percentage',
-        discount_amount: Number(offer.bundleSettings?.discountAmount || 0),
+        discount_type: sallaDiscountType,
+        ...(!isFreeProduct ? { discount_amount: discountAmount } : {}),
       };
+
+      const sallaStatus = offer.status === 'paused' ? 'inactive' : 'active';
 
       const payload: Record<string, unknown> = {
         name: offer.internalName,
         message: offer.title?.['ar'] ?? offer.internalName,
         applied_channel: 'browser_and_application',
-        applied_to:
-          offer.targetType === 'all_products'
-            ? 'order'
-            : isCategory
-              ? 'category'
-              : 'product',
+        applied_to: 'product',
         start_date: startDateStr,
         offer_type: 'buy_x_get_y',
         buy: buyObj,
         get: getObj,
-        status: offer.status === 'paused' ? 'inactive' : 'active',
+        status: sallaStatus,
       };
 
       if (expiryDateStr) {
         payload.expiry_date = expiryDateStr;
       }
+      this.logger.debug('Payload:', JSON.stringify(payload));
 
       const url = offer.sallaOfferId
         ? `${SALLA_SPECIAL_OFFERS_URL}/${offer.sallaOfferId}`
@@ -348,7 +395,7 @@ export class BundleOfferService {
           id?: number | string;
         };
         const sallaId = Number(json.data?.id ?? json.id ?? offer.sallaOfferId);
-        await this.db
+        await dbClient
           .update(offers)
           .set({
             sallaOfferId: sallaId,

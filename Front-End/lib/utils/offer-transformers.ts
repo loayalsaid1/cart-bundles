@@ -239,8 +239,8 @@ export function fullOfferToBundleDraft(offer: BundleOfferFull): BundleOfferDraft
       expiryDate: toDateInput(offer.expiryDate),
     },
     targeting: {
-      type: offer.targetType,
-      ids: offer.targets.map((t) => t.sallaEntityId),
+      type: 'selected_products',
+      ids: offer.targets.map((t) => t.sallaEntityId).slice(0, 1),
     },
     settings: {
       redirectToCartAfterAdd: offer.redirectToCartAfterAdd,
@@ -261,12 +261,12 @@ export function fullOfferToBundleDraft(offer: BundleOfferFull): BundleOfferDraft
 
 export const defaultBundleDraft: BundleOfferDraft = {
   info: defaultInfo(),
-  targeting: defaultTargeting(),
+  targeting: { type: 'selected_products', ids: [] },
   settings: {
     redirectToCartAfterAdd: false,
     hideSallaPopup: true,
-    discountType: 'percentage',
-    discountAmount: 10,
+    discountType: undefined,
+    discountAmount: undefined,
     relatedProducts: [],
   },
   appearance: DEFAULT_APPEARANCE,
@@ -291,7 +291,9 @@ export function fullOfferToUpgradeDraft(offer: UpgradeOfferFull): UpgradeOfferDr
       baseSallaProductId: settings?.baseSallaProductId ?? 0,
       upgradeSallaProductId: settings?.upgradeSallaProductId ?? 0,
       couponCode: settings?.couponCode ?? undefined,
+      sallaCouponId: settings?.sallaCouponId ?? undefined,
     },
+    appearance: toAppearance(offer.appearance),
   };
 }
 
@@ -303,8 +305,8 @@ export const defaultUpgradeDraft: UpgradeOfferDraft = {
     hideSallaPopup: true,
     baseSallaProductId: 0,
     upgradeSallaProductId: 0,
-    couponCode: '',
   },
+  appearance: DEFAULT_APPEARANCE,
 };
 
 export function fullOfferToRecommendationDraft(

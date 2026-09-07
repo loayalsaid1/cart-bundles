@@ -3,8 +3,10 @@
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
+export type BuilderStepKey = "info" | "targeting" | "settings" | "appearance";
+
 export interface BuilderStepDef {
-  key: string;
+  key: BuilderStepKey;
 }
 
 export function BuilderStepNav({

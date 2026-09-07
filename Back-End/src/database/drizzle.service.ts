@@ -1,10 +1,12 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
-import { drizzle, NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { drizzle, NodePgDatabase, NodePgTransaction } from 'drizzle-orm/node-postgres';
+import { ExtractTablesWithRelations } from 'drizzle-orm';
 import { Pool } from 'pg';
 import { ConfigService } from '@nestjs/config';
 import { type Schema, schema } from './schema';
 
 export type DRIZZLE_PROVIDER = NodePgDatabase<Schema>;
+export type DrizzleTransaction = NodePgTransaction<Schema, ExtractTablesWithRelations<Schema>>;
 
 @Injectable()
 export class DrizzleService implements OnModuleDestroy {

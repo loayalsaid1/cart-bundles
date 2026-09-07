@@ -5,7 +5,7 @@ import { useFormContext } from "react-hook-form";
 import { Switch } from "@/components/ui/switch";
 import type { QuantityOfferDraft } from "@/lib/schemas/quantity-offer";
 
-const BEHAVIOR_KEYS: Array<keyof QuantityOfferDraft["settings"]> = [
+const BEHAVIOR_KEYS = [
   "allowDifferentOptionsPerPiece",
   "hideThemeDefaultOptions",
   "showPricePerPiece",
@@ -13,7 +13,7 @@ const BEHAVIOR_KEYS: Array<keyof QuantityOfferDraft["settings"]> = [
   "applyEvenWithCoupon",
   "hideQuantityField",
   "redirectToCartAfterAdd",
-];
+] as const;
 
 export function BehaviorSettings() {
   const t = useTranslations("Offers");

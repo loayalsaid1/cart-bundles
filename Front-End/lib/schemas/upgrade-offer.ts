@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import {
+  appearanceFullSchema,
+  offerAppearanceSchema,
   offerInfoSchema,
   offerKindSchema,
   offerStatusSchema,
@@ -15,16 +17,21 @@ export const upgradeOfferSettingsSchema = z
     baseSallaProductId: z.number().int().positive(),
     upgradeSallaProductId: z.number().int().positive(),
     couponCode: z.string().optional(),
+    sallaCouponId: z.number().int().positive().optional(),
   })
-  .refine((s) => s.baseSallaProductId !== s.upgradeSallaProductId, {
-    message: 'Base and upgrade products must be different',
-    path: ['upgradeSallaProductId'],
-  });
+  .refine(
+    (s) => s.baseSallaProductId !== s.upgradeSallaProductId,
+    {
+      message: 'Base and upgrade products must be different',
+      path: ['upgradeSallaProductId'],
+    },
+  );
 
 export const upgradeOfferDraftSchema = z.object({
   info: offerInfoSchema,
   targeting: offerTargetingSchema,
   settings: upgradeOfferSettingsSchema,
+  appearance: offerAppearanceSchema,
 });
 
 const upgradeSettingsFullSchema = z.object({
@@ -52,6 +59,7 @@ export const upgradeOfferFullSchema = z.object({
   updatedAt: z.string().optional(),
   targets: z.array(offerTargetSchema),
   upgradeSettings: upgradeSettingsFullSchema.nullable(),
+  appearance: appearanceFullSchema.optional(),
 });
 
 export type UpgradeOfferDraft = z.infer<typeof upgradeOfferDraftSchema>;

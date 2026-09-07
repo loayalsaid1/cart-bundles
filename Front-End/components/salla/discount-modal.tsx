@@ -89,7 +89,7 @@ export function DiscountModal({
                     <DialogHeader>
                         <DialogTitle className="text-base font-bold">
                             {isBulk
-                                ? t("titleBulk", { count: products.length })
+                                ? t("titleBulk", { count: String(products.length) })
                                 : t("titleSingle", { name: products[0]?.name ?? "Product" })}
                         </DialogTitle>
                         <DialogDescription className="text-xs">

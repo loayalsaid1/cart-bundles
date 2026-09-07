@@ -1,12 +1,16 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
-const withNextIntl = createNextIntlPlugin();
+const withNextIntl = createNextIntlPlugin({
+  experimental: {
+    createMessagesDeclaration: "./messages/en.json",
+  },
+});
 
 const nextConfig: NextConfig = {
   /* config options here */
   // allowedDevOrigins: ['*.tunnelmole.net', '*.ngrok-free.app'],
-  allowedDevOrigins: ['sacred-resolved-gazelle.ngrok-free.app', '*.tunnelmole.net'],
+  allowedDevOrigins: ['sacred-resolved-gazelle.ngrok-free.app', '*.tunnelmole.net', "frontend-dev.cartbundles.com"],
   async headers() {
     return [
       {

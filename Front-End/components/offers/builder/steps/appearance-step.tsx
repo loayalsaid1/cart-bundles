@@ -11,19 +11,19 @@ interface AppearanceDraftShape {
   appearance?: OfferAppearance;
 }
 
-const PRESETS: Array<{ name: string; radius: number; colors: Record<string, string> }> = [
+const PRESETS = [
   {
-    name: "minimal",
+    name: "minimal" as const,
     radius: 8,
     colors: { cardBg: "#ffffff", cardBorder: "#e2e8f0", selectedTier: "#f0fdf4", badgeBg: "#dcfce7", badgeText: "#166534", savings: "#16a34a" },
   },
   {
-    name: "solid",
+    name: "solid" as const,
     radius: 12,
     colors: { cardBg: "#ffffff", cardBorder: "#e2e8f0", selectedTier: "#f0f9ff", badgeBg: "#004956", badgeText: "#ffffff", savings: "#004956" },
   },
   {
-    name: "compact",
+    name: "compact" as const,
     radius: 0,
     colors: { cardBg: "#fafbfc", cardBorder: "#cbd5e1", selectedTier: "#f1f5f9", badgeBg: "#ef4444", badgeText: "#ffffff", savings: "#dc2626" },
   },

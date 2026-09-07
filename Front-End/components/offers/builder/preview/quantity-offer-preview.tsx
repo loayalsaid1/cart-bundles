@@ -8,7 +8,7 @@ import { SmartPhone01Icon, MonitorDotIcon, Globe02Icon } from "@hugeicons/core-f
 import { cn } from "@/lib/utils";
 import { tierUnitPrice } from "@/lib/utils/amount";
 import type { QuantityOfferDraft } from "@/lib/schemas/quantity-offer";
-
+import { resolvePreviewColors } from "@/lib/utils/preview-appearance";
 import { useProductSearch } from "@/hooks/use-product-search";
 
 type Device = "mobile" | "desktop";
@@ -23,7 +23,7 @@ export function QuantityOfferPreview({
 }) {
   const t = useTranslations("Offers");
   const formatter = useFormatter();
-  const locale = useLocale() as PreviewLocale;
+  const locale = useLocale();
   const [device, setDevice] = useState<Device>("desktop");
   const [previewLocale, setPreviewLocale] = useState<PreviewLocale>(locale);
 
@@ -36,7 +36,7 @@ export function QuantityOfferPreview({
   const displayPrice = targetProduct?.price?.amount ?? unitPrice;
 
   const radius = draft.appearance?.borderRadiusPx ?? 12;
-  const colors = draft.appearance?.colors ?? {};
+  const colors = resolvePreviewColors(draft.appearance?.colors);
   const lang = previewLocale;
   const isRtl = lang === "ar";
   const title = draft.info.title[lang] || draft.info.title.ar || "";
@@ -45,10 +45,12 @@ export function QuantityOfferPreview({
   const round = draft.settings.roundPriceToNearestInteger;
   const showPerPiece = draft.settings.showPricePerPiece;
 
-  const style = {
+  const widgetStyle = {
     borderRadius: `${radius}px`,
     backgroundColor: colors.cardBg,
-    borderColor: colors.cardBorder,
+    border: `1px solid ${colors.cardBorder}`,
+    color: colors.bodyText,
+    padding: "16px",
   } as React.CSSProperties;
 
   return (
@@ -92,87 +94,100 @@ export function QuantityOfferPreview({
           device === "mobile" ? "mx-auto w-[300px]" : "w-full",
         )}
       >
-        <div className="mb-3 overflow-hidden rounded-lg bg-muted">
-          {displayImage ? (
-            <img
-              src={displayImage}
-              alt={displayName}
-              className="aspect-3/4 w-40 h-50 mx-auto object-cover"
-            />
-          ) : (
-            <div className="flex h-24 items-center justify-center text-xs text-muted-foreground">
-              {t("preview.productImage")}
-            </div>
-          )}
-        </div>
-        <p className="text-sm font-medium">{displayName}</p>
-        <p className="text-lg font-bold">
-          {formatter.number(displayPrice, { style: "currency", currency: "SAR" })}
-        </p>
+        <div className="flex items-center gap-3 border p-2 bg-background" style={{ borderRadius: radius }}>
+          <div className="flex h-20 aspect-3/4 shrink-0 items-center justify-center overflow-hidden bg-muted text-[8px] text-muted-foreground border" style={{ borderRadius: radius }}>
+            {displayImage ? (
+              <img
+                src={displayImage}
+                alt={displayName}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              t("preview.productImage")
+            )}
+          </div>
 
+          <div>
+            <p className="text-sm font-medium">{displayName}</p>
+            <p className="text-lg font-bold">
+              {formatter.number(displayPrice, { style: "currency", currency: "SAR" })}
+            </p>
+          </div>
+        </div>
         {title && (
-          <div className="mt-4 text-left" style={{ ...style, color: "#1e293b" }} dir={isRtl ? "rtl" : "ltr"}>
-            <div
-              className="p-4"
-              style={{ border: `1px solid ${colors.cardBorder || '#e2e8f0'}`, borderRadius: `${radius}px` }}
-            >
-              {title && (
-                <p className="text-[15px] font-bold text-slate-900 mb-0.5">
-                  {title}
-                </p>
-              )}
-              {subtitle && <p className="mb-3 text-[13px] text-slate-500">{subtitle}</p>}
-              
-              <div className="space-y-2">
-                {tiers.map((tier, i) => {
-                  const safeQty = Number.isFinite(tier.quantity) && tier.quantity > 0 ? tier.quantity : 1;
-                  const total = tierUnitPrice(unitPrice, safeQty, tier.pricingType, tier.discountAmount || 0, round) * safeQty;
-                  const savings = unitPrice * safeQty - total;
-                  return (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between rounded-md px-3 py-2 text-xs"
-                      style={{
-                        backgroundColor: tier.isSelectedByDefault ? (colors.selectedTier || "#f0fdf4") : "transparent",
-                        border: `1.5px solid ${tier.isSelectedByDefault ? (colors.badgeBg || '#004b40') : (colors.cardBorder || '#e2e8f0')}`,
-                      }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <input type="radio" checked={tier.isSelectedByDefault ?? false} readOnly style={{ accentColor: colors.badgeBg || "#004b40" }} />
-                        <div>
-                          <span className="text-[13px] font-semibold text-slate-900">
-                            {tier.mainTitle?.[lang] || tier.mainTitle?.ar || `${safeQty} x`}
-                          </span>
-                          {showPerPiece && (
-                            <div className="text-[11px] text-slate-500">
-                              {formatter.number(total / safeQty)} {t("preview.currency")} / pc
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {tier.badgeText && (
-                          <span
-                            className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                            style={{ backgroundColor: colors.badgeBg || "#004b40", color: colors.badgeText || "#ffffff" }}
-                          >
-                            {tier.badgeText}
-                          </span>
-                        )}
-                        {savings > 0 && (
-                          <span className="text-[12px] font-bold" style={{ color: colors.savings || "#16a34a" }}>
-                            {lang === "ar" ? "وفر" : "Save"} {formatter.number(savings)} SAR
-                          </span>
+          <div className="mt-4 text-start" style={widgetStyle} dir={isRtl ? "rtl" : "ltr"}>
+            <p className="mb-0.5 text-[15px] font-bold" style={{ color: colors.titleColor }}>
+              {title}
+            </p>
+            {subtitle && (
+              <p className="mb-3 text-[13px]" style={{ color: colors.mutedText }}>
+                {subtitle}
+              </p>
+            )}
+            <div className="space-y-2">
+              {tiers.map((tier, index) => {
+                const safeQty = Number.isFinite(tier.quantity) && tier.quantity > 0 ? tier.quantity : 1;
+                const total = tierUnitPrice(unitPrice, safeQty, tier.pricingType, tier.discountAmount || 0, round) * safeQty;
+                const savings = unitPrice * safeQty - total;
+                const isSelected = tier.isSelectedByDefault ?? false;
+                return (
+                  <div
+                    key={index}
+                    className="flex cursor-pointer items-center justify-between border-[1.5px] p-2.5 transition-colors"
+                    style={{
+                      borderRadius: radius,
+                      borderColor: isSelected
+                        ? colors.badgeBg
+                        : colors.cardBorder,
+                      backgroundColor: isSelected
+                        ? colors.selectedTier
+                        : "transparent",
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        checked={isSelected}
+                        readOnly
+                        style={{ accentColor: colors.badgeBg }}
+                      />
+                      <div>
+                        <span className="text-[13px] font-semibold" style={{ color: colors.bodyText }}>
+                          {tier.mainTitle?.[lang] || tier.mainTitle?.ar || `${safeQty} x`}
+                        </span>
+                        {showPerPiece && (
+                          <div className="text-[11px]" style={{ color: colors.mutedText }}>
+                            {formatter.number(total / safeQty)} {t("preview.currency")} / pc
+                          </div>
                         )}
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-              <Button className="mt-4 w-full" size="sm">
-                {t("preview.addToCart")}
-              </Button>
+                    <div className="flex items-center gap-2">
+                      {tier.badgeText && (
+                        <span
+                          className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                          style={{ backgroundColor: colors.badgeBg, color: colors.badgeText }}
+                        >
+                          {tier.badgeText}
+                        </span>
+                      )}
+                      {savings > 0 && (
+                        <span className="text-[12px] font-bold" style={{ color: colors.savings }}>
+                          {lang === "ar" ? "وفر" : "Save"} {formatter.number(savings)} SAR
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
+            <Button
+              className="mt-4 w-full font-bold"
+              size="lg"
+              style={{ background: colors.badgeBg, color: colors.badgeText, borderRadius: radius }}
+            >
+              {t("preview.addToCart")}
+            </Button>
           </div>
         )}
       </div>

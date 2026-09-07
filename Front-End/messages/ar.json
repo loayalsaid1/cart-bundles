@@ -118,6 +118,9 @@
       "paused": "موقوف",
       "expired": "منتهي"
     },
+    "shared": {
+      "empty": "لم تتم إضافة عناصر بعد."
+    },
     "common": {
       "ar": "العربية",
       "en": "الإنجليزية",
@@ -292,6 +295,15 @@
         "typeToSearch": "اكتب للبحث عن الفئات.",
         "noImage": "لا توجد صورة",
         "selectedCount": "{count} محدد"
+      },
+      "coupons": {
+        "searchPlaceholder": "ابحث عن الكوبونات...",
+        "empty": "لا توجد كوبونات.",
+        "loading": "جاري تحميل الكوبونات...",
+        "error": "تعذر تحميل الكوبونات.",
+        "retry": "إعادة المحاولة",
+        "none": "بدون كوبون",
+        "inactive": "غير نشط"
       }
     },
     "preview": {
@@ -303,14 +315,9 @@
       "productName": "منتج تجريبي",
       "currency": "ر.س",
       "save": "وفّر {amount}",
-    "addToCart": "أضف إلى السلة"
-  },
-  "common": {
-    "ar": "العربية",
-    "en": "الإنجليزية"
-  },
-
-  "info": {
+      "addToCart": "أضف إلى السلة"
+    },
+    "info": {
       "internalName": "الاسم الداخلي",
       "internalNamePlaceholder": "مثال: حزمة الشتاء - VIP",
       "title": "العنوان المعروض",
@@ -326,7 +333,9 @@
       "all_products": "جميع المنتجات",
       "selected_products": "منتجات محددة",
       "selected_categories": "فئات محددة",
+      "singleProduct": "المنتج الأساسي",
       "pickProducts": "اختيار المنتجات",
+      "pickProduct": "اختيار المنتج",
       "pickCategories": "اختيار الفئات"
     },
     "appearance": {
@@ -370,7 +379,6 @@
         "discountTitle": "خصم على الإضافات",
         "percentage": "نسبة مئوية",
         "freeProduct": "مجانا (خصم 100%)",
-        "fixed": "مبلغ ثابت",
         "noDiscount": "بدون خصم",
         "discountAmount": "قيمة الخصم",
         "positionDesktop": "الموضع على الحاسوب",
@@ -395,9 +403,9 @@
       "settings": {
         "productsTitle": "منتجات الحزمة",
         "productsEmpty": "أضف المنتجات المضمّنة في هذه الحزمة.",
-        "discountTitle": "خصم الحزمة",
+        "discountTitle": "خصم على المنتجات المرتبطة",
         "percentage": "نسبة مئوية",
-        "fixed": "مبلغ ثابت",
+        "freeProduct": "مجانا (خصم 100%)",
         "noDiscount": "بدون خصم",
         "discountAmount": "قيمة الخصم",
         "behavior": "السلوك",
@@ -419,14 +427,16 @@
         "upgradeProduct": "منتج الترقية",
         "pickUpgrade": "اختيار منتج الترقية",
         "change": "تغيير",
-        "couponCode": "رمز الكوبون",
-        "couponPlaceholder": "مثال: UPGRADE10",
+        "couponCode": "الكوبون",
+        "chooseCoupon": "اختيار كوبون",
+        "clearCoupon": "إزالة الكوبون",
         "behavior": "السلوك",
         "redirectToCartAfterAdd": "الانتقال للسلة بعد الإضافة",
         "hideSallaPopup": "إخفاء نافذة تأكيد سلة"
       },
       "preview": {
         "upgradeName": "الترقية",
+        "badge": "ترقية",
         "coupon": "استخدم الكود {code} عند الدفع",
         "upgrade": "الترقية الآن"
       }

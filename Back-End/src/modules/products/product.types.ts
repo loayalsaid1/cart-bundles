@@ -54,3 +54,14 @@ export interface ApplyPricingResult {
   data?: unknown;
   error?: string;
 }
+
+export interface Coupon {
+  id: number;
+  code: string;
+  type?: string;
+  amount?: {
+    amount: number;
+    currency: string;
+  };
+  status?: string;
+}
