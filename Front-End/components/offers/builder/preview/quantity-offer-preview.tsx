@@ -94,24 +94,26 @@ export function QuantityOfferPreview({
           device === "mobile" ? "mx-auto w-[300px]" : "w-full",
         )}
       >
-        <div className="mb-3 overflow-hidden rounded-lg bg-muted">
-          {displayImage ? (
-            <img
-              src={displayImage}
-              alt={displayName}
-              className="aspect-3/4 w-40 h-50 mx-auto object-cover"
-            />
-          ) : (
-            <div className="flex h-24 items-center justify-center text-xs text-muted-foreground">
-              {t("preview.productImage")}
-            </div>
-          )}
-        </div>
-        <p className="text-sm font-medium">{displayName}</p>
-        <p className="text-lg font-bold">
-          {formatter.number(displayPrice, { style: "currency", currency: "SAR" })}
-        </p>
+        <div className="flex items-center gap-3 rounded-lg border p-2 bg-background/50">
+          <div className="flex h-20 aspect-3/4 shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted text-[8px] text-muted-foreground">
+            {displayImage ? (
+              <img
+                src={displayImage}
+                alt={displayName}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              t("preview.productImage")
+            )}
+          </div>
 
+          <div>
+            <p className="text-sm font-medium">{displayName}</p>
+            <p className="text-lg font-bold">
+              {formatter.number(displayPrice, { style: "currency", currency: "SAR" })}
+            </p>
+          </div>
+        </div>
         {title && (
           <div className="mt-4 text-start" style={widgetStyle} dir={isRtl ? "rtl" : "ltr"}>
             <p className="mb-0.5 text-[15px] font-bold" style={{ color: colors.titleColor }}>
