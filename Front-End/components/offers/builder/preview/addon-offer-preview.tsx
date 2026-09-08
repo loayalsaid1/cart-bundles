@@ -63,7 +63,7 @@ export function AddonOfferPreview({
                 className={
                   orientation === "horizontal"
                     ? "mt-3 flex gap-2.5 overflow-x-auto pb-2"
-                    : "mt-3 space-y-2.5"
+                    : "mt-3 flex flex-col gap-2.5"
                 }
               >
                 {visibleItems.map((item, i) => {
@@ -79,64 +79,154 @@ export function AddonOfferPreview({
                     t("addon.preview.addonName", { index: String(i + 1) });
                   const onSale = itemPrice < origPrice;
 
+                  if (orientation === "vertical") {
+                    return (
+                      <div
+                        key={item.sallaProductId}
+                        className="flex items-center gap-3 overflow-hidden p-2.5"
+                        style={{
+                          borderRadius: radius,
+                          border: `1px solid ${colors.cardBorder}`,
+                          background: "#ffffff",
+                        }}
+                      >
+                        {/* Image side - 3/4 aspect ratio */}
+                        <div
+                          className="relative w-20 shrink-0 aspect-3/4 overflow-hidden bg-muted border"
+                          style={{
+                            borderColor: colors.cardBorder,
+                            borderRadius: Math.max(4, radius - 4),
+                          }}
+                        >
+                          {onSale && (
+                            <span
+                              className="absolute start-1 top-1 z-2 rounded px-1 py-0.5 text-[9px] font-bold text-white leading-none"
+                              style={{ background: "#ef4444" }}
+                            >
+                              {lang === "ar" ? "خصم" : "Sale"}
+                            </span>
+                          )}
+                          {itemThumb ? (
+                            <img
+                              src={itemThumb}
+                              alt={itemName}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div
+                              className="flex h-full items-center justify-center text-[10px]"
+                              style={{ color: colors.mutedText }}
+                            >
+                              {t("preview.productImage")}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Details and Button side */}
+                        <div className="flex flex-1 flex-col justify-between self-stretch min-w-0 py-0.5">
+                          <div>
+                            <p
+                              className="line-clamp-1 text-[13px] font-semibold"
+                              style={{ color: colors.bodyText }}
+                              title={itemName}
+                            >
+                              {itemName}
+                            </p>
+                            <div className="mt-1 flex items-baseline gap-1.5">
+                              <span className="text-[13px] font-bold" style={{ color: colors.badgeBg }}>
+                                {money(itemPrice)}
+                              </span>
+                              {onSale && (
+                                <span className="text-[10px] line-through text-slate-400">
+                                  {money(origPrice)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            className="mt-2 h-7 w-full text-[11px] font-semibold"
+                            style={{
+                              background: colors.badgeBg,
+                              color: colors.badgeText,
+                              borderRadius: Math.max(4, radius - 4),
+                            }}
+                          >
+                            {t("addon.preview.add")}
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // Default horizontal orientation (scrollable row with vertical cards)
                   return (
                     <div
                       key={item.sallaProductId}
-                      className={
-                        orientation === "horizontal"
-                          ? "w-[150px] shrink-0 overflow-hidden p-2.5"
-                          : "w-full overflow-hidden p-2.5"
-                      }
+                      className="w-[150px] shrink-0 overflow-hidden p-2.5 flex flex-col justify-between"
                       style={{
                         borderRadius: radius,
                         border: `1px solid ${colors.cardBorder}`,
                         background: "#ffffff",
-                        overflow: 'hidden'
                       }}
                     >
-                      <div className="relative mb-3 aspect-3/4 overflow-hidden bg-muted border-b" style={{ borderColor: colors.cardBorder, borderTopLeftRadius: radius, borderTopRightRadius: radius }}>
-                        {onSale && (
-                          <span
-                            className="absolute start-1.5 top-1.5 z-2 rounded px-1.5 py-0.5 text-[10px] font-bold text-white"
-                            style={{ background: "#ef4444" }}
-                          >
-                            {lang === "ar" ? "خصم" : "Sale"}
-                          </span>
-                        )}
-                        {itemThumb ? (
-                          <img
-                            src={itemThumb}
-                            alt={itemName}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div
-                            className="flex h-full items-center justify-center text-[10px]"
-                            style={{ color: colors.mutedText }}
-                          >
-                            {t("preview.productImage")}
-                          </div>
-                        )}
-                      </div>
-                      <p
-                        className="mb-2 line-clamp-2 h-[2.4em] text-[12px] font-semibold"
-                        style={{ color: colors.bodyText }}
-                        title={itemName}
-                      >
-                        {itemName}
-                      </p>
-                      <p className="text-[14px] font-bold" style={{ color: colors.badgeBg }}>
-                        {money(itemPrice)}
-                      </p>
-                      {onSale && (
-                        <p className="text-[11px] line-through text-slate-400">
-                          {money(origPrice)}
+                      <div>
+                        <div
+                          className="relative mb-2 aspect-3/4 overflow-hidden bg-muted border"
+                          style={{
+                            borderColor: colors.cardBorder,
+                            borderRadius: Math.max(4, radius - 4),
+                          }}
+                        >
+                          {onSale && (
+                            <span
+                              className="absolute start-1.5 top-1.5 z-2 rounded px-1.5 py-0.5 text-[10px] font-bold text-white"
+                              style={{ background: "#ef4444" }}
+                            >
+                              {lang === "ar" ? "خصم" : "Sale"}
+                            </span>
+                          )}
+                          {itemThumb ? (
+                            <img
+                              src={itemThumb}
+                              alt={itemName}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div
+                              className="flex h-full items-center justify-center text-[10px]"
+                              style={{ color: colors.mutedText }}
+                            >
+                              {t("preview.productImage")}
+                            </div>
+                          )}
+                        </div>
+                        <p
+                          className="mb-1 line-clamp-2 h-[2.4em] text-[12px] font-semibold"
+                          style={{ color: colors.bodyText }}
+                          title={itemName}
+                        >
+                          {itemName}
                         </p>
-                      )}
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-[13px] font-bold" style={{ color: colors.badgeBg }}>
+                            {money(itemPrice)}
+                          </span>
+                          {onSale && (
+                            <span className="text-[10px] line-through text-slate-400">
+                              {money(origPrice)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                       <Button
                         size="sm"
-                        className="mt-3 h-8 w-full text-[12px] font-semibold"
-                        style={{ background: colors.badgeBg, color: colors.badgeText, borderRadius: radius }}
+                        className="mt-2 h-7 w-full text-[11px] font-semibold"
+                        style={{
+                          background: colors.badgeBg,
+                          color: colors.badgeText,
+                          borderRadius: Math.max(4, radius - 4),
+                        }}
                       >
                         {t("addon.preview.add")}
                       </Button>
