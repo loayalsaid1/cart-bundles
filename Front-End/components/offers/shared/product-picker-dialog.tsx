@@ -115,6 +115,8 @@ export function ProductPickerDialog({
                       <Checkbox
                         checked={checked}
                         onCheckedChange={() => toggle(product)}
+                        onClick={(e) => e.stopPropagation()}
+
                       />
                       {product.thumbnail ? (
                         <img

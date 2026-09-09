@@ -108,6 +108,7 @@ export function CategoryPickerDialog({
                       <Checkbox
                         checked={checked}
                         onCheckedChange={() => toggle(category)}
+                        onClick={(e) => e.stopPropagation()}
                       />
                       {category.thumbnail || category.image ? (
                         <img

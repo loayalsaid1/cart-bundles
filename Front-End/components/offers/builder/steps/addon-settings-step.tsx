@@ -120,7 +120,7 @@ export function AddonSettingsStep() {
           )}
         </div>
       </div>
-
+{/* 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label>{t("addon.settings.positionDesktop")}</Label>
@@ -158,8 +158,9 @@ export function AddonSettingsStep() {
             </SelectContent>
           </Select>
         </div>
-      </div>
+      </div> */}
 
+      {/* This needs proper modularization! */}
       <div className="space-y-3 rounded-lg border bg-card p-4">
         <h3 className="text-sm font-semibold">{t("addon.settings.behavior")}</h3>
         <label className="flex items-center justify-between gap-4 py-1">
@@ -178,7 +179,7 @@ export function AddonSettingsStep() {
             }}
           />
         </label>
-        <label className="flex items-center justify-between gap-4 py-1">
+        {/* <label className="flex items-center justify-between gap-4 py-1">
           <span className="text-sm">{t("addon.settings.showOptions")}</span>
           <Switch
             checked={settings.showProductOptions ?? false}
@@ -204,7 +205,7 @@ export function AddonSettingsStep() {
               form.setValue("settings.hideSallaPopup", checked)
             }
           />
-        </label>
+        </label> */}
       </div>
     </div>
   );
