@@ -78,7 +78,7 @@ export function BundleSettingsStep() {
           )}
         </div>
       </div>
-
+{/* 
       <div className="space-y-3 rounded-lg border bg-card p-4">
         <h3 className="text-sm font-semibold">{t("bundle.settings.behavior")}</h3>
         <label className="flex items-center justify-between gap-4 py-1">
@@ -99,7 +99,7 @@ export function BundleSettingsStep() {
             }
           />
         </label>
-      </div>
+      </div> */}
     </div>
   );
 }

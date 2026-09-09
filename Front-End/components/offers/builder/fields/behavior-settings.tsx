@@ -6,13 +6,13 @@ import { Switch } from "@/components/ui/switch";
 import type { QuantityOfferDraft } from "@/lib/schemas/quantity-offer";
 
 const BEHAVIOR_KEYS = [
-  "allowDifferentOptionsPerPiece",
-  "hideThemeDefaultOptions",
+  // "allowDifferentOptionsPerPiece"
+  // "hideThemeDefaultOptions"
   "showPricePerPiece",
   "roundPriceToNearestInteger",
-  "applyEvenWithCoupon",
-  "hideQuantityField",
-  "redirectToCartAfterAdd",
+  // "applyEvenWithCoupon"
+  // "hideQuantityField"
+  // "redirectToCartAfterAdd"
 ] as const;
 
 export function BehaviorSettings() {
