@@ -1,5 +1,12 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import {
+  CACHE_TTL_SECONDS,
+  categoriesCacheKey,
+  couponsCacheKey,
+  productsCacheKey,
+} from '../../redis/redis.constants';
+import { RedisService } from '../../redis/redis.service';
+import {
   ApplyPricingPayload,
   ApplyPricingResult,
   Category,
@@ -13,99 +20,140 @@ const SALLA_API_BASE_URL = 'https://api.salla.dev/admin/v2';
 export class ProductsService {
   private readonly logger = new Logger(ProductsService.name);
 
+  constructor(private readonly redis: RedisService) {}
+
   /**
    * Fetch products for a merchant, with optional keyword search.
    */
-  async getProducts(accessToken: string, keyword?: string): Promise<Product[]> {
-    const queryParam = keyword ? `?keyword=${encodeURIComponent(keyword)}` : '';
-    const url = `${SALLA_API_BASE_URL}/products${queryParam}`;
+  async getProducts(
+    accessToken: string,
+    keyword?: string,
+    merchantId?: number,
+  ): Promise<Product[]> {
+    const fetchProducts = async (): Promise<Product[]> => {
+      const queryParam = keyword
+        ? `?keyword=${encodeURIComponent(keyword)}`
+        : '';
+      const url = `${SALLA_API_BASE_URL}/products${queryParam}`;
 
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${accessToken}` },
-      redirect: 'follow',
-    });
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${accessToken}` },
+        redirect: 'follow',
+      });
 
-    if (!response.ok) {
-      throw new BadRequestException(
-        `Salla API error: ${response.status} ${response.statusText}`,
-      );
-    }
+      if (!response.ok) {
+        throw new BadRequestException(
+          `Salla API error: ${response.status} ${response.statusText}`,
+        );
+      }
 
-    const json = (await response.json()) as { data?: Product[] };
-    return json.data ?? [];
+      const json = (await response.json()) as { data?: Product[] };
+      return json.data ?? [];
+    };
+
+    if (!merchantId) return fetchProducts();
+    return this.redis.getOrSet(
+      productsCacheKey(merchantId, keyword),
+      CACHE_TTL_SECONDS.PRODUCTS,
+      fetchProducts,
+    );
   }
 
   async getCategories(
     accessToken: string,
     keyword?: string,
+    merchantId?: number,
   ): Promise<Category[]> {
-    const queryParam = keyword ? `?keyword=${encodeURIComponent(keyword)}` : '';
-    const url = `${SALLA_API_BASE_URL}/categories${queryParam}`;
+    const fetchCategories = async (): Promise<Category[]> => {
+      const queryParam = keyword
+        ? `?keyword=${encodeURIComponent(keyword)}`
+        : '';
+      const url = `${SALLA_API_BASE_URL}/categories${queryParam}`;
 
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${accessToken}` },
-      redirect: 'follow',
-    });
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${accessToken}` },
+        redirect: 'follow',
+      });
 
-    if (!response.ok) {
-      throw new BadRequestException(
-        `Salla API error: ${response.status} ${response.statusText}`,
-      );
-    }
+      if (!response.ok) {
+        throw new BadRequestException(
+          `Salla API error: ${response.status} ${response.statusText}`,
+        );
+      }
 
-    const json = (await response.json()) as { data?: Category[] };
-    // Apparently the category response is a gigantic object, so I'm taking only what I need
-    const returnValue: Category[] = (json.data ?? []).map((category) => ({
-      id: category.id,
-      image: category.image,
-      parent_id: category.parent_id,
-      status: category.status,
-      name: category.name,
-    }));
-
-    return returnValue;
-  }
-
-  async getCoupons(accessToken: string, keyword?: string): Promise<Coupon[]> {
-    const queryParam = keyword ? `?keyword=${encodeURIComponent(keyword)}` : '';
-    const url = `${SALLA_API_BASE_URL}/coupons${queryParam}`;
-
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${accessToken}` },
-      redirect: 'follow',
-    });
-
-    if (!response.ok) {
-      throw new BadRequestException(
-        `Salla API error: ${response.status} ${response.statusText}`,
-      );
-    }
-
-    const json = (await response.json()) as {
-      data?: Array<{
-        id: number;
-        code?: string;
-        type?: string;
-        amount?: {
-          amount: number;
-          currency: string;
-        };
-        status?: string;
-      }>;
+      const json = (await response.json()) as { data?: Category[] };
+      return (json.data ?? []).map((category) => ({
+        id: category.id,
+        image: category.image,
+        parent_id: category.parent_id,
+        status: category.status,
+        name: category.name,
+      }));
     };
 
-    return (json.data ?? [])
-      .filter((coupon) => coupon.code)
-      .map((coupon) => ({
-        id: coupon.id,
-        code: coupon.code as string,
-        type: coupon.type,
-        amount: coupon.amount,
-        status: coupon.status,
-      }));
+    if (!merchantId) return fetchCategories();
+    return this.redis.getOrSet(
+      categoriesCacheKey(merchantId, keyword),
+      CACHE_TTL_SECONDS.CATEGORIES,
+      fetchCategories,
+    );
+  }
+
+  async getCoupons(
+    accessToken: string,
+    keyword?: string,
+    merchantId?: number,
+  ): Promise<Coupon[]> {
+    const fetchCoupons = async (): Promise<Coupon[]> => {
+      const queryParam = keyword
+        ? `?keyword=${encodeURIComponent(keyword)}`
+        : '';
+      const url = `${SALLA_API_BASE_URL}/coupons${queryParam}`;
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${accessToken}` },
+        redirect: 'follow',
+      });
+
+      if (!response.ok) {
+        throw new BadRequestException(
+          `Salla API error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const json = (await response.json()) as {
+        data?: Array<{
+          id: number;
+          code?: string;
+          type?: string;
+          amount?: {
+            amount: number;
+            currency: string;
+          };
+          status?: string;
+        }>;
+      };
+
+      return (json.data ?? [])
+        .filter((coupon) => coupon.code)
+        .map((coupon) => ({
+          id: coupon.id,
+          code: coupon.code as string,
+          type: coupon.type,
+          amount: coupon.amount,
+          status: coupon.status,
+        }));
+    };
+
+    if (!merchantId) return fetchCoupons();
+    return this.redis.getOrSet(
+      couponsCacheKey(merchantId, keyword),
+      CACHE_TTL_SECONDS.COUPONS,
+      fetchCoupons,
+    );
   }
 
   /**

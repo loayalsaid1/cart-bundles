@@ -20,8 +20,28 @@ export class WebhooksService {
       case 'app.store.authorize':
         await this.handleAppAuthorized(data as SallaAppAuthorizedEvent);
         break;
+      case 'app.installed':
+      case 'app.updated':
+      case 'app.trial.started':
+      case 'app.trial.expired':
+      case 'app.trial.canceled':
+      case 'app.subscription.started':
+      case 'app.subscription.expired':
+      case 'app.subscription.canceled':
+      case 'app.subscription.renewed':
+      case 'app.settings.updated':
+        this.logger.log(`Recorded Easy Mode app event: ${data.event}`);
+        break;
       case 'app.uninstalled':
         await this.handleAppUninstalled(data);
+        break;
+      case 'product.created':
+      case 'product.updated':
+      case 'product.deleted':
+      case 'category.created':
+      case 'category.updated':
+      case 'category.deleted':
+        await this.merchantsService.invalidateCatalogCache(data.merchant);
         break;
       default:
         this.logger.warn(`Unhandled event: ${data.event}`);

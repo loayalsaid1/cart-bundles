@@ -1,9 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { eq, and, ilike, sql, exists, or, inArray, SQL } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
-import { offers, offerTargets, schema } from '../../database/schema';
-import { DashboardOfferShort, FullOffer, Offer, OfferKind, OfferStatus, ServiceResult } from './types/offers.types';
+import { offerStats } from '../../database/entities/activity-logs';
+import { offers, offerTargets } from '../../database/schema';
+import {
+  CACHE_TTL_SECONDS,
+  storefrontOffersCacheKey,
+} from '../../redis/redis.constants';
+import { RedisService } from '../../redis/redis.service';
+import { ActivityService } from '../logging/activity.service';
 import { MerchantsService } from '../merchants/merchants.service';
+import { DashboardOfferShort, FullOffer, Offer, OfferKind, OfferStatus, ServiceResult } from './types/offers.types';
 
 
 @Injectable()
@@ -13,6 +20,8 @@ export class OffersService {
   constructor(
     private readonly drizzleService: DrizzleService,
     private readonly merchantsService: MerchantsService,
+    private readonly redis: RedisService,
+    private readonly activityService: ActivityService,
   ) { }
 
   private get db() {
@@ -68,8 +77,29 @@ export class OffersService {
         }
       } catch (err) {
         this.logger.error(`Failed to toggle Salla offer ${offer.sallaOfferId} status`, err);
+        await this.activityService.enqueue({
+          merchantId,
+          actorType: 'system',
+          action: 'offer.salla_status_sync_failed',
+          entityType: 'offer',
+          entityId: offerId,
+          offerId,
+          severity: 'error',
+          message: 'Failed to sync offer status to Salla',
+        });
       }
     }
+
+    await this.merchantsService.invalidateStorefrontCache(merchantId);
+    await this.activityService.enqueue({
+      merchantId,
+      actorType: 'merchant',
+      action: 'offer.status_changed',
+      entityType: 'offer',
+      entityId: offerId,
+      offerId,
+      metadata: { status },
+    });
 
     return { success: true, data: { id: offer.id, status: offer.status } };
   }
@@ -80,7 +110,18 @@ export class OffersService {
     sallaProductId?: number,
     categoryIds?: number[],
   ): Promise<FullOffer[]> {
+    return this.redis.getOrSet(
+      storefrontOffersCacheKey(merchantId, sallaProductId, categoryIds),
+      CACHE_TTL_SECONDS.STOREFRONT_OFFERS,
+      () => this.loadActiveStorefrontOffers(merchantId, sallaProductId, categoryIds),
+    );
+  }
 
+  private async loadActiveStorefrontOffers(
+    merchantId: number,
+    sallaProductId?: number,
+    categoryIds?: number[],
+  ): Promise<FullOffer[]> {
     // 1. Base conditions: Match merchant and active status
     const conditions: (SQL | undefined)[] = [
       eq(offers.merchantId, merchantId),
@@ -188,7 +229,18 @@ export class OffersService {
         FROM ${offerTargets} 
         WHERE ${offerTargets.offerId} = ${offers.id}
       )::int`,
-        // Aggregate stats should be here next, but after I build the stats seprate module
+        impressions: sql<number>`coalesce((
+          SELECT ${offerStats.impressions} FROM ${offerStats}
+          WHERE ${offerStats.offerId} = ${offers.id}
+        ), 0)::int`,
+        clicks: sql<number>`coalesce((
+          SELECT ${offerStats.clicks} FROM ${offerStats}
+          WHERE ${offerStats.offerId} = ${offers.id}
+        ), 0)::int`,
+        conversions: sql<number>`coalesce((
+          SELECT ${offerStats.conversions} FROM ${offerStats}
+          WHERE ${offerStats.offerId} = ${offers.id}
+        ), 0)::int`,
       })
       .from(offers)
       .where(and(...conditions))

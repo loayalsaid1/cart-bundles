@@ -103,7 +103,12 @@ export interface FullOffer extends Offer {
 export type DashboardOfferShort = Pick<
   Offer,
   'id' | 'internalName' | 'kind' | 'status' | 'expiryDate'
-> & { targetsCount: number };
+> & {
+  targetsCount: number;
+  impressions: number;
+  clicks: number;
+  conversions: number;
+};
 
 export type ServiceResult<T> =
   | { success: true; data: T }

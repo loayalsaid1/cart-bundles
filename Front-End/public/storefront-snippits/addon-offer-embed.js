@@ -191,7 +191,32 @@ salla.onReady(async () => {
         btn.disabled = true;
         btn.style.opacity = '0.7';
         try {
+          if (window.__CART_BUNDLES_TRACK__ && addonOffer.id) {
+            window.__CART_BUNDLES_TRACK__({
+              merchantId: Number(merchantId),
+              offerId: Number(addonOffer.id),
+              event: "offer.click",
+              productId: Number(productId),
+              source: "addon",
+            });
+          }
           await addItemWithDefaultOptions(btn.getAttribute('data-id'), 1);
+          if (window.__CART_BUNDLES_TRACK__ && addonOffer.id) {
+            window.__CART_BUNDLES_TRACK__({
+              merchantId: Number(merchantId),
+              offerId: Number(addonOffer.id),
+              event: "offer.add_to_cart",
+              productId: Number(btn.getAttribute('data-id')),
+              source: "addon",
+            });
+            window.__CART_BUNDLES_TRACK__({
+              merchantId: Number(merchantId),
+              offerId: Number(addonOffer.id),
+              event: "offer.conversion",
+              productId: Number(btn.getAttribute('data-id')),
+              source: "addon",
+            });
+          }
           if (salla.notify) salla.notify.success(isAr ? 'تمت الإضافة للسلة' : 'Added to cart');
         } catch (err) {
           console.warn('[AddonOffer] addItem failed:', err);
@@ -240,7 +265,18 @@ salla.onReady(async () => {
     for (let i = 0; i < addonOffers.length; i++) {
       try {
         const widgetEl = await buildOfferWidget(addonOffers[i], i);
-        if (widgetEl) root.appendChild(widgetEl);
+        if (widgetEl) {
+          root.appendChild(widgetEl);
+          if (window.__CART_BUNDLES_TRACK__ && addonOffers[i]?.id) {
+            window.__CART_BUNDLES_TRACK__({
+              merchantId: Number(merchantId),
+              offerId: Number(addonOffers[i].id),
+              event: "offer.impression",
+              productId: Number(productId),
+              source: "addon",
+            });
+          }
+        }
       } catch (err) {
         console.warn("[AddonOffer] Failed to build widget for offer:", addonOffers[i]?.id, err);
       }

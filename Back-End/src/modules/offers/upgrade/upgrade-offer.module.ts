@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 import { DrizzleModule } from '../../../database/drizzle.module';
+import { OfferSideEffectsModule } from '../offer-side-effects.module';
 import { UpgradeOfferController } from './upgrade-offer.controller';
 import { UpgradeOfferService } from './upgrade-offer.service';
 
 @Module({
-  imports: [DrizzleModule],
+  imports: [DrizzleModule, OfferSideEffectsModule],
   controllers: [UpgradeOfferController],
   providers: [UpgradeOfferService],
   exports: [UpgradeOfferService],

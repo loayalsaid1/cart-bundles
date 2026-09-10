@@ -12,11 +12,15 @@ import {
   UpdateUpgradeOfferDto,
 } from './upgrade-offer.dto';
 import { toExpiryDate } from '../dto/common-offer.dto';
+import { OfferSideEffectsService } from '../offer-side-effects.service';
 import { ServiceResult, UpgradeOfferFull } from '../types/offers.types';
 
 @Injectable()
 export class UpgradeOfferService {
-  constructor(private readonly drizzleService: DrizzleService) {}
+  constructor(
+    private readonly drizzleService: DrizzleService,
+    private readonly sideEffects: OfferSideEffectsService,
+  ) {}
 
   private get db() {
     return this.drizzleService.db;
@@ -100,6 +104,7 @@ export class UpgradeOfferService {
       return offer;
     });
 
+    await this.sideEffects.afterWrite(merchantId, created.id, 'offer.created');
     return this.findOne(merchantId, created.id);
   }
 
@@ -169,6 +174,7 @@ export class UpgradeOfferService {
       }
     });
 
+    await this.sideEffects.afterWrite(merchantId, offerId, 'offer.updated');
     return this.findOne(merchantId, offerId);
   }
 
@@ -180,6 +186,7 @@ export class UpgradeOfferService {
     if (!existing.success) return existing;
 
     await this.db.delete(offers).where(eq(offers.id, offerId));
+    await this.sideEffects.afterWrite(merchantId, offerId, 'offer.deleted');
     return { success: true, data: undefined };
   }
 }

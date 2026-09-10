@@ -3,9 +3,10 @@ import { QuantityOfferController } from './quantity-offer.controller';
 import { QuantityOfferService } from './quantity-offer.service';
 import { MerchantsModule } from '../../merchants/merchants.module';
 import { DrizzleModule } from '../../../database/drizzle.module';
+import { OfferSideEffectsModule } from '../offer-side-effects.module';
 
 @Module({
-  imports: [MerchantsModule, DrizzleModule],
+  imports: [MerchantsModule, DrizzleModule, OfferSideEffectsModule],
   controllers: [QuantityOfferController],
   providers: [QuantityOfferService],
   exports: [QuantityOfferService],

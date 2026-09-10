@@ -1,7 +1,8 @@
 import { relations } from 'drizzle-orm';
+import { activityLogs, offerStats } from './entities/activity-logs';
+import { merchants } from './entities/merchants';
+import { users } from './entities/users';
 import {
-  users,
-  merchants,
   offers,
   offerTargets,
   offerRelatedProducts,
@@ -12,12 +13,14 @@ import {
   bundleOfferSettings,
   upgradeOfferSettings,
   recommendationOfferSettings,
-} from './schema';
+} from './entities/offers';
 
 export const usersRelations = relations(users, () => ({}));
 
 export const merchantsRelations = relations(merchants, ({ many }) => ({
   offers: many(offers),
+  activityLogs: many(activityLogs),
+  offerStats: many(offerStats),
 }));
 
 export const offersRelations = relations(offers, ({ many, one }) => ({
@@ -51,6 +54,33 @@ export const offersRelations = relations(offers, ({ many, one }) => ({
   recommendationSettings: one(recommendationOfferSettings, {
     fields: [offers.id],
     references: [recommendationOfferSettings.offerId],
+  }),
+  stats: one(offerStats, {
+    fields: [offers.id],
+    references: [offerStats.offerId],
+  }),
+  activityLogs: many(activityLogs),
+}));
+
+export const activityLogsRelations = relations(activityLogs, ({ one }) => ({
+  merchant: one(merchants, {
+    fields: [activityLogs.merchantId],
+    references: [merchants.merchantId],
+  }),
+  offer: one(offers, {
+    fields: [activityLogs.offerId],
+    references: [offers.id],
+  }),
+}));
+
+export const offerStatsRelations = relations(offerStats, ({ one }) => ({
+  merchant: one(merchants, {
+    fields: [offerStats.merchantId],
+    references: [merchants.merchantId],
+  }),
+  offer: one(offers, {
+    fields: [offerStats.offerId],
+    references: [offers.id],
   }),
 }));
 

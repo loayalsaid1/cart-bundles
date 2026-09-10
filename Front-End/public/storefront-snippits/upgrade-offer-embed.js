@@ -275,6 +275,15 @@ salla.onReady(async () => {
       btn.disabled = true;
       btn.style.opacity = "0.7";
       try {
+        if (window.__CART_BUNDLES_TRACK__ && offer.id) {
+          window.__CART_BUNDLES_TRACK__({
+            merchantId: Number(merchantId),
+            offerId: Number(offer.id),
+            event: "offer.click",
+            productId: Number(productId),
+            source: "upgrade",
+          });
+        }
         const payload = { id: upgradeData.id, quantity: 1 };
         const opts = upgradeData.options || [];
         if (opts.length) {
@@ -303,6 +312,22 @@ salla.onReady(async () => {
           }
         }
         
+        if (window.__CART_BUNDLES_TRACK__ && offer.id) {
+          window.__CART_BUNDLES_TRACK__({
+            merchantId: Number(merchantId),
+            offerId: Number(offer.id),
+            event: "offer.add_to_cart",
+            productId: Number(upgradeData.id),
+            source: "upgrade",
+          });
+          window.__CART_BUNDLES_TRACK__({
+            merchantId: Number(merchantId),
+            offerId: Number(offer.id),
+            event: "offer.conversion",
+            productId: Number(upgradeData.id),
+            source: "upgrade",
+          });
+        }
         if (salla.notify) {
           salla.notify.success(isAr ? "تمت إضافة منتج الترقية للسلة" : "Upgrade product added to cart");
         }
@@ -363,7 +388,18 @@ salla.onReady(async () => {
       for (let i = 0; i < upgradeOffers.length; i++) {
         try {
           const widget = await buildUpgradeWidget(upgradeOffers[i], i);
-          if (widget) root.appendChild(widget);
+          if (widget) {
+            root.appendChild(widget);
+            if (window.__CART_BUNDLES_TRACK__ && upgradeOffers[i]?.id) {
+              window.__CART_BUNDLES_TRACK__({
+                merchantId: Number(merchantId),
+                offerId: Number(upgradeOffers[i].id),
+                event: "offer.impression",
+                productId: Number(productId),
+                source: "upgrade",
+              });
+            }
+          }
         } catch (err) {
           console.warn("[UpgradeOffer] Failed to build widget:", upgradeOffers[i]?.id, err);
         }

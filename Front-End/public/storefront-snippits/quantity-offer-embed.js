@@ -213,6 +213,15 @@
       tierItem.innerHTML = tierHtml;
 
       tierItem.addEventListener("click", () => {
+        if (window.__CART_BUNDLES_TRACK__ && offer.id) {
+          window.__CART_BUNDLES_TRACK__({
+            merchantId: Number(getStoreAndProductInfo().merchantId),
+            offerId: Number(offer.id),
+            event: "offer.click",
+            productId: Number(getStoreAndProductInfo().productId),
+            source: "quantity",
+          });
+        }
         cardContainer.querySelectorAll(".tier-item").forEach((el, idx) => {
           const radio = el.querySelector('input[type="radio"]');
           if (idx === index) {
@@ -297,6 +306,15 @@
       const cardEl = renderQuantityOfferCard(quantityOffer);
       if (cardEl) {
         anchor.insertAdjacentElement("beforebegin", cardEl);
+        if (window.__CART_BUNDLES_TRACK__) {
+          window.__CART_BUNDLES_TRACK__({
+            merchantId: Number(merchantId),
+            offerId: Number(quantityOffer.id),
+            event: "offer.impression",
+            productId: Number(productId),
+            source: "quantity",
+          });
+        }
       }
     } catch (err) {
       console.error("[QuantityOffer] Error loading offer embed:", err);

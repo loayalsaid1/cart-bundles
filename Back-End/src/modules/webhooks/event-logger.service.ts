@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DrizzleService } from '../../database/drizzle.service';
 import { eventLogs } from '../../database/entities/event-logs';
+import { redactJson } from '../../common/utils/redact';
 import type { SallaAppEventBase } from './types/salla-events';
 
 @Injectable()
@@ -14,7 +15,7 @@ export class EventLoggerService {
     try {
       await this.drizzleService.db.insert(eventLogs).values({
         eventName: payload.event,
-        eventData: payload,
+        eventData: redactJson(payload),
       });
     } catch (error) {
       this.logger.error('Error logging event', error);

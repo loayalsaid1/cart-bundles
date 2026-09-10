@@ -59,9 +59,11 @@
     "navProducts": "Products",
     "navTest": "Test",
     "navOffers": "Offers",
+    "navActivity": "Activity",
     "products-page": "Products",
     "test-page": "Test",
-    "offers-page": "Offers"
+    "offers-page": "Offers",
+    "activity-page": "Activity"
   },
   "ProductCard": {
     "selectProduct": "Select product",
@@ -133,8 +135,8 @@
       "kpis": {
         "active": "Active offers",
         "targeted": "Targets",
-        "revenue": "Upsell revenue",
-        "conversion": "Conversion rate",
+        "revenue": "Impressions",
+        "conversion": "Conversions",
         "na": "—"
       },
       "filters": {
@@ -458,6 +460,35 @@
         "cartHint": "Shown when the trigger product is in the cart",
         "viewAll": "View all"
       }
+    }
+  },
+  "Activity": {
+    "title": "Store status",
+    "subtitle": "Track installs, offer changes, and storefront performance.",
+    "error": "Could not load store status.",
+    "empty": "No activity yet.",
+    "connection": "Connection",
+    "active": "Active",
+    "inactive": "Inactive",
+    "never": "Never",
+    "lastWebhook": "Last webhook",
+    "kpis": {
+      "activeOffers": "Active offers",
+      "impressions": "Impressions",
+      "clicks": "Clicks",
+      "conversions": "Conversions"
+    },
+    "token": {
+      "valid": "Token valid",
+      "expiring": "Token expiring",
+      "expired": "Token expired",
+      "missing": "Token missing"
+    },
+    "table": {
+      "time": "Time",
+      "action": "Action",
+      "severity": "Severity",
+      "message": "Details"
     }
   }
 }

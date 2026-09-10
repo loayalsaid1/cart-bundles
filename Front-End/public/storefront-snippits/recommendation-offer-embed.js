@@ -157,7 +157,32 @@ salla.onReady(async () => {
           btn.disabled = true;
           btn.style.opacity = "0.7";
           try {
+            if (window.__CART_BUNDLES_TRACK__ && offer.id) {
+              window.__CART_BUNDLES_TRACK__({
+                merchantId: Number(merchantId),
+                offerId: Number(offer.id),
+                event: "offer.click",
+                productId: Number(btn.getAttribute('data-id')),
+                source: "recommendation",
+              });
+            }
             await addItemWithDefaultOptions(btn.getAttribute('data-id'), 1);
+            if (window.__CART_BUNDLES_TRACK__ && offer.id) {
+              window.__CART_BUNDLES_TRACK__({
+                merchantId: Number(merchantId),
+                offerId: Number(offer.id),
+                event: "offer.add_to_cart",
+                productId: Number(btn.getAttribute('data-id')),
+                source: "recommendation",
+              });
+              window.__CART_BUNDLES_TRACK__({
+                merchantId: Number(merchantId),
+                offerId: Number(offer.id),
+                event: "offer.conversion",
+                productId: Number(btn.getAttribute('data-id')),
+                source: "recommendation",
+              });
+            }
             if (salla.notify) salla.notify.success(isAr ? 'تمت الإضافة للسلة' : 'Added to cart');
           } catch (err) {
             console.error("[CartRecs] Error adding item", err);
@@ -170,6 +195,14 @@ salla.onReady(async () => {
       });
 
       root.appendChild(widget);
+      if (window.__CART_BUNDLES_TRACK__ && offer.id) {
+        window.__CART_BUNDLES_TRACK__({
+          merchantId: Number(merchantId),
+          offerId: Number(offer.id),
+          event: "offer.impression",
+          source: "recommendation",
+        });
+      }
     }
 
     if (!root.hasChildNodes()) return;

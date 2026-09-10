@@ -1,10 +1,15 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import type { Cache } from 'cache-manager';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { eq } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
 import { merchants, type Merchant } from '../../database/entities/merchants';
+import {
+  merchantCatalogPrefix,
+  merchantStatusCacheKey,
+  merchantStorefrontPrefix,
+  merchantTokenCacheKey,
+} from '../../redis/redis.constants';
+import { RedisService } from '../../redis/redis.service';
 import type { SallaTokenData } from '../auth/types/salla-token.interface';
 import {
   MerchantAuthorizeInput,
@@ -12,8 +17,7 @@ import {
   TokenResult,
 } from './interfaces/merchnatToken.interface';
 
-const TOKEN_CACHE_PREFIX = 'merchant:token:';
-const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000; // refresh 5 minutes before expiry
+const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
 
 @Injectable()
 export class MerchantsService {
@@ -34,7 +38,7 @@ export class MerchantsService {
   constructor(
     private readonly drizzleService: DrizzleService,
     private readonly configService: ConfigService,
-    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+    private readonly redis: RedisService,
   ) {
     this.clientId = this.configService.getOrThrow<string>('SALLA_CLIENT_ID');
     this.clientSecret = this.configService.getOrThrow<string>(
@@ -76,6 +80,7 @@ export class MerchantsService {
           isActive: true,
         },
       });
+    await this.invalidateMerchantCache(input.merchantId);
   }
 
   /** Deactivate a merchant on `app.uninstalled`. */
@@ -84,6 +89,27 @@ export class MerchantsService {
       .update(merchants)
       .set({ isActive: false })
       .where(eq(merchants.merchantId, merchantId));
+    await this.invalidateMerchantCache(merchantId);
+  }
+
+  async invalidateMerchantCache(merchantId: number): Promise<void> {
+    await Promise.all([
+      this.redis.del(merchantTokenCacheKey(merchantId)),
+      this.redis.del(merchantStatusCacheKey(merchantId)),
+      this.redis.delByPrefix(merchantCatalogPrefix(merchantId)),
+      this.redis.delByPrefix(merchantStorefrontPrefix(merchantId)),
+    ]);
+  }
+
+  async invalidateCatalogCache(merchantId: number): Promise<void> {
+    await this.redis.delByPrefix(merchantCatalogPrefix(merchantId));
+  }
+
+  async invalidateStorefrontCache(merchantId: number): Promise<void> {
+    await Promise.all([
+      this.redis.delByPrefix(merchantStorefrontPrefix(merchantId)),
+      this.redis.del(merchantStatusCacheKey(merchantId)),
+    ]);
   }
 
   /**
@@ -92,8 +118,8 @@ export class MerchantsService {
    * Salla OAuth and stores the fresh value with a TTL bounded by its expiry.
    */
   async getValidAccessToken(merchantId: number): Promise<TokenResult> {
-    const cacheKey = `${TOKEN_CACHE_PREFIX}${merchantId}`;
-    const cached = await this.cacheManager.get<string>(cacheKey);
+    const cacheKey = merchantTokenCacheKey(merchantId);
+    const cached = await this.redis.get<string>(cacheKey);
     if (cached) return { success: true, accessToken: cached };
 
     const merchant = await this.findByMerchantId(merchantId);
@@ -237,13 +263,13 @@ export class MerchantsService {
     accessToken: string,
     expiresAt: Date,
   ): Promise<void> {
-    const cacheKey = `${TOKEN_CACHE_PREFIX}${merchantId}`;
+    const cacheKey = merchantTokenCacheKey(merchantId);
     const ttlSeconds = Math.max(
       60,
       Math.floor(
         (expiresAt.getTime() - Date.now() - TOKEN_REFRESH_BUFFER_MS) / 1000,
       ),
     );
-    await this.cacheManager.set(cacheKey, accessToken, ttlSeconds);
+    await this.redis.set(cacheKey, accessToken, ttlSeconds);
   }
 }

@@ -59,9 +59,11 @@
     "navProducts": "المنتجات",
     "navTest": "الاختبار",
     "navOffers": "العروض",
+    "navActivity": "النشاط",
     "products-page": "المنتجات",
     "test-page": "الاختبار",
-    "offers-page": "العروض"
+    "offers-page": "العروض",
+    "activity-page": "النشاط"
   },
   "ProductCard": {
     "selectProduct": "تحديد المنتج",
@@ -133,8 +135,8 @@
       "kpis": {
         "active": "العروض النشطة",
         "targeted": "المنتجات المستهدفة",
-        "revenue": "إيرادات البيع الإضافي",
-        "conversion": "معدل التحويل",
+        "revenue": "الظهور",
+        "conversion": "التحويلات",
         "na": "—"
       },
       "filters": {
@@ -458,6 +460,35 @@
         "cartHint": "يظهر عند وجود المنتج المُحفِّز في السلة",
         "viewAll": "عرض الكل"
       }
+    }
+  },
+  "Activity": {
+    "title": "حالة المتجر",
+    "subtitle": "تتبع التثبيت، تغييرات العروض، وأداء الواجهة.",
+    "error": "تعذر تحميل حالة المتجر.",
+    "empty": "لا يوجد نشاط بعد.",
+    "connection": "الاتصال",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "never": "أبداً",
+    "lastWebhook": "آخر إشعار",
+    "kpis": {
+      "activeOffers": "العروض النشطة",
+      "impressions": "الظهور",
+      "clicks": "النقرات",
+      "conversions": "التحويلات"
+    },
+    "token": {
+      "valid": "الرمز صالح",
+      "expiring": "الرمز على وشك الانتهاء",
+      "expired": "انتهى الرمز",
+      "missing": "الرمز غير موجود"
+    },
+    "table": {
+      "time": "الوقت",
+      "action": "الإجراء",
+      "severity": "الشدة",
+      "message": "التفاصيل"
     }
   }
 }

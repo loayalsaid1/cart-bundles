@@ -9,6 +9,7 @@ import {
   quantityOfferTiers,
 } from '../../../database/schema';
 import { MerchantsService } from '../../merchants/merchants.service';
+import { OfferSideEffectsService } from '../offer-side-effects.service';
 import {
   CreateQuantityOfferDto,
   UpdateQuantityOfferDto,
@@ -22,6 +23,7 @@ export class QuantityOfferService {
   constructor(
     private readonly drizzleService: DrizzleService,
     private readonly merchantsService: MerchantsService,
+    private readonly sideEffects: OfferSideEffectsService,
   ) {}
   private get db() {
     return this.drizzleService.db;
@@ -131,12 +133,18 @@ export class QuantityOfferService {
         `Offer ${created.id} created locally, but Salla sync failed: ${syncRes.error}`,
       );
       await this.db.delete(offers).where(eq(offers.id, created.id));
+      await this.sideEffects.afterSallaSyncFailed(
+        merchantId,
+        created.id,
+        syncRes.error ?? 'Unknown Salla API error',
+      );
       return {
         success: false,
         reason: 'salla_sync_failed',
         error: syncRes.error ?? 'Unknown Salla API error',
       };
     }
+    await this.sideEffects.afterWrite(merchantId, created.id, 'offer.created');
     return this.findOne(merchantId, created.id);
   }
   async update(
@@ -221,12 +229,18 @@ export class QuantityOfferService {
       this.logger.warn(
         `Offer ${offerId} updated locally, but Salla sync failed: ${syncRes.error}`,
       );
+      await this.sideEffects.afterSallaSyncFailed(
+        merchantId,
+        offerId,
+        syncRes.error ?? 'Unknown Salla API error',
+      );
       return {
         success: false,
         reason: 'salla_sync_failed',
         error: syncRes.error ?? 'Unknown Salla API error',
       };
     }
+    await this.sideEffects.afterWrite(merchantId, offerId, 'offer.updated');
     return this.findOne(merchantId, offerId);
   }
   async delete(
@@ -254,6 +268,7 @@ export class QuantityOfferService {
       }
     }
     await this.db.delete(offers).where(eq(offers.id, offerId));
+    await this.sideEffects.afterWrite(merchantId, offerId, 'offer.deleted');
     return { success: true, data: undefined };
   }
   private async syncToSalla(

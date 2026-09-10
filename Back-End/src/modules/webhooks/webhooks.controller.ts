@@ -10,10 +10,9 @@ import { ConfigService } from '@nestjs/config';
 import type { RawBodyRequest } from '@nestjs/common';
 import type { Request as ExpressRequest } from 'express';
 import { IsPublic } from '../../common/decorators';
-import { EventLoggerService } from './event-logger.service';
 import { validateWebhookRequest } from './salla-signature';
 import type { SallaAppEventBase } from './types/salla-events';
-import { WebhooksService } from './webhooks.service';
+import { WebhookStreamService } from './webhook-stream.service';
 
 /**
  * Receives Salla webhook events, verifies the HMAC signature, logs the event,
@@ -26,8 +25,7 @@ export class WebhooksController {
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly webhooksService: WebhooksService,
-    private readonly eventLoggerService: EventLoggerService,
+    private readonly webhookStreamService: WebhookStreamService,
   ) {}
 
   @Post()
@@ -60,13 +58,8 @@ export class WebhooksController {
     }
 
     const data = JSON.parse(rawBody.toString()) as SallaAppEventBase;
-
-    // Fire-and-forget audit log; failures are swallowed inside the logger
-    void this.eventLoggerService.logEvent(data);
     this.logger.debug(`Webhook received: ${data.event}`);
-
-    await this.webhooksService.processEvent(data);
-
+    await this.webhookStreamService.enqueue(data);
     return { status: 'success' };
   }
 }

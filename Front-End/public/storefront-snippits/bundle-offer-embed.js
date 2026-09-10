@@ -284,6 +284,15 @@ salla.onReady(async () => {
       addAllBtn.style.opacity = "0.7";
 
       try {
+        if (window.__CART_BUNDLES_TRACK__ && bundleOffer.id) {
+          window.__CART_BUNDLES_TRACK__({
+            merchantId: Number(merchantId),
+            offerId: Number(bundleOffer.id),
+            event: "offer.click",
+            productId: Number(productId),
+            source: "bundle",
+          });
+        }
         // 1. Add main product with its options auto-selected
         await addItemWithDefaultOptions(mainProductData, 1);
 
@@ -297,6 +306,22 @@ salla.onReady(async () => {
           }
         }
 
+        if (window.__CART_BUNDLES_TRACK__ && bundleOffer.id) {
+          window.__CART_BUNDLES_TRACK__({
+            merchantId: Number(merchantId),
+            offerId: Number(bundleOffer.id),
+            event: "offer.add_to_cart",
+            productId: Number(productId),
+            source: "bundle",
+          });
+          window.__CART_BUNDLES_TRACK__({
+            merchantId: Number(merchantId),
+            offerId: Number(bundleOffer.id),
+            event: "offer.conversion",
+            productId: Number(productId),
+            source: "bundle",
+          });
+        }
         if (salla.notify) {
           salla.notify.success(isAr ? "تمت إضافة المجموعة إلى السلة بنجاح!" : "Bundle added to cart successfully!");
         }
@@ -356,6 +381,17 @@ salla.onReady(async () => {
 
       if (rootContainer.hasChildNodes()) {
         anchor.insertAdjacentElement("beforebegin", rootContainer);
+        rootContainer.querySelectorAll("[data-offer-id]").forEach((el) => {
+          if (window.__CART_BUNDLES_TRACK__ && el.dataset.offerId) {
+            window.__CART_BUNDLES_TRACK__({
+              merchantId: Number(merchantId),
+              offerId: Number(el.dataset.offerId),
+              event: "offer.impression",
+              productId: Number(productId),
+              source: "bundle",
+            });
+          }
+        });
       }
     } catch (err) {
       console.error("[BundleOffer] Error initializing bundle offers:", err);

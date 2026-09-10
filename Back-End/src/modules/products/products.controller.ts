@@ -30,7 +30,7 @@ export class ProductsController {
     @Query('query') query?: string,
   ): Promise<Product[]> {
     const accessToken = await this.getOrThrowValidAccessToken(user.merchantId);
-    return this.productsService.getProducts(accessToken, query);
+    return this.productsService.getProducts(accessToken, query, user.merchantId);
   }
 
   @Get('embed/categories')
@@ -39,7 +39,11 @@ export class ProductsController {
     @Query('keyword') keyword?: string,
   ): Promise<Category[]> {
     const accessToken = await this.getOrThrowValidAccessToken(user.merchantId);
-    return this.productsService.getCategories(accessToken, keyword);
+    return this.productsService.getCategories(
+      accessToken,
+      keyword,
+      user.merchantId,
+    );
   }
 
   @Get('embed/coupons')
@@ -48,7 +52,7 @@ export class ProductsController {
     @Query('keyword') keyword?: string,
   ): Promise<Coupon[]> {
     const accessToken = await this.getOrThrowValidAccessToken(user.merchantId);
-    return this.productsService.getCoupons(accessToken, keyword);
+    return this.productsService.getCoupons(accessToken, keyword, user.merchantId);
   }
 
   @Post('embed/products/discount')
@@ -66,6 +70,7 @@ export class ProductsController {
       throw new BadGatewayException(result.error);
     }
 
+    await this.merchantsService.invalidateCatalogCache(user.merchantId);
     return result;
   }
 
