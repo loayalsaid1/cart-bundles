@@ -12,12 +12,9 @@ import type { Request as ExpressRequest } from 'express';
 import { IsPublic } from '../../common/decorators';
 import { validateWebhookRequest } from './salla-signature';
 import type { SallaAppEventBase } from './types/salla-events';
-import { WebhookStreamService } from './webhook-stream.service';
+import { WebhookQueueService } from './webhook-queue.service';
+import { WebhooksService } from './webhooks.service';
 
-/**
- * Receives Salla webhook events, verifies the HMAC signature, logs the event,
- * and dispatches it to the matching handler.
- */
 @IsPublic()
 @Controller('salla/webhook')
 export class WebhooksController {
@@ -25,7 +22,8 @@ export class WebhooksController {
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly webhookStreamService: WebhookStreamService,
+    private readonly webhookQueueService: WebhookQueueService,
+    private readonly webhooksService: WebhooksService,
   ) {}
 
   @Post()
@@ -51,15 +49,22 @@ export class WebhooksController {
       if (validation.error === 'Missing signature') {
         this.logger.error('Missing signature');
         throw new BadRequestException(validation.error);
-      } else {
-        this.logger.error('Invalid signature');
-        throw new UnauthorizedException(validation.error);
       }
+      this.logger.error('Invalid signature');
+      throw new UnauthorizedException(validation.error);
     }
 
     const data = JSON.parse(rawBody.toString()) as SallaAppEventBase;
     this.logger.debug(`Webhook received: ${data.event}`);
-    await this.webhookStreamService.enqueue(data);
+
+    if (
+      data.event === 'app.store.authorize' ||
+      data.event === 'app.uninstalled'
+    ) {
+      await this.webhooksService.processEvent(data);
+    }
+
+    await this.webhookQueueService.enqueue(data);
     return { status: 'success' };
   }
 }

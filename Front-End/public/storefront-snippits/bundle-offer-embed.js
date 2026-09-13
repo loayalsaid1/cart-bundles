@@ -314,13 +314,6 @@ salla.onReady(async () => {
             productId: Number(productId),
             source: "bundle",
           });
-          window.__CART_BUNDLES_TRACK__({
-            merchantId: Number(merchantId),
-            offerId: Number(bundleOffer.id),
-            event: "offer.conversion",
-            productId: Number(productId),
-            source: "bundle",
-          });
         }
         if (salla.notify) {
           salla.notify.success(isAr ? "تمت إضافة المجموعة إلى السلة بنجاح!" : "Bundle added to cart successfully!");

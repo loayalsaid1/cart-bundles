@@ -60,10 +60,12 @@
     "navTest": "الاختبار",
     "navOffers": "العروض",
     "navActivity": "النشاط",
+    "navSuggestions": "الاقتراحات",
     "products-page": "المنتجات",
     "test-page": "الاختبار",
     "offers-page": "العروض",
-    "activity-page": "النشاط"
+    "activity-page": "النشاط",
+    "suggestions-page": "الاقتراحات"
   },
   "ProductCard": {
     "selectProduct": "تحديد المنتج",
@@ -489,6 +491,93 @@
       "action": "الإجراء",
       "severity": "الشدة",
       "message": "التفاصيل"
+    }
+  },
+  "Suggestions": {
+    "title": "الاقتراحات",
+    "subtitle": "شاركنا أفكارك ومقترحات التحسين.",
+    "error": "تعذر تحميل الاقتراحات.",
+    "empty": "لا توجد اقتراحات بعد.",
+    "form": {
+      "title": "العنوان",
+      "titlePlaceholder": "ملخص مختصر",
+      "body": "التفاصيل",
+      "bodyPlaceholder": "صف الفكرة أو المشكلة.",
+      "submit": "إرسال الاقتراح",
+      "submitting": "جاري الإرسال..."
+    },
+    "status": {
+      "new": "جديد",
+      "reviewed": "تمت المراجعة",
+      "planned": "مخطط",
+      "done": "منجز",
+      "rejected": "مرفوض"
+    },
+    "table": {
+      "title": "الاقتراح",
+      "status": "الحالة",
+      "created": "تاريخ الإنشاء",
+      "adminNote": "ملاحظة"
+    },
+    "notify": {
+      "created": "تم إرسال الاقتراح.",
+      "failed": "تعذر إرسال الاقتراح."
+    }
+  },
+  "Admin": {
+    "title": "لوحة الإدارة",
+    "subtitle": "صحة المتاجر والنشاط والاقتراحات.",
+    "logout": "تسجيل الخروج",
+    "connected": "متصل",
+    "disconnected": "غير متصل",
+    "login": {
+      "title": "دخول الإدارة",
+      "subtitle": "أدخل كلمة مرور الإدارة للمتابعة.",
+      "password": "كلمة المرور",
+      "submit": "تسجيل الدخول",
+      "submitting": "جاري الدخول...",
+      "success": "تم تسجيل الدخول.",
+      "failed": "كلمة المرور غير صحيحة."
+    },
+    "kpis": {
+      "merchants": "التجار",
+      "activeMerchants": "التجار النشطون",
+      "offers": "العروض",
+      "webhooks": "الإشعارات (24س)",
+      "redis": "ريديس"
+    },
+    "errors": {
+      "title": "الأخطاء الأخيرة",
+      "empty": "لا توجد أخطاء حديثة."
+    },
+    "activity": {
+      "title": "النشاط",
+      "empty": "لا يوجد نشاط بعد."
+    },
+    "suggestions": {
+      "title": "الاقتراحات",
+      "empty": "لا توجد اقتراحات بعد.",
+      "column": "الاقتراح",
+      "note": "ملاحظة الإدارة",
+      "notePlaceholder": "ملاحظة اختيارية",
+      "saveNote": "حفظ",
+      "updated": "تم تحديث الاقتراح.",
+      "updateFailed": "تعذر تحديث الاقتراح.",
+      "status": {
+        "new": "جديد",
+        "reviewed": "تمت المراجعة",
+        "planned": "مخطط",
+        "done": "منجز",
+        "rejected": "مرفوض"
+      }
+    },
+    "table": {
+      "time": "الوقت",
+      "merchant": "التاجر",
+      "action": "الإجراء",
+      "severity": "الشدة",
+      "message": "التفاصيل",
+      "status": "الحالة"
     }
   }
 }

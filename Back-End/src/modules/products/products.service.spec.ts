@@ -45,7 +45,7 @@ describe('ProductsService.getCoupons', () => {
         id: 55,
         code: 'UPGRADE10',
         type: 'percentage',
-        amount: 10,
+        amount: { amount: 10, currency: 'SAR' },
         status: 'active',
       },
     ]);

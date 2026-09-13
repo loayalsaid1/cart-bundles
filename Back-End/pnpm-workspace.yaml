@@ -2,6 +2,7 @@ packages:
   - '.'
 allowBuilds:
   esbuild: true
+  msgpackr-extract: set this to true or false
   unrs-resolver: true
 ignoredBuiltDependencies:
   - sharp

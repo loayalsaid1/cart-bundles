@@ -320,13 +320,6 @@ salla.onReady(async () => {
             productId: Number(upgradeData.id),
             source: "upgrade",
           });
-          window.__CART_BUNDLES_TRACK__({
-            merchantId: Number(merchantId),
-            offerId: Number(offer.id),
-            event: "offer.conversion",
-            productId: Number(upgradeData.id),
-            source: "upgrade",
-          });
         }
         if (salla.notify) {
           salla.notify.success(isAr ? "تمت إضافة منتج الترقية للسلة" : "Upgrade product added to cart");

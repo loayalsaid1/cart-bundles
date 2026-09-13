@@ -8,6 +8,10 @@ import {
   activitySeverityEnum,
 } from './entities/activity-logs';
 import {
+  suggestions,
+  suggestionStatusEnum,
+} from './entities/suggestions';
+import {
   offers,
   offerTargets,
   offerRelatedProducts,
@@ -43,6 +47,7 @@ import {
   recommendationOfferSettingsRelations,
   activityLogsRelations,
   offerStatsRelations,
+  suggestionsRelations,
 } from './relations';
 
 export {
@@ -53,6 +58,8 @@ export {
   offerStats,
   activityActorTypeEnum,
   activitySeverityEnum,
+  suggestions,
+  suggestionStatusEnum,
   offers,
   offerTargets,
   offerRelatedProducts,
@@ -86,6 +93,7 @@ export {
   recommendationOfferSettingsRelations,
   activityLogsRelations,
   offerStatsRelations,
+  suggestionsRelations,
 };
 
 export const schema = {
@@ -94,6 +102,7 @@ export const schema = {
   eventLogs,
   activityLogs,
   offerStats,
+  suggestions,
   offers,
   offerTargets,
   offerRelatedProducts,
@@ -118,6 +127,7 @@ export const schema = {
   recommendationOfferSettingsRelations,
   activityLogsRelations,
   offerStatsRelations,
+  suggestionsRelations,
 };
 
 export type Schema = typeof schema;

@@ -60,10 +60,12 @@
     "navTest": "Test",
     "navOffers": "Offers",
     "navActivity": "Activity",
+    "navSuggestions": "Suggestions",
     "products-page": "Products",
     "test-page": "Test",
     "offers-page": "Offers",
-    "activity-page": "Activity"
+    "activity-page": "Activity",
+    "suggestions-page": "Suggestions"
   },
   "ProductCard": {
     "selectProduct": "Select product",
@@ -489,6 +491,93 @@
       "action": "Action",
       "severity": "Severity",
       "message": "Details"
+    }
+  },
+  "Suggestions": {
+    "title": "Suggestions",
+    "subtitle": "Share feature ideas and improvements with us.",
+    "error": "Could not load suggestions.",
+    "empty": "No suggestions yet.",
+    "form": {
+      "title": "Title",
+      "titlePlaceholder": "Short summary",
+      "body": "Details",
+      "bodyPlaceholder": "Describe the idea or problem.",
+      "submit": "Send suggestion",
+      "submitting": "Sending..."
+    },
+    "status": {
+      "new": "New",
+      "reviewed": "Reviewed",
+      "planned": "Planned",
+      "done": "Done",
+      "rejected": "Rejected"
+    },
+    "table": {
+      "title": "Suggestion",
+      "status": "Status",
+      "created": "Created",
+      "adminNote": "Note"
+    },
+    "notify": {
+      "created": "Suggestion sent.",
+      "failed": "Could not send suggestion."
+    }
+  },
+  "Admin": {
+    "title": "Admin console",
+    "subtitle": "Merchant health, activity, and suggestions.",
+    "logout": "Log out",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "login": {
+      "title": "Admin login",
+      "subtitle": "Enter the admin password to continue.",
+      "password": "Password",
+      "submit": "Sign in",
+      "submitting": "Signing in...",
+      "success": "Signed in.",
+      "failed": "Invalid password."
+    },
+    "kpis": {
+      "merchants": "Merchants",
+      "activeMerchants": "Active merchants",
+      "offers": "Offers",
+      "webhooks": "Webhooks (24h)",
+      "redis": "Redis"
+    },
+    "errors": {
+      "title": "Recent errors",
+      "empty": "No recent errors."
+    },
+    "activity": {
+      "title": "Activity",
+      "empty": "No activity yet."
+    },
+    "suggestions": {
+      "title": "Suggestions",
+      "empty": "No suggestions yet.",
+      "column": "Suggestion",
+      "note": "Admin note",
+      "notePlaceholder": "Optional note",
+      "saveNote": "Save",
+      "updated": "Suggestion updated.",
+      "updateFailed": "Could not update suggestion.",
+      "status": {
+        "new": "New",
+        "reviewed": "Reviewed",
+        "planned": "Planned",
+        "done": "Done",
+        "rejected": "Rejected"
+      }
+    },
+    "table": {
+      "time": "Time",
+      "merchant": "Merchant",
+      "action": "Action",
+      "severity": "Severity",
+      "message": "Details",
+      "status": "Status"
     }
   }
 }

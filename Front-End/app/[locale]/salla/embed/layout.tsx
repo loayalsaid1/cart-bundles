@@ -44,6 +44,7 @@ function DarkModeSync() {
 const EMBED_NAV_ITEMS = [
     { value: 'offers-page', titleKey: 'navOffers' as const, url: '/salla/embed/offers', matcher: (p: string) => p.startsWith('/salla/embed/offers') },
     { value: 'activity-page', titleKey: 'navActivity' as const, url: '/salla/embed/activity', matcher: (p: string) => p.startsWith('/salla/embed/activity') },
+    { value: 'suggestions-page', titleKey: 'navSuggestions' as const, url: '/salla/embed/suggestions', matcher: (p: string) => p.startsWith('/salla/embed/suggestions') },
 ];
 
 export default function EmbedLayout({ children }: { children: React.ReactNode }) {

@@ -127,6 +127,7 @@
 
     const cardContainer = document.createElement("div");
     cardContainer.className = "salla-quantity-offer-card";
+    if (offer.id) cardContainer.dataset.offerId = String(offer.id);
     cardContainer.setAttribute("dir", isRtl ? "rtl" : "ltr");
     cardContainer.style.cssText = `
       margin: 16px 0;
@@ -246,6 +247,23 @@
     // Apply default selected tier quantity on load
     if (tiers[selectedIndex]) {
       setSallaQuantity(tiers[selectedIndex].quantity);
+    }
+
+    if (typeof salla !== "undefined" && salla.event && offer.id) {
+      salla.event.on("cart::item-added", (res) => {
+        const addedId = res?.data?.product_id;
+        const { merchantId, productId } = getStoreAndProductInfo();
+        if (!addedId || String(addedId) !== String(productId)) return;
+        if (window.__CART_BUNDLES_TRACK__) {
+          window.__CART_BUNDLES_TRACK__({
+            merchantId: Number(merchantId),
+            offerId: Number(offer.id),
+            event: "offer.add_to_cart",
+            productId: Number(productId),
+            source: "quantity",
+          });
+        }
+      });
     }
 
     return cardContainer;

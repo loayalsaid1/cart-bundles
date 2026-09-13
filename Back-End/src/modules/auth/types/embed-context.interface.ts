@@ -5,6 +5,7 @@
 export interface EmbedContext {
   merchantId: number;
   userId: number;
+  role?: 'admin' | 'merchant';
 }
 
 export type EmbedTokenVerificationResult =

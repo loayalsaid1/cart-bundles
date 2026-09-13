@@ -35,7 +35,9 @@ export class SallaAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<Request>();
 
     const token =
-      this.extractBearerToken(request) ?? this.extractEmbedTokenCookie(request);
+      this.extractBearerToken(request) ??
+      this.extractCookie(request, 'adminToken') ??
+      this.extractCookie(request, 'embedToken');
 
     if (!token) {
       throw new UnauthorizedException('Missing embed access token');
@@ -47,6 +49,7 @@ export class SallaAuthGuard implements CanActivate {
       if (result.error == TOKEN_EXPIRED_ERROR) {
         const response = context.switchToHttp().getResponse<Response>();
         response.clearCookie('embedToken');
+        response.clearCookie('adminToken');
       }
       throw new UnauthorizedException(result.error);
     }
@@ -61,11 +64,10 @@ export class SallaAuthGuard implements CanActivate {
     return authHeader.split(' ')[1];
   }
 
-  private extractEmbedTokenCookie(request: Request): string | null {
+  private extractCookie(request: Request, name: string): string | null {
     const cookies = (request as unknown as { cookies?: Record<string, string> })
       .cookies;
-    const embedToken = cookies?.['embedToken'];
-    if (!embedToken) return null;
-    return embedToken;
+    const value = cookies?.[name];
+    return value || null;
   }
 }

@@ -129,10 +129,7 @@ export class ProductsService {
           id: number;
           code?: string;
           type?: string;
-          amount?: {
-            amount: number;
-            currency: string;
-          };
+          amount?: number | { amount: number; currency: string };
           status?: string;
         }>;
       };
@@ -143,7 +140,12 @@ export class ProductsService {
           id: coupon.id,
           code: coupon.code as string,
           type: coupon.type,
-          amount: coupon.amount,
+          amount:
+            coupon.amount && typeof coupon.amount === 'object'
+              ? coupon.amount
+              : typeof coupon.amount === 'number'
+                ? { amount: coupon.amount, currency: 'SAR' }
+                : undefined,
           status: coupon.status,
         }));
     };

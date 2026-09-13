@@ -5,6 +5,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DrizzleModule } from './database/drizzle.module';
+import { QueueModule } from './queue/queue.module';
 import { RedisModule } from './redis/redis.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { MerchantsModule } from './modules/merchants/merchants.module';
@@ -13,6 +14,7 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { OAuthModule } from './modules/oauth/oauth.module';
 import { OffersModule } from './modules/offers/offers.module';
 import { LoggingModule } from './modules/logging/logging.module';
+import { SuggestionsModule } from './modules/suggestions/suggestions.module';
 import { SallaAuthGuard } from './common/guards/salla-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 
@@ -29,6 +31,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     }),
     ScheduleModule.forRoot(),
     RedisModule,
+    QueueModule,
     DrizzleModule,
     AuthModule,
     MerchantsModule,
@@ -37,6 +40,7 @@ import { RolesGuard } from './common/guards/roles.guard';
     OAuthModule,
     OffersModule,
     LoggingModule,
+    SuggestionsModule,
   ],
   controllers: [AppController],
   providers: [

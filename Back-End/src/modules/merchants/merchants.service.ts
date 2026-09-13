@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
 import { merchants, type Merchant } from '../../database/entities/merchants';
 import {
-  merchantCatalogPrefix,
+  merchantCatalogPrefixes,
   merchantStatusCacheKey,
   merchantStorefrontPrefix,
   merchantTokenCacheKey,
@@ -96,13 +96,13 @@ export class MerchantsService {
     await Promise.all([
       this.redis.del(merchantTokenCacheKey(merchantId)),
       this.redis.del(merchantStatusCacheKey(merchantId)),
-      this.redis.delByPrefix(merchantCatalogPrefix(merchantId)),
+      this.redis.delByPrefixes(merchantCatalogPrefixes(merchantId)),
       this.redis.delByPrefix(merchantStorefrontPrefix(merchantId)),
     ]);
   }
 
   async invalidateCatalogCache(merchantId: number): Promise<void> {
-    await this.redis.delByPrefix(merchantCatalogPrefix(merchantId));
+    await this.redis.delByPrefixes(merchantCatalogPrefixes(merchantId));
   }
 
   async invalidateStorefrontCache(merchantId: number): Promise<void> {

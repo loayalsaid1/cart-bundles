@@ -175,13 +175,6 @@ salla.onReady(async () => {
                 productId: Number(btn.getAttribute('data-id')),
                 source: "recommendation",
               });
-              window.__CART_BUNDLES_TRACK__({
-                merchantId: Number(merchantId),
-                offerId: Number(offer.id),
-                event: "offer.conversion",
-                productId: Number(btn.getAttribute('data-id')),
-                source: "recommendation",
-              });
             }
             if (salla.notify) salla.notify.success(isAr ? 'تمت الإضافة للسلة' : 'Added to cart');
           } catch (err) {

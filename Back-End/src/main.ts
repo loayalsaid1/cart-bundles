@@ -19,7 +19,8 @@ async function bootstrap() {
   const STATIC_ORIGINS: string[] = config
     .get<string>('ALLOWED_CORS_ORIGINS', '')
     .split(',')
-    .map((o) => o.trim());
+    .map((o) => o.trim())
+    .filter(Boolean);
 
   app.enableCors({
     origin: (
@@ -28,6 +29,14 @@ async function bootstrap() {
     ) => {
       if (!origin) return callback(null, true);
       if (STATIC_ORIGINS.includes(origin)) return callback(null, true);
+      try {
+        const hostname = new URL(origin).hostname;
+        if (hostname === 'salla.sa' || hostname.endsWith('.salla.sa')) {
+          return callback(null, true);
+        }
+      } catch {
+        return callback(null, false);
+      }
       return callback(null, false);
     },
     credentials: true,

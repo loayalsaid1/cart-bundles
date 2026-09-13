@@ -209,13 +209,6 @@ salla.onReady(async () => {
               productId: Number(btn.getAttribute('data-id')),
               source: "addon",
             });
-            window.__CART_BUNDLES_TRACK__({
-              merchantId: Number(merchantId),
-              offerId: Number(addonOffer.id),
-              event: "offer.conversion",
-              productId: Number(btn.getAttribute('data-id')),
-              source: "addon",
-            });
           }
           if (salla.notify) salla.notify.success(isAr ? 'تمت الإضافة للسلة' : 'Added to cart');
         } catch (err) {
@@ -321,6 +314,16 @@ salla.event.on("cart::item-added", async (res) => {
       } catch (_) { /* best-effort */ }
       if (typeof salla.cart.addItem === 'function') await salla.cart.addItem(payload);
       else if (salla.cart.api?.addItem) await salla.cart.api.addItem(payload);
+      const offerId = cb.closest('[data-offer-id]')?.dataset?.offerId;
+      if (window.__CART_BUNDLES_TRACK__ && offerId) {
+        window.__CART_BUNDLES_TRACK__({
+          merchantId: Number(merchantId),
+          offerId: Number(offerId),
+          event: "offer.add_to_cart",
+          productId: Number(id),
+          source: "addon",
+        });
+      }
     } catch (e) {
       console.warn('[AddonOffer] Failed to auto-add checked addon:', id, e);
     }
