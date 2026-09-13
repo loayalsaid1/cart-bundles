@@ -193,7 +193,23 @@ salla.onReady(async () => {
         if (Object.keys(selectedOptions).length) payload.options = selectedOptions;
 
         const add = resolveCartAdder();
-        if (add) await add(payload);
+        if (!add) continue;
+        await add(payload);
+
+        const widget = cb.closest(".custom-addon-widget");
+        const offerId = widget && widget.dataset.offerId;
+        const trackMerchantId =
+          (window.__CBCore && window.__CBCore.merchantId) ||
+          salla.config.get("store.id");
+        if (window.__CART_BUNDLES_TRACK__ && offerId && trackMerchantId) {
+          window.__CART_BUNDLES_TRACK__({
+            merchantId: Number(trackMerchantId),
+            offerId: Number(offerId),
+            event: "offer.add_to_cart",
+            productId: Number(cb.value),
+            source: "addon",
+          });
+        }
       } catch (e) {
         console.warn("[CartBundles] Failed to auto-add checked addon:", cb.value, e);
       }
