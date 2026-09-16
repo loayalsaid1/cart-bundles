@@ -22,6 +22,12 @@
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
       keepalive: true,
-    }).catch(function () {});
+    }).then(function (res) {
+      if (!res.ok && res.status !== 429) {
+        console.warn("[CartBundles] Failed to record " + body.event + ":", res.status);
+      }
+    }).catch(function (err) {
+      console.warn("[CartBundles] Failed to record " + body.event + ":", err);
+    });
   };
 })();

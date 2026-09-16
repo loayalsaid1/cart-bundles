@@ -10,13 +10,18 @@ import {
 } from 'drizzle-orm/pg-core';
 import { merchants } from './merchants';
 
-export const suggestionStatusEnum = pgEnum('suggestion_status', [
+export const SUGGESTION_STATUSES = [
   'new',
   'reviewed',
   'planned',
   'done',
   'rejected',
-]);
+] as const;
+
+export const suggestionStatusEnum = pgEnum(
+  'suggestion_status',
+  SUGGESTION_STATUSES,
+);
 
 export const suggestions = pgTable(
   'suggestions',
@@ -49,3 +54,4 @@ export const suggestions = pgTable(
 
 export type Suggestion = typeof suggestions.$inferSelect;
 export type NewSuggestion = typeof suggestions.$inferInsert;
+export type SuggestionStatus = (typeof SUGGESTION_STATUSES)[number];

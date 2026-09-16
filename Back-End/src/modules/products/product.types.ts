@@ -41,13 +41,20 @@ export interface Product {
 export type DiscountType = 'percentage' | 'fixed';
 export type PricingAction = 'set_sale' | 'remove_sale';
 
-export interface ApplyPricingPayload {
+export interface SetSalePayload {
   productIds: number[];
-  /** set_sale — apply a percentage or fixed sale price. remove_sale — zero out sale_price. */
-  action: PricingAction;
-  discountType?: DiscountType;
-  amount?: number;
+  action: 'set_sale';
+  discountType: DiscountType;
+  amount: number;
 }
+
+export interface RemoveSalePayload {
+  productIds: number[];
+  action: 'remove_sale';
+}
+
+/** `set_sale` requires a discount; `remove_sale` must not carry one. */
+export type ApplyPricingPayload = SetSalePayload | RemoveSalePayload;
 
 export interface ApplyPricingResult {
   success: boolean;

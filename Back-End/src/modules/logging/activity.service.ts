@@ -1,17 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { and, desc, eq, gte, SQL, sql } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
-import { activityLogs, offerStats } from '../../database/entities/activity-logs';
+import {
+  activityLogs,
+  offerStats,
+} from '../../database/entities/activity-logs';
 import { eventLogs } from '../../database/entities/event-logs';
 import { merchants } from '../../database/entities/merchants';
 import { offers } from '../../database/entities/offers';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { redactJson } from '../../common/utils/redact';
+import { QUEUES } from '../../queue/queue.constants';
 import {
-  DEFAULT_JOB_OPTIONS,
+  CACHE_TTL_SECONDS,
   merchantStatusCacheKey,
-  QUEUES,
 } from '../../redis/redis.constants';
 import { RedisService } from '../../redis/redis.service';
 import type {
@@ -19,7 +22,7 @@ import type {
   AdminOverview,
   MerchantHealthSnapshot,
   RecordActivityInput,
-} from './activity.types';
+} from './types/activity.types';
 
 const TOKEN_EXPIRING_MS = 15 * 60 * 1000;
 
@@ -40,7 +43,7 @@ export class ActivityService {
 
   async enqueue(input: RecordActivityInput): Promise<void> {
     try {
-      await this.activityQueue.add(input.action, input, DEFAULT_JOB_OPTIONS);
+      await this.activityQueue.add(input.action, input);
     } catch (error) {
       this.logger.error('Failed to enqueue activity, writing inline', error);
       await this.record(input);
@@ -61,9 +64,6 @@ export class ActivityService {
         message: input.message ?? null,
         metadata: redactJson(input.metadata ?? {}),
       });
-      if (input.merchantId) {
-        await this.redis.del(merchantStatusCacheKey(input.merchantId));
-      }
     } catch (error) {
       this.logger.error('Failed to persist activity log', error);
     }
@@ -118,33 +118,53 @@ export class ActivityService {
       tokenStatus = 'expiring';
     }
 
-    const [lastWebhook] = await this.db
-      .select({
-        eventName: eventLogs.eventName,
-        eventDate: eventLogs.eventDate,
-      })
-      .from(eventLogs)
-      .where(
-        sql`${eventLogs.eventData} ->> 'merchant' = ${String(merchantId)}`,
-      )
-      .orderBy(desc(eventLogs.eventDate))
-      .limit(1);
+    const [
+      lastWebhookRows,
+      lastActivityRows,
+      offerCountRows,
+      statsRows,
+      redisConnected,
+    ] = await Promise.all([
+      this.db
+        .select({
+          eventName: eventLogs.eventName,
+          eventDate: eventLogs.eventDate,
+        })
+        .from(eventLogs)
+        .where(
+          sql`${eventLogs.eventData} ->> 'merchant' = ${String(merchantId)}`,
+        )
+        .orderBy(desc(eventLogs.eventDate))
+        .limit(1),
+      this.db
+        .select({ createdAt: activityLogs.createdAt })
+        .from(activityLogs)
+        .where(eq(activityLogs.merchantId, merchantId))
+        .orderBy(desc(activityLogs.createdAt))
+        .limit(1),
+      this.db
+        .select({
+          status: offers.status,
+          count: sql<number>`count(*)::int`,
+        })
+        .from(offers)
+        .where(eq(offers.merchantId, merchantId))
+        .groupBy(offers.status),
+      this.db
+        .select({
+          impressions: sql<number>`coalesce(sum(${offerStats.impressions}), 0)::int`,
+          clicks: sql<number>`coalesce(sum(${offerStats.clicks}), 0)::int`,
+          addToCart: sql<number>`coalesce(sum(${offerStats.addToCart}), 0)::int`,
+          conversions: sql<number>`coalesce(sum(${offerStats.conversions}), 0)::int`,
+        })
+        .from(offerStats)
+        .where(eq(offerStats.merchantId, merchantId)),
+      this.redis.ping(),
+    ]);
 
-    const [lastActivity] = await this.db
-      .select({ createdAt: activityLogs.createdAt })
-      .from(activityLogs)
-      .where(eq(activityLogs.merchantId, merchantId))
-      .orderBy(desc(activityLogs.createdAt))
-      .limit(1);
-
-    const offerCountRows = await this.db
-      .select({
-        status: offers.status,
-        count: sql<number>`count(*)::int`,
-      })
-      .from(offers)
-      .where(eq(offers.merchantId, merchantId))
-      .groupBy(offers.status);
+    const lastWebhook = lastWebhookRows[0];
+    const lastActivity = lastActivityRows[0];
+    const statsRow = statsRows[0];
 
     const offerCounts = {
       total: 0,
@@ -161,16 +181,6 @@ export class ActivityService {
       if (row.status === 'expired') offerCounts.expired = row.count;
     }
 
-    const [statsRow] = await this.db
-      .select({
-        impressions: sql<number>`coalesce(sum(${offerStats.impressions}), 0)::int`,
-        clicks: sql<number>`coalesce(sum(${offerStats.clicks}), 0)::int`,
-        addToCart: sql<number>`coalesce(sum(${offerStats.addToCart}), 0)::int`,
-        conversions: sql<number>`coalesce(sum(${offerStats.conversions}), 0)::int`,
-      })
-      .from(offerStats)
-      .where(eq(offerStats.merchantId, merchantId));
-
     const snapshot: MerchantHealthSnapshot = {
       merchantId,
       isActive: merchant.isActive,
@@ -186,49 +196,54 @@ export class ActivityService {
         addToCart: statsRow?.addToCart ?? 0,
         conversions: statsRow?.conversions ?? 0,
       },
-      redisConnected: await this.redis.ping(),
+      redisConnected,
     };
 
-    await this.redis.set(cacheKey, snapshot, 30);
+    await this.redis.set(cacheKey, snapshot, CACHE_TTL_SECONDS.STATUS);
     return snapshot;
   }
 
   async getAdminOverview(): Promise<AdminOverview> {
-    const [merchantRow] = await this.db
-      .select({
-        total: sql<number>`count(*)::int`,
-        active: sql<number>`count(*) filter (where ${merchants.isActive} = true)::int`,
-        inactive: sql<number>`count(*) filter (where ${merchants.isActive} = false)::int`,
-      })
-      .from(merchants);
-
-    const [offerRow] = await this.db
-      .select({
-        total: sql<number>`count(*)::int`,
-        active: sql<number>`count(*) filter (where ${offers.status} = 'active')::int`,
-      })
-      .from(offers);
-
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const [webhookRow] = await this.db
-      .select({
-        count: sql<number>`count(*)::int`,
-      })
-      .from(eventLogs)
-      .where(gte(eventLogs.eventDate, since));
+    const [merchantRows, offerRows, webhookRows, recentErrors, redisConnected] =
+      await Promise.all([
+        this.db
+          .select({
+            total: sql<number>`count(*)::int`,
+            active: sql<number>`count(*) filter (where ${merchants.isActive} = true)::int`,
+            inactive: sql<number>`count(*) filter (where ${merchants.isActive} = false)::int`,
+          })
+          .from(merchants),
+        this.db
+          .select({
+            total: sql<number>`count(*)::int`,
+            active: sql<number>`count(*) filter (where ${offers.status} = 'active')::int`,
+          })
+          .from(offers),
+        this.db
+          .select({
+            count: sql<number>`count(*)::int`,
+          })
+          .from(eventLogs)
+          .where(gte(eventLogs.eventDate, since)),
+        this.db
+          .select({
+            id: activityLogs.id,
+            merchantId: activityLogs.merchantId,
+            action: activityLogs.action,
+            message: activityLogs.message,
+            createdAt: activityLogs.createdAt,
+          })
+          .from(activityLogs)
+          .where(eq(activityLogs.severity, 'error'))
+          .orderBy(desc(activityLogs.createdAt))
+          .limit(20),
+        this.redis.ping(),
+      ]);
 
-    const recentErrors = await this.db
-      .select({
-        id: activityLogs.id,
-        merchantId: activityLogs.merchantId,
-        action: activityLogs.action,
-        message: activityLogs.message,
-        createdAt: activityLogs.createdAt,
-      })
-      .from(activityLogs)
-      .where(eq(activityLogs.severity, 'error'))
-      .orderBy(desc(activityLogs.createdAt))
-      .limit(20);
+    const merchantRow = merchantRows[0];
+    const offerRow = offerRows[0];
+    const webhookRow = webhookRows[0];
 
     return {
       merchants: {
@@ -241,40 +256,8 @@ export class ActivityService {
         active: offerRow?.active ?? 0,
       },
       webhooksLast24h: webhookRow?.count ?? 0,
-      redisConnected: await this.redis.ping(),
+      redisConnected,
       recentErrors,
     };
-  }
-
-  async incrementOfferStat(
-    offerId: number,
-    merchantId: number,
-    field: 'impressions' | 'clicks' | 'addToCart' | 'conversions',
-  ): Promise<void> {
-    const column = offerStats[field];
-    const owned = await this.db.query.offers.findFirst({
-      where: and(eq(offers.id, offerId), eq(offers.merchantId, merchantId)),
-      columns: { id: true },
-    });
-    if (!owned) return;
-
-    await this.db
-      .insert(offerStats)
-      .values({
-        offerId,
-        merchantId,
-        impressions: field === 'impressions' ? 1 : 0,
-        clicks: field === 'clicks' ? 1 : 0,
-        addToCart: field === 'addToCart' ? 1 : 0,
-        conversions: field === 'conversions' ? 1 : 0,
-      })
-      .onConflictDoUpdate({
-        target: [offerStats.offerId],
-        set: {
-          [field]: sql`${column} + 1`,
-          updatedAt: new Date(),
-        },
-      });
-    await this.redis.del(merchantStatusCacheKey(merchantId));
   }
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   Dialog,
@@ -20,7 +20,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useProductSearch } from "@/hooks/use-product-search";
+import { useProducts } from "@/hooks/use-product-search";
 import type { Product } from "@/types/product";
 
 interface ProductPickerDialogProps {
@@ -49,7 +49,18 @@ export function ProductPickerDialog({
         initialProducts.map((product) => [product.id, product]),
       ),
   );
-  const { data: products, isPending } = useProductSearch(query.trim(), open);
+  const { data: allProducts, isPending } = useProducts(open);
+
+  const products = useMemo(() => {
+    const catalog = allProducts ?? [];
+    const term = query.trim().toLowerCase();
+    if (!term) return catalog;
+    return catalog.filter(
+      (product) =>
+        product.name?.toLowerCase().includes(term) ||
+        product.sku?.toLowerCase().includes(term),
+    );
+  }, [allProducts, query]);
 
   const selectedIdsSet = new Set(selectedIds);
 

@@ -212,11 +212,21 @@ function renderQuantityOfferCard(offer, core) {
   // Apply default selected tier quantity on load
   if (tiers[selectedIndex]) setSallaQuantity(tiers[selectedIndex].quantity);
 
-  // Track add_to_cart when the main product is added with a tier selected
+  // Track add_to_cart only when the added quantity actually qualifies for a tier.
+  // Adding a single unit from the product page must NOT count as a bundle purchase.
   if (typeof salla !== "undefined" && salla.event && offer.id) {
+    const minTierQuantity = tiers.reduce((min, tier) => {
+      const qty = Number(tier.quantity);
+      if (!Number.isFinite(qty) || qty <= 0) return min;
+      return min === null || qty < min ? qty : min;
+    }, null);
+
     salla.event.on("cart::item-added", (res) => {
       const addedId = res?.data?.product_id;
       if (!addedId || String(addedId) !== String(productId)) return;
+      if (minTierQuantity === null) return;
+      const addedQuantity = Number(res?.data?.quantity ?? 0);
+      if (!Number.isFinite(addedQuantity) || addedQuantity < minTierQuantity) return;
       if (window.__CART_BUNDLES_TRACK__) {
         window.__CART_BUNDLES_TRACK__({
           merchantId: Number(merchantId),

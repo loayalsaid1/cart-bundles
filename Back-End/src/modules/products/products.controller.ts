@@ -63,7 +63,7 @@ export class ProductsController {
     const accessToken = await this.getOrThrowValidAccessToken(user.merchantId);
     const result = await this.productsService.applyBulkPricing(
       accessToken,
-      dto,
+      dto.toPayload(),
     );
 
     if (!result.success) {

@@ -10,6 +10,7 @@ import { ConfigService } from '@nestjs/config';
 import type { RawBodyRequest } from '@nestjs/common';
 import type { Request as ExpressRequest } from 'express';
 import { IsPublic } from '../../common/decorators';
+import { INLINE_WEBHOOK_EVENTS } from './inline-events';
 import { validateWebhookRequest } from './salla-signature';
 import type { SallaAppEventBase } from './types/salla-events';
 import { WebhookQueueService } from './webhook-queue.service';
@@ -57,10 +58,7 @@ export class WebhooksController {
     const data = JSON.parse(rawBody.toString()) as SallaAppEventBase;
     this.logger.debug(`Webhook received: ${data.event}`);
 
-    if (
-      data.event === 'app.store.authorize' ||
-      data.event === 'app.uninstalled'
-    ) {
+    if (INLINE_WEBHOOK_EVENTS.has(data.event)) {
       await this.webhooksService.processEvent(data);
     }
 

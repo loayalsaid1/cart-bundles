@@ -1,7 +1,7 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { DrizzleModule } from '../../database/drizzle.module';
-import { QUEUES } from '../../redis/redis.constants';
+import { QUEUES } from '../../queue/queue.constants';
 import { LoggingModule } from '../logging/logging.module';
 import { MerchantsModule } from '../merchants/merchants.module';
 import { EventLoggerService } from './event-logger.service';

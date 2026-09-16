@@ -1,8 +1,8 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, ParseIntPipe, Query } from '@nestjs/common';
 import { Roles } from '../../common/decorators';
 import { Role } from '../../common/enums';
 import { ActivityService } from './activity.service';
-import type { ActivitySeverity } from './activity.types';
+import type { ActivitySeverity } from './types/activity.types';
 
 @Roles([Role.Admin])
 @Controller('admin')
@@ -16,18 +16,19 @@ export class AdminActivityController {
 
   @Get('activity')
   async list(
-    @Query('merchantId') merchantId?: string,
+    @Query('merchantId', new ParseIntPipe({ optional: true }))
+    merchantId?: number,
     @Query('action') action?: string,
     @Query('severity') severity?: ActivitySeverity,
-    @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+    @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
   ) {
     return this.activityService.list({
-      merchantId: merchantId ? Number(merchantId) : undefined,
+      merchantId,
       action,
       severity,
-      limit: limit ? Number(limit) : 50,
-      offset: offset ? Number(offset) : 0,
+      limit,
+      offset,
     });
   }
 }

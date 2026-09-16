@@ -5,13 +5,20 @@ import { offerStats } from '../../database/entities/activity-logs';
 import { offers, offerTargets } from '../../database/schema';
 import {
   CACHE_TTL_SECONDS,
+  dashboardOffersCacheKey,
   storefrontOffersCacheKey,
 } from '../../redis/redis.constants';
 import { RedisService } from '../../redis/redis.service';
 import { ActivityService } from '../logging/activity.service';
 import { MerchantsService } from '../merchants/merchants.service';
-import { DashboardOfferShort, FullOffer, Offer, OfferKind, OfferStatus, ServiceResult } from './types/offers.types';
-
+import {
+  DashboardOfferShort,
+  FullOffer,
+  Offer,
+  OfferKind,
+  OfferStatus,
+  ServiceResult,
+} from './types/offers.types';
 
 @Injectable()
 export class OffersService {
@@ -22,7 +29,7 @@ export class OffersService {
     private readonly merchantsService: MerchantsService,
     private readonly redis: RedisService,
     private readonly activityService: ActivityService,
-  ) { }
+  ) {}
 
   private get db() {
     return this.drizzleService.db;
@@ -55,8 +62,12 @@ export class OffersService {
     const [offer] = await this.db
       .update(offers)
       .set({ status })
-      .where(and(eq(offers.id, offerId), eq(offers.merchantId, merchantId))) 
-      .returning({id: offers.id, status: offers.status, sallaOfferId: offers.sallaOfferId});
+      .where(and(eq(offers.id, offerId), eq(offers.merchantId, merchantId)))
+      .returning({
+        id: offers.id,
+        status: offers.status,
+        sallaOfferId: offers.sallaOfferId,
+      });
 
     if (!offer) {
       return { success: false, reason: 'not_found' };
@@ -64,19 +75,28 @@ export class OffersService {
 
     if (offer.sallaOfferId) {
       try {
-        const tokenRes = await this.merchantsService.getValidAccessToken(merchantId);
+        const tokenRes =
+          await this.merchantsService.getValidAccessToken(merchantId);
         if (tokenRes.success) {
-          await fetch(`https://api.salla.dev/admin/v2/specialoffers/${offer.sallaOfferId}/status`, {
-            method: 'PUT',
-            headers: {
-              Authorization: `Bearer ${tokenRes.accessToken}`,
-              'Content-Type': 'application/json',
+          await fetch(
+            `https://api.salla.dev/admin/v2/specialoffers/${offer.sallaOfferId}/status`,
+            {
+              method: 'PUT',
+              headers: {
+                Authorization: `Bearer ${tokenRes.accessToken}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                status: status === 'active' ? 'active' : 'inactive',
+              }),
             },
-            body: JSON.stringify({ status: status === 'active' ? 'active' : 'inactive' }),
-          });
+          );
         }
       } catch (err) {
-        this.logger.error(`Failed to toggle Salla offer ${offer.sallaOfferId} status`, err);
+        this.logger.error(
+          `Failed to toggle Salla offer ${offer.sallaOfferId} status`,
+          err,
+        );
         await this.activityService.enqueue({
           merchantId,
           actorType: 'system',
@@ -104,7 +124,6 @@ export class OffersService {
     return { success: true, data: { id: offer.id, status: offer.status } };
   }
 
-
   async getActiveStorefrontOffers(
     merchantId: number,
     sallaProductId?: number,
@@ -113,7 +132,12 @@ export class OffersService {
     return this.redis.getOrSet(
       storefrontOffersCacheKey(merchantId, sallaProductId, categoryIds),
       CACHE_TTL_SECONDS.STOREFRONT_OFFERS,
-      () => this.loadActiveStorefrontOffers(merchantId, sallaProductId, categoryIds),
+      () =>
+        this.loadActiveStorefrontOffers(
+          merchantId,
+          sallaProductId,
+          categoryIds,
+        ),
     );
   }
 
@@ -177,6 +201,22 @@ export class OffersService {
   }
 
   async getDashboardOffers(
+    merchantId: number,
+    filters?: {
+      search?: string;
+      productId?: number;
+      type?: OfferKind;
+      status?: OfferStatus;
+    },
+  ): Promise<DashboardOfferShort[]> {
+    return this.redis.getOrSet(
+      dashboardOffersCacheKey(merchantId, { ...(filters ?? {}) }),
+      CACHE_TTL_SECONDS.DASHBOARD,
+      () => this.loadDashboardOffers(merchantId, filters),
+    );
+  }
+
+  private async loadDashboardOffers(
     merchantId: number,
     filters?: {
       search?: string;

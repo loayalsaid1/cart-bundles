@@ -1,21 +1,17 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
+import { DEFAULT_JOB_OPTIONS } from './queue.constants';
 
 @Global()
 @Module({
   imports: [
     BullModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        const url = config.get<string>('REDIS_URL');
-        if (!url) {
-          throw new Error('REDIS_URL environment variable is not set');
-        }
-        return {
-          connection: { url },
-        };
-      },
+      useFactory: (config: ConfigService) => ({
+        connection: { url: config.getOrThrow<string>('REDIS_URL') },
+        defaultJobOptions: DEFAULT_JOB_OPTIONS,
+      }),
     }),
   ],
   exports: [BullModule],

@@ -1,21 +1,19 @@
-import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
-import { IsIn, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Query,
+} from '@nestjs/common';
 import { Roles } from '../../common/decorators';
 import { Role } from '../../common/enums';
+import { UpdateSuggestionDto } from './dto/update-suggestion.dto';
 import {
-  SuggestionsService,
   type SuggestionStatus,
+  SuggestionsService,
 } from './suggestions.service';
-
-class UpdateSuggestionDto {
-  @IsIn(['new', 'reviewed', 'planned', 'done', 'rejected'])
-  status: SuggestionStatus;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(1000)
-  adminNote?: string;
-}
 
 @Roles([Role.Admin])
 @Controller('admin/suggestions')
@@ -28,11 +26,10 @@ export class AdminSuggestionsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateSuggestionDto) {
-    return this.suggestionsService.updateStatus(
-      Number(id),
-      dto.status,
-      dto.adminNote,
-    );
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateSuggestionDto,
+  ) {
+    return this.suggestionsService.updateStatus(id, dto.status, dto.adminNote);
   }
 }

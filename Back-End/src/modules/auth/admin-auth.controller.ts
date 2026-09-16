@@ -6,16 +6,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { IsString, MinLength } from 'class-validator';
 import type { Response } from 'express';
 import { IsPublic } from '../../common/decorators';
 import { AuthService } from './auth.service';
-
-class AdminLoginDto {
-  @IsString()
-  @MinLength(1)
-  password: string;
-}
+import { AdminLoginDto } from './dto/admin-login.dto';
 
 @IsPublic()
 @Controller('admin')

@@ -1,9 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  Logger,
-  OnModuleDestroy,
-} from '@nestjs/common';
+import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import Redis from 'ioredis';
 import { REDIS_CLIENT } from './redis.constants';
 
@@ -43,11 +38,7 @@ export class RedisService implements OnModuleDestroy {
     }
   }
 
-  async set(
-    key: string,
-    value: unknown,
-    ttlSeconds?: number,
-  ): Promise<void> {
+  async set(key: string, value: unknown, ttlSeconds?: number): Promise<void> {
     const payload = typeof value === 'string' ? value : JSON.stringify(value);
     if (ttlSeconds && ttlSeconds > 0) {
       await this.client.set(key, payload, 'EX', ttlSeconds);
@@ -92,6 +83,51 @@ export class RedisService implements OnModuleDestroy {
       prefixes.map((prefix) => this.delByPrefix(prefix)),
     );
     return counts.reduce((sum, count) => sum + count, 0);
+  }
+
+  async scanKeys(match: string): Promise<string[]> {
+    let cursor = '0';
+    const keys: string[] = [];
+    do {
+      const [next, batch] = await this.client.scan(
+        cursor,
+        'MATCH',
+        match,
+        'COUNT',
+        100,
+      );
+      cursor = next;
+      keys.push(...batch);
+    } while (cursor !== '0');
+    return keys;
+  }
+
+  async hIncrBy(key: string, field: string, amount = 1): Promise<void> {
+    await this.client.hincrby(key, field, amount);
+  }
+
+  async hGetAll(key: string): Promise<Record<string, string>> {
+    return this.client.hgetall(key);
+  }
+
+  /** Returns true when the lock was acquired (SET NX). */
+  async setNx(
+    key: string,
+    value: string,
+    ttlSeconds: number,
+  ): Promise<boolean> {
+    const result = await this.client.set(key, value, 'EX', ttlSeconds, 'NX');
+    return result === 'OK';
+  }
+
+  /** Atomic move; a missing source key is a no-op. */
+  async rename(from: string, to: string): Promise<void> {
+    try {
+      await this.client.rename(from, to);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      if (!message.includes('no such key')) throw error;
+    }
   }
 
   async getOrSet<T>(

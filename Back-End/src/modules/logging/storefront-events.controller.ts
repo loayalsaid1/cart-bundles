@@ -1,40 +1,23 @@
 import { InjectQueue } from '@nestjs/bullmq';
-import { Body, Controller, Post } from '@nestjs/common';
-import { Type } from 'class-transformer';
-import { IsIn, IsInt, IsOptional, IsString } from 'class-validator';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpException,
+  HttpStatus,
+  Post,
+  Req,
+} from '@nestjs/common';
+import type { Request } from 'express';
 import { Queue } from 'bullmq';
 import { IsPublic } from '../../common/decorators';
-import { DEFAULT_JOB_OPTIONS, QUEUES } from '../../redis/redis.constants';
+import { QUEUES } from '../../queue/queue.constants';
 import { RedisService } from '../../redis/redis.service';
-import type { StorefrontEventName } from './activity.types';
-import type { StorefrontEventJob } from './storefront-events.processor';
+import { StorefrontEventDto } from './dto/storefront-event.dto';
+import type { StorefrontEventJob } from './types/activity.types';
 
-class StorefrontEventDto {
-  @Type(() => Number)
-  @IsInt()
-  merchantId: number;
-
-  @Type(() => Number)
-  @IsInt()
-  offerId: number;
-
-  @IsIn([
-    'offer.impression',
-    'offer.click',
-    'offer.add_to_cart',
-    'offer.conversion',
-  ])
-  event: StorefrontEventName;
-
-  @IsOptional()
-  @Type(() => Number)
-  @IsInt()
-  productId?: number;
-
-  @IsOptional()
-  @IsString()
-  source?: string;
-}
+const RATE_WINDOW_SECONDS = 10;
+const RATE_MAX_PER_WINDOW = 40;
 
 @IsPublic()
 @Controller('storefront/events')
@@ -46,14 +29,26 @@ export class StorefrontEventsController {
   ) {}
 
   @Post()
-  async ingest(@Body() dto: StorefrontEventDto): Promise<{ status: string }> {
-    const rateKey = `rate:storefront:${dto.merchantId}:${dto.offerId}:${dto.event}`;
-    const count = await this.redis.incr(rateKey, 10);
-    if (count > 40) {
-      return { status: 'throttled' };
+  @HttpCode(HttpStatus.ACCEPTED)
+  async ingest(
+    @Body() dto: StorefrontEventDto,
+    @Req() req: Request,
+  ): Promise<{ status: string }> {
+    const clientId = this.resolveClientId(req);
+    const rateKey = `rate:storefront:${clientId}:${dto.merchantId}:${dto.offerId}:${dto.event}`;
+    const count = await this.redis.incr(rateKey, RATE_WINDOW_SECONDS);
+    if (count > RATE_MAX_PER_WINDOW) {
+      throw new HttpException(
+        { status: 'throttled' },
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
     }
 
-    await this.queue.add(dto.event, dto, DEFAULT_JOB_OPTIONS);
+    await this.queue.add(dto.event, dto);
     return { status: 'accepted' };
+  }
+
+  private resolveClientId(req: Request): string {
+    return req.ip ?? req.socket.remoteAddress ?? 'unknown';
   }
 }

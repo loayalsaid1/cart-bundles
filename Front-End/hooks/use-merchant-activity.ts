@@ -11,9 +11,16 @@ export function useMerchantHealth() {
   });
 }
 
-export function useActivityLogs() {
+export interface ActivityLogFilters {
+  action?: string;
+  severity?: string;
+  limit?: number;
+}
+
+export function useActivityLogs(filters: ActivityLogFilters = {}) {
+  const { action, severity, limit = 50 } = filters;
   return useQuery({
-    queryKey: ["activity", "logs"],
-    queryFn: () => getActivityLogs({ limit: 50 }),
+    queryKey: ["activity", "logs", { action, severity, limit }],
+    queryFn: () => getActivityLogs({ action, severity, limit }),
   });
 }

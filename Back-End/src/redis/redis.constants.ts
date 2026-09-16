@@ -1,17 +1,12 @@
 export const REDIS_CLIENT = Symbol('REDIS_CLIENT');
 
-export const QUEUES = {
-  WEBHOOKS: 'salla-webhooks',
-  ACTIVITY: 'app-activity',
-  STOREFRONT: 'storefront-events',
-} as const;
-
 export const CACHE_TTL_SECONDS = {
   PRODUCTS: 5 * 60,
   CATEGORIES: 10 * 60,
   COUPONS: 5 * 60,
-  STOREFRONT_OFFERS: 60,
-  STATUS: 30,
+  STOREFRONT_OFFERS: 5 * 60,
+  DASHBOARD: 30,
+  STATUS: 60,
 } as const;
 
 export const CACHE_PREFIX = {
@@ -20,6 +15,7 @@ export const CACHE_PREFIX = {
   CATEGORIES: 'salla:categories:',
   COUPONS: 'salla:coupons:',
   STOREFRONT: 'offers:storefront:',
+  DASHBOARD: 'offers:dashboard:',
   STATUS: 'status:merchant:',
 } as const;
 
@@ -43,7 +39,11 @@ export function storefrontOffersCacheKey(
   productId?: number,
   categoryIds?: number[],
 ): string {
-  const cats = categoryIds?.slice().sort((a, b) => a - b).join(',') || '_';
+  const cats =
+    categoryIds
+      ?.slice()
+      .sort((a, b) => a - b)
+      .join(',') || '_';
   return `${CACHE_PREFIX.STOREFRONT}${merchantId}:${productId ?? '_'}:${cats}`;
 }
 
@@ -67,9 +67,43 @@ export function merchantStorefrontPrefix(merchantId: number): string {
   return `${CACHE_PREFIX.STOREFRONT}${merchantId}:`;
 }
 
-export const DEFAULT_JOB_OPTIONS = {
-  attempts: 3,
-  backoff: { type: 'exponential' as const, delay: 2_000 },
-  removeOnComplete: { count: 1_000 },
-  removeOnFail: { count: 2_000 },
-};
+export function dashboardOffersCacheKey(
+  merchantId: number,
+  filters: {
+    search?: string;
+    productId?: number;
+    type?: string;
+    status?: string;
+  },
+): string {
+  const normalized = (['search', 'productId', 'type', 'status'] as const)
+    .map((key) => `${key}=${filters[key] ?? ''}`)
+    .join('&');
+  return `${CACHE_PREFIX.DASHBOARD}${merchantId}:${normalized}`;
+}
+
+export function merchantDashboardPrefix(merchantId: number): string {
+  return `${CACHE_PREFIX.DASHBOARD}${merchantId}:`;
+}
+
+/** Pending offer-stat deltas buffered in Redis before a bulk DB flush. */
+export const OFFER_STATS_HASH_PREFIX = 'stats:offer:';
+export const OFFER_STATS_FLUSH_LOCK = 'lock:offer-stats:flush';
+export const OFFER_STATS_FLUSH_INTERVAL_MS = 10_000;
+
+export function offerStatsHashKey(merchantId: number, offerId: number): string {
+  return `${OFFER_STATS_HASH_PREFIX}${merchantId}:${offerId}`;
+}
+
+export function parseOfferStatsHashKey(
+  key: string,
+): { merchantId: number; offerId: number } | null {
+  const parts = key.split(':');
+  if (parts.length !== 4 || parts[0] !== 'stats' || parts[1] !== 'offer') {
+    return null;
+  }
+  const merchantId = Number(parts[2]);
+  const offerId = Number(parts[3]);
+  if (!Number.isInteger(merchantId) || !Number.isInteger(offerId)) return null;
+  return { merchantId, offerId };
+}

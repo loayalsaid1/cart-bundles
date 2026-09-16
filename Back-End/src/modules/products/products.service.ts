@@ -190,14 +190,13 @@ export class ProductsService {
     accessToken: string,
     payload: ApplyPricingPayload,
   ): Promise<ApplyPricingResult> {
-    const { productIds, action, discountType, amount } = payload;
+    const { productIds, action } = payload;
 
     try {
       if (action === 'set_sale') {
-        this.assertValidDiscount(discountType, amount);
+        this.assertValidDiscount(payload.discountType, payload.amount);
       }
 
-      // Dynamically build the value object based on the action
       const sallaValue =
         action === 'remove_sale'
           ? {
@@ -209,10 +208,10 @@ export class ProductsService {
           : {
               column: 'sale_price',
               formula:
-                discountType === 'percentage'
+                payload.discountType === 'percentage'
                   ? 'price - (price * amount / 100)'
                   : 'price - amount',
-              amount: amount ?? 0,
+              amount: payload.amount,
               apply_on: 'product',
             };
 

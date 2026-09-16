@@ -1,15 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { desc, eq } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
-import { suggestions } from '../../database/entities/suggestions';
+import {
+  suggestions,
+  type SuggestionStatus,
+} from '../../database/entities/suggestions';
 import { ActivityService } from '../logging/activity.service';
 
-export type SuggestionStatus =
-  | 'new'
-  | 'reviewed'
-  | 'planned'
-  | 'done'
-  | 'rejected';
+export type { SuggestionStatus };
 
 @Injectable()
 export class SuggestionsService {
@@ -67,11 +65,7 @@ export class SuggestionsService {
       .limit(200);
   }
 
-  async updateStatus(
-    id: number,
-    status: SuggestionStatus,
-    adminNote?: string,
-  ) {
+  async updateStatus(id: number, status: SuggestionStatus, adminNote?: string) {
     const [row] = await this.db
       .update(suggestions)
       .set({
