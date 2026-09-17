@@ -30,7 +30,6 @@ export function MerchantActivityPage() {
   const t = useTranslations("Activity");
   const health = useMerchantHealth();
   const logs = useActivityLogs();
-
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">
       <div>
@@ -45,14 +44,15 @@ export function MerchantActivityPage() {
           ))}
         </div>
       ) : health.isError || !health.data ? (
-        <p className="text-sm text-muted-foreground">{t("error")}</p>
+        <p className="text-sm text-muted-foreground">{t("error")} {health.error.message}</p>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <Kpi label={t("kpis.activeOffers")} value={String(health.data.offerCounts.active)} />
             <Kpi label={t("kpis.impressions")} value={String(health.data.stats.impressions)} />
             <Kpi label={t("kpis.clicks")} value={String(health.data.stats.clicks)} />
-            <Kpi label={t("kpis.conversions")} value={String(health.data.stats.conversions)} />
+            <Kpi label={t("kpis.addToCart")} value={String(health.data.stats.addToCart)} />
+            {/* <Kpi label={t("kpis.conversions")} value={String(health.data.stats.conversions)} /> */}
           </div>
           <div className="flex flex-wrap items-center gap-3 rounded-lg border p-4 text-sm">
             <span className="text-muted-foreground">{t("connection")}</span>

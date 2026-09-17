@@ -139,6 +139,7 @@
         "targeted": "Targets",
         "revenue": "Impressions",
         "conversion": "Conversions",
+        "addToCart": "Add to Cart",
         "na": "—"
       },
       "filters": {
@@ -478,7 +479,8 @@
       "activeOffers": "Active offers",
       "impressions": "Impressions",
       "clicks": "Clicks",
-      "conversions": "Conversions"
+      "conversions": "Conversions",
+      "addToCart": "Add to Cart"
     },
     "token": {
       "valid": "Token valid",

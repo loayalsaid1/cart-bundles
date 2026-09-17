@@ -263,6 +263,10 @@ export class OffersService {
           SELECT ${offerStats.clicks} FROM ${offerStats}
           WHERE ${offerStats.offerId} = ${offers.id}
         ), 0)::int`,
+        addToCart: sql<number>`coalesce((
+          SELECT ${offerStats.addToCart} FROM ${offerStats}
+          WHERE ${offerStats.offerId} = ${offers.id}
+        ), 0)::int`,
         conversions: sql<number>`coalesce((
           SELECT ${offerStats.conversions} FROM ${offerStats}
           WHERE ${offerStats.offerId} = ${offers.id}

@@ -66,6 +66,7 @@ export const dashboardOfferSchema = z.object({
   targetsCount: z.coerce.number(),
   impressions: z.coerce.number().optional().default(0),
   clicks: z.coerce.number().optional().default(0),
+  addToCart: z.coerce.number().optional().default(0),
   conversions: z.coerce.number().optional().default(0),
 });
 

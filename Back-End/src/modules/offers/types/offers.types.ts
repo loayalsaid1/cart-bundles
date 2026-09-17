@@ -107,6 +107,7 @@ export type DashboardOfferShort = Pick<
   targetsCount: number;
   impressions: number;
   clicks: number;
+  addToCart: number;
   conversions: number;
 };
 

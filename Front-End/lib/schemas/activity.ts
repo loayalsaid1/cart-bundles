@@ -3,43 +3,43 @@ import { z } from 'zod';
 export const activitySeveritySchema = z.enum(['info', 'warn', 'error']);
 
 export const activityLogSchema = z.object({
-  id: z.number(),
-  merchantId: z.number().nullable(),
+  id: z.coerce.number(),
+  merchantId: z.coerce.number().nullable(),
   actorType: z.enum(['merchant', 'admin', 'system', 'storefront', 'salla']),
   actorId: z.string().nullable().optional(),
   action: z.string(),
   entityType: z.string().nullable().optional(),
   entityId: z.string().nullable().optional(),
-  offerId: z.number().nullable().optional(),
+  offerId: z.coerce.number().nullable().optional(),
   severity: activitySeveritySchema,
   message: z.string().nullable().optional(),
   metadata: z.record(z.string(), z.unknown()).optional(),
   createdAt: z.string(),
-});
+}).passthrough();
 
 export const merchantHealthSchema = z.object({
-  merchantId: z.number(),
+  merchantId: z.coerce.number(),
   isActive: z.boolean(),
   tokenStatus: z.enum(['valid', 'expiring', 'expired', 'missing']),
-  tokenExpiresAt: z.string().nullable(),
-  lastWebhookAt: z.string().nullable(),
-  lastWebhookEvent: z.string().nullable(),
-  lastActivityAt: z.string().nullable(),
+  tokenExpiresAt: z.string().nullable().optional(),
+  lastWebhookAt: z.string().nullable().optional(),
+  lastWebhookEvent: z.string().nullable().optional(),
+  lastActivityAt: z.string().nullable().optional(),
   offerCounts: z.object({
-    total: z.number(),
-    active: z.number(),
-    paused: z.number(),
-    draft: z.number(),
-    expired: z.number(),
+    total: z.coerce.number(),
+    active: z.coerce.number(),
+    paused: z.coerce.number(),
+    draft: z.coerce.number(),
+    expired: z.coerce.number(),
   }),
   stats: z.object({
-    impressions: z.number(),
-    clicks: z.number(),
-    addToCart: z.number(),
-    conversions: z.number(),
+    impressions: z.coerce.number(),
+    clicks: z.coerce.number(),
+    addToCart: z.coerce.number(),
+    conversions: z.coerce.number(),
   }),
-  redisConnected: z.boolean(),
-});
+  redisConnected: z.boolean().optional(),
+}).passthrough();
 
 export type ActivityLog = z.infer<typeof activityLogSchema>;
 export type MerchantHealth = z.infer<typeof merchantHealthSchema>;

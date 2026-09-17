@@ -139,6 +139,7 @@
         "targeted": "المنتجات المستهدفة",
         "revenue": "الظهور",
         "conversion": "التحويلات",
+        "addToCart": "الإضافة للسلة",
         "na": "—"
       },
       "filters": {
@@ -478,7 +479,8 @@
       "activeOffers": "العروض النشطة",
       "impressions": "الظهور",
       "clicks": "النقرات",
-      "conversions": "التحويلات"
+      "conversions": "التحويلات",
+      "addToCart": "الإضافة للسلة"
     },
     "token": {
       "valid": "الرمز صالح",
