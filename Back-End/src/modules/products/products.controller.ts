@@ -89,10 +89,9 @@ export class ProductsController {
       throw new BadRequestException('Missing storeId parameter');
     }
 
-    const accessToken = await this.getOrThrowValidAccessToken(
-      Number(rawStoreId),
-    );
-    return this.productsService.getRecommendedProducts(accessToken);
+    const merchantId = Number(rawStoreId);
+    const accessToken = await this.getOrThrowValidAccessToken(merchantId);
+    return this.productsService.getRecommendedProducts(accessToken, merchantId);
   }
 
   private async getOrThrowValidAccessToken(

@@ -23,6 +23,10 @@ export function productsCacheKey(merchantId: number, keyword?: string): string {
   return `${CACHE_PREFIX.PRODUCTS}${merchantId}:${keyword?.trim().toLowerCase() || '_'}`;
 }
 
+export function recommendedProductsCacheKey(merchantId: number): string {
+  return `${CACHE_PREFIX.PRODUCTS}${merchantId}:_recommended_sale`;
+}
+
 export function categoriesCacheKey(
   merchantId: number,
   keyword?: string,
@@ -106,4 +110,18 @@ export function parseOfferStatsHashKey(
   const offerId = Number(parts[3]);
   if (!Number.isInteger(merchantId) || !Number.isInteger(offerId)) return null;
   return { merchantId, offerId };
+}
+
+export const OFFER_STATS_READ_PREFIX = 'stats:read:';
+
+export function offerStatsReadHashKey(merchantId: number, offerId: number): string {
+  return `${OFFER_STATS_READ_PREFIX}${merchantId}:${offerId}`;
+}
+
+export function merchantStatsReadPrefix(merchantId: number): string {
+  return `${OFFER_STATS_READ_PREFIX}${merchantId}:`;
+}
+
+export function merchantTotalStatsReadHashKey(merchantId: number): string {
+  return `${OFFER_STATS_READ_PREFIX}merchant:${merchantId}`;
 }

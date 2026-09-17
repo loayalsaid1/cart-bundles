@@ -15,12 +15,13 @@ export interface ActivityLogFilters {
   action?: string;
   severity?: string;
   limit?: number;
+  offset?: number;
 }
 
 export function useActivityLogs(filters: ActivityLogFilters = {}) {
-  const { action, severity, limit = 50 } = filters;
+  const { action, severity, limit = 50, offset = 0 } = filters;
   return useQuery({
-    queryKey: ["activity", "logs", { action, severity, limit }],
-    queryFn: () => getActivityLogs({ action, severity, limit }),
+    queryKey: ["activity", "logs", { action, severity, limit, offset }],
+    queryFn: () => getActivityLogs({ action, severity, limit, offset }),
   });
 }

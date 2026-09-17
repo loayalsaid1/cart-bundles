@@ -14,6 +14,7 @@ export class EventLoggerService {
   async logEvent(payload: SallaAppEventBase): Promise<void> {
     try {
       await this.drizzleService.db.insert(eventLogs).values({
+        merchantId: payload.merchant,
         eventName: payload.event,
         eventData: redactJson(payload),
       });

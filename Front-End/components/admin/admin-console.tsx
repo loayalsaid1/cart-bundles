@@ -39,7 +39,7 @@ export function AdminConsole() {
       </div>
 
       {overview.isPending || !overview.data ? (
-        <KpiSkeleton count={5} />
+        <KpiSkeleton count={4} />
       ) : (
         <KpiGrid
           items={[
@@ -58,12 +58,6 @@ export function AdminConsole() {
             {
               label: t("kpis.webhooks"),
               value: String(overview.data.webhooksLast24h),
-            },
-            {
-              label: t("kpis.redis"),
-              value: overview.data.redisConnected
-                ? t("connected")
-                : t("disconnected"),
             },
           ]}
         />

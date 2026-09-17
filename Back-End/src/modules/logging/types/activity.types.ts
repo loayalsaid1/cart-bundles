@@ -52,7 +52,6 @@ export interface MerchantHealthSnapshot {
     addToCart: number;
     conversions: number;
   };
-  redisConnected: boolean;
 }
 
 export interface AdminOverview {
@@ -66,7 +65,6 @@ export interface AdminOverview {
     active: number;
   };
   webhooksLast24h: number;
-  redisConnected: boolean;
   recentErrors: Array<{
     id: number;
     merchantId: number | null;

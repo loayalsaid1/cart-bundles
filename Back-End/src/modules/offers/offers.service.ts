@@ -9,7 +9,7 @@ import {
   storefrontOffersCacheKey,
 } from '../../redis/redis.constants';
 import { RedisService } from '../../redis/redis.service';
-import { ActivityService } from '../logging/activity.service';
+import { OfferSideEffectsService } from './offer-side-effects.service';
 import { MerchantsService } from '../merchants/merchants.service';
 import {
   DashboardOfferShort,
@@ -28,7 +28,7 @@ export class OffersService {
     private readonly drizzleService: DrizzleService,
     private readonly merchantsService: MerchantsService,
     private readonly redis: RedisService,
-    private readonly activityService: ActivityService,
+    private readonly sideEffects: OfferSideEffectsService,
   ) {}
 
   private get db() {
@@ -97,29 +97,15 @@ export class OffersService {
           `Failed to toggle Salla offer ${offer.sallaOfferId} status`,
           err,
         );
-        await this.activityService.enqueue({
+        await this.sideEffects.afterSallaSyncFailed(
           merchantId,
-          actorType: 'system',
-          action: 'offer.salla_status_sync_failed',
-          entityType: 'offer',
-          entityId: offerId,
           offerId,
-          severity: 'error',
-          message: 'Failed to sync offer status to Salla',
-        });
+          'Failed to sync offer status to Salla',
+        );
       }
     }
 
-    await this.merchantsService.invalidateStorefrontCache(merchantId);
-    await this.activityService.enqueue({
-      merchantId,
-      actorType: 'merchant',
-      action: 'offer.status_changed',
-      entityType: 'offer',
-      entityId: offerId,
-      offerId,
-      metadata: { status },
-    });
+    await this.sideEffects.afterWrite(merchantId, offerId, 'offer.status_changed', { status });
 
     return { success: true, data: { id: offer.id, status: offer.status } };
   }

@@ -4,6 +4,7 @@ import {
   categoriesCacheKey,
   couponsCacheKey,
   productsCacheKey,
+  recommendedProductsCacheKey,
 } from '../../redis/redis.constants';
 import { RedisService } from '../../redis/redis.service';
 import {
@@ -161,23 +162,32 @@ export class ProductsService {
   /**
    * Fetch sale products to use as "recommendations" for a storefront.
    */
-  async getRecommendedProducts(accessToken: string): Promise<Product[]> {
-    const url = `${SALLA_API_BASE_URL}/products?status=sale`;
+  async getRecommendedProducts(accessToken: string, merchantId?: number): Promise<Product[]> {
+    const fetchRecommended = async (): Promise<Product[]> => {
+      const url = `${SALLA_API_BASE_URL}/products?status=sale`;
 
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${accessToken}` },
-      redirect: 'follow',
-    });
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${accessToken}` },
+        redirect: 'follow',
+      });
 
-    if (!response.ok) {
-      throw new BadRequestException(
-        `Salla API error: ${response.status} ${response.statusText}`,
-      );
-    }
+      if (!response.ok) {
+        throw new BadRequestException(
+          `Salla API error: ${response.status} ${response.statusText}`,
+        );
+      }
 
-    const json = (await response.json()) as { data?: Product[] };
-    return json.data ?? [];
+      const json = (await response.json()) as { data?: Product[] };
+      return json.data ?? [];
+    };
+
+    if (!merchantId) return fetchRecommended();
+    return this.redis.getOrSet(
+      recommendedProductsCacheKey(merchantId),
+      CACHE_TTL_SECONDS.PRODUCTS,
+      fetchRecommended,
+    );
   }
 
   /**

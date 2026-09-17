@@ -20,6 +20,9 @@ import { RedisService } from './redis.service';
         client.on('error', (err) => {
           logger.error(`Redis client error: ${err.message}`, err.stack);
         });
+        client.on('ready', async () => {
+          logger.log(await client.ping(), ' => Redis client ready');
+        });
         return client;
       },
     },

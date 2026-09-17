@@ -9,6 +9,7 @@ import {
   text,
   timestamp,
   varchar,
+  bigserial
 } from 'drizzle-orm/pg-core';
 import { merchants } from './merchants';
 import { offers } from './offers';
@@ -30,7 +31,7 @@ export const activitySeverityEnum = pgEnum('activity_severity', [
 export const activityLogs = pgTable(
   'activity_logs',
   {
-    id: serial('id').primaryKey(),
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
     merchantId: integer('merchant_id').references(() => merchants.merchantId, {
       onDelete: 'cascade',
     }),

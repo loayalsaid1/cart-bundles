@@ -11,7 +11,6 @@ export const adminOverviewSchema = z.object({
     active: z.number(),
   }),
   webhooksLast24h: z.number(),
-  redisConnected: z.boolean(),
   recentErrors: z.array(
     z.object({
       id: z.number(),

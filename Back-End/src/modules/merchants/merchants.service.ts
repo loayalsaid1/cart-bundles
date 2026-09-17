@@ -111,7 +111,6 @@ export class MerchantsService {
     await Promise.all([
       this.redis.delByPrefix(merchantStorefrontPrefix(merchantId)),
       this.redis.delByPrefix(merchantDashboardPrefix(merchantId)),
-      this.redis.del(merchantStatusCacheKey(merchantId)),
     ]);
   }
 

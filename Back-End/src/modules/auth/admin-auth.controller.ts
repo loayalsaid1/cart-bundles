@@ -4,10 +4,14 @@ import {
   Post,
   Res,
   UnauthorizedException,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { Response } from 'express';
-import { IsPublic } from '../../common/decorators';
+import type { Response, Request } from 'express';
+import { IsPublic, RateLimit } from '../../common/decorators';
+import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
+import { ActivityService } from '../logging/activity.service';
 import { AuthService } from './auth.service';
 import { AdminLoginDto } from './dto/admin-login.dto';
 
@@ -17,15 +21,28 @@ export class AdminAuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
+    private readonly activityService: ActivityService,
   ) {}
 
   @Post('login')
-  login(
+  @RateLimit({ window: 60, max: 5 })
+  @UseGuards(RateLimitGuard)
+  async login(
     @Body() dto: AdminLoginDto,
     @Res({ passthrough: true }) res: Response,
-  ): { success: boolean } {
+    @Req() req: Request,
+  ): Promise<{ success: boolean }> {
     const expected = this.configService.get<string>('ADMIN_PASSWORD');
     if (!expected || dto.password !== expected) {
+      const ip = req.ip ?? req.socket.remoteAddress ?? 'unknown';
+      await this.activityService.enqueue({
+        merchantId: null,
+        actorType: 'admin',
+        action: 'admin.login_failed',
+        severity: 'warn',
+        message: 'Admin login failed',
+        metadata: { ip, attempt: 'failed' },
+      });
       throw new UnauthorizedException('Invalid admin password');
     }
 

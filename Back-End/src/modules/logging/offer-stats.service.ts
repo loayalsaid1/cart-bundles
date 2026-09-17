@@ -10,6 +10,8 @@ import {
   OFFER_STATS_HASH_PREFIX,
   offerStatsHashKey,
   parseOfferStatsHashKey,
+  offerStatsReadHashKey,
+  merchantTotalStatsReadHashKey,
 } from '../../redis/redis.constants';
 import { RedisService } from '../../redis/redis.service';
 import type { OfferStatField } from './types/activity.types';
@@ -153,5 +155,29 @@ export class OfferStatsService {
           updatedAt: new Date(),
         },
       });
+
+    // CQRS Dual Write: update the Redis read-model key
+    const readKey = offerStatsReadHashKey(merchantId, offerId);
+    const merchantKey = merchantTotalStatsReadHashKey(merchantId);
+    const client = this.redis.getClient();
+    const pipeline = client.pipeline();
+    
+    if (deltas.impressions) {
+      pipeline.hincrby(readKey, 'impressions', deltas.impressions);
+      pipeline.hincrby(merchantKey, 'impressions', deltas.impressions);
+    }
+    if (deltas.clicks) {
+      pipeline.hincrby(readKey, 'clicks', deltas.clicks);
+      pipeline.hincrby(merchantKey, 'clicks', deltas.clicks);
+    }
+    if (deltas.addToCart) {
+      pipeline.hincrby(readKey, 'addToCart', deltas.addToCart);
+      pipeline.hincrby(merchantKey, 'addToCart', deltas.addToCart);
+    }
+    if (deltas.conversions) {
+      pipeline.hincrby(readKey, 'conversions', deltas.conversions);
+      pipeline.hincrby(merchantKey, 'conversions', deltas.conversions);
+    }
+    await pipeline.exec();
   }
 }

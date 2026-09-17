@@ -27,14 +27,16 @@ export class WebhookProcessor extends WorkerHost {
       if (!INLINE_WEBHOOK_EVENTS.has(data.event)) {
         await this.webhooksService.processEvent(data);
       }
-      await this.activityService.record({
-        merchantId: data.merchant,
-        actorType: 'salla',
-        action: data.event,
-        entityType: 'webhook',
-        severity: 'info',
-        metadata: { createdAt: data.created_at },
-      });
+      if (data.event === 'app.store.authorize' || data.event === 'app.uninstalled') {
+        await this.activityService.record({
+          merchantId: data.merchant,
+          actorType: 'salla',
+          action: data.event,
+          entityType: 'webhook',
+          severity: 'info',
+          metadata: { createdAt: data.created_at },
+        });
+      }
     } catch (error) {
       this.logger.error(`Failed processing webhook job ${job.id}`, error);
       throw error;

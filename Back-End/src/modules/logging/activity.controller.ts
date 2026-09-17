@@ -1,3 +1,4 @@
+
 import {
   Controller,
   Get,
@@ -7,11 +8,15 @@ import {
 } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators';
 import { ActivityService } from './activity.service';
+import { MerchantHealthService } from './merchant-health.service';
 import type { ActivitySeverity } from './types/activity.types';
 
 @Controller('activity')
 export class ActivityController {
-  constructor(private readonly activityService: ActivityService) {}
+  constructor(
+    private readonly activityService: ActivityService,
+    private readonly merchantHealthService: MerchantHealthService,
+  ) {}
 
   @Get()
   async list(
@@ -34,7 +39,7 @@ export class ActivityController {
 
   @Get('status')
   async status(@CurrentUser('merchantId') merchantId: number) {
-    const snapshot = await this.activityService.getMerchantHealth(merchantId);
+    const snapshot = await this.merchantHealthService.getMerchantHealth(merchantId);
     if (!snapshot) {
       throw new NotFoundException('Merchant not found');
     }

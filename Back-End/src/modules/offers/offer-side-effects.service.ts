@@ -12,7 +12,7 @@ export class OfferSideEffectsService {
   async afterWrite(
     merchantId: number,
     offerId: number,
-    action: 'offer.created' | 'offer.updated' | 'offer.deleted',
+    action: 'offer.created' | 'offer.updated' | 'offer.deleted' | 'offer.status_changed',
     extra?: Record<string, unknown>,
   ): Promise<void> {
     await this.merchantsService.invalidateStorefrontCache(merchantId);

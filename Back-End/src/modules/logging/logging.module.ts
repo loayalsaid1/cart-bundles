@@ -11,6 +11,9 @@ import { OfferStatsService } from './offer-stats.service';
 import { StorefrontEventsController } from './storefront-events.controller';
 import { StorefrontEventsProcessor } from './storefront-events.processor';
 
+import { MerchantHealthService } from './merchant-health.service';
+import { AdminStatsService } from './admin-stats.service';
+
 @Module({
   imports: [
     DrizzleModule,
@@ -30,7 +33,9 @@ import { StorefrontEventsProcessor } from './storefront-events.processor';
     StorefrontEventsProcessor,
     OfferStatsService,
     LogRetentionService,
+    MerchantHealthService,
+    AdminStatsService,
   ],
-  exports: [ActivityService],
+  exports: [ActivityService, OfferStatsService, MerchantHealthService, AdminStatsService],
 })
 export class LoggingModule {}
