@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { getActivityLogs, getMerchantHealth } from "@/lib/api/activity";
+import { getActivityLogs, getDailyStats, getMerchantHealth } from "@/lib/api/activity";
 
 export function useMerchantHealth() {
   return useQuery({
@@ -23,5 +23,13 @@ export function useActivityLogs(filters: ActivityLogFilters = {}) {
   return useQuery({
     queryKey: ["activity", "logs", { action, severity, limit, offset }],
     queryFn: () => getActivityLogs({ action, severity, limit, offset }),
+  });
+}
+
+export function useDailyStats() {
+  return useQuery({
+    queryKey: ["activity", "daily-stats"],
+    queryFn: getDailyStats,
+    refetchInterval: 60_000,
   });
 }

@@ -1,10 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { and, desc, eq, gte, SQL, sql } from 'drizzle-orm';
+import { and, desc, eq, SQL, sql } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
-import {
-  activityLogs,
-  offerStats,
-} from '../../database/entities/activity-logs';
+import { activityLogs } from '../../database/entities/activity-logs';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { redactJson } from '../../common/utils/redact';
@@ -13,8 +10,6 @@ import type {
   ActivityListQuery,
   RecordActivityInput,
 } from './types/activity.types';
-
-const TOKEN_EXPIRING_MS = 15 * 60 * 1000;
 
 @Injectable()
 export class ActivityService {
@@ -71,6 +66,9 @@ export class ActivityService {
     }
     if (query.offerId) {
       conditions.push(eq(activityLogs.offerId, query.offerId));
+    }
+    if (query.excludeStorefront) {
+      conditions.push(sql`${activityLogs.actorType} <> 'storefront'`);
     }
 
     const limit = Math.min(query.limit ?? 50, 200);

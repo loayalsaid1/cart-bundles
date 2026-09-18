@@ -493,6 +493,34 @@
       "action": "Action",
       "severity": "Severity",
       "message": "Details"
+    },
+    "ops": {
+      "title": "Recent changes"
+    },
+    "charts": {
+      "window": "Last 30 days",
+      "error": "Could not load chart data.",
+      "impressions": {
+        "title": "Impressions",
+        "empty": "Daily impressions start from today. Past days stay empty because they were not stored."
+      },
+      "clicks": {
+        "title": "Clicks",
+        "empty": "No clicks in the last 30 days."
+      },
+      "addToCart": {
+        "title": "Add to cart",
+        "empty": "No add-to-cart events in the last 30 days."
+      }
+    },
+    "actions": {
+      "offer": {
+        "created": "Offer created",
+        "updated": "Offer updated",
+        "deleted": "Offer deleted",
+        "status_changed": "Offer status changed",
+        "salla_sync_failed": "Salla sync failed"
+      }
     }
   },
   "Suggestions": {

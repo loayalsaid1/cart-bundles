@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { and, eq, sql } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
-import { offerStats } from '../../database/entities/activity-logs';
+import { dailyStats, offerStats } from '../../database/entities/activity-logs';
 import { offers } from '../../database/entities/offers';
 import {
   OFFER_STATS_FLUSH_INTERVAL_MS,
@@ -142,6 +142,8 @@ export class OfferStatsService {
       return;
     }
 
+    const today = new Date().toISOString().slice(0, 10);
+
     await this.db
       .insert(offerStats)
       .values({ offerId, merchantId, ...deltas })
@@ -156,12 +158,26 @@ export class OfferStatsService {
         },
       });
 
+    await this.db
+      .insert(dailyStats)
+      .values({ merchantId, date: today, ...deltas })
+      .onConflictDoUpdate({
+        target: [dailyStats.merchantId, dailyStats.date],
+        set: {
+          impressions: sql`${dailyStats.impressions} + ${deltas.impressions}`,
+          clicks: sql`${dailyStats.clicks} + ${deltas.clicks}`,
+          addToCart: sql`${dailyStats.addToCart} + ${deltas.addToCart}`,
+          conversions: sql`${dailyStats.conversions} + ${deltas.conversions}`,
+          updatedAt: new Date(),
+        },
+      });
+
     // CQRS Dual Write: update the Redis read-model key
     const readKey = offerStatsReadHashKey(merchantId, offerId);
     const merchantKey = merchantTotalStatsReadHashKey(merchantId);
     const client = this.redis.getClient();
     const pipeline = client.pipeline();
-    
+
     if (deltas.impressions) {
       pipeline.hincrby(readKey, 'impressions', deltas.impressions);
       pipeline.hincrby(merchantKey, 'impressions', deltas.impressions);

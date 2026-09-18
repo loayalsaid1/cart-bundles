@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { activityLogs, offerStats } from './entities/activity-logs';
+import { activityLogs, dailyStats, offerStats } from './entities/activity-logs';
 import { merchants } from './entities/merchants';
 import { suggestions } from './entities/suggestions';
 import { users } from './entities/users';
@@ -22,6 +22,7 @@ export const merchantsRelations = relations(merchants, ({ many }) => ({
   offers: many(offers),
   activityLogs: many(activityLogs),
   offerStats: many(offerStats),
+  dailyStats: many(dailyStats),
   suggestions: many(suggestions),
 }));
 
@@ -90,6 +91,13 @@ export const offerStatsRelations = relations(offerStats, ({ one }) => ({
   offer: one(offers, {
     fields: [offerStats.offerId],
     references: [offers.id],
+  }),
+}));
+
+export const dailyStatsRelations = relations(dailyStats, ({ one }) => ({
+  merchant: one(merchants, {
+    fields: [dailyStats.merchantId],
+    references: [merchants.merchantId],
   }),
 }));
 

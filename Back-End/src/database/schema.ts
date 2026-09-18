@@ -4,13 +4,11 @@ import { eventLogs } from './entities/event-logs';
 import {
   activityLogs,
   offerStats,
+  dailyStats,
   activityActorTypeEnum,
   activitySeverityEnum,
 } from './entities/activity-logs';
-import {
-  suggestions,
-  suggestionStatusEnum,
-} from './entities/suggestions';
+import { suggestions, suggestionStatusEnum } from './entities/suggestions';
 import {
   offers,
   offerTargets,
@@ -47,6 +45,7 @@ import {
   recommendationOfferSettingsRelations,
   activityLogsRelations,
   offerStatsRelations,
+  dailyStatsRelations,
   suggestionsRelations,
 } from './relations';
 
@@ -56,6 +55,7 @@ export {
   eventLogs,
   activityLogs,
   offerStats,
+  dailyStats,
   activityActorTypeEnum,
   activitySeverityEnum,
   suggestions,
@@ -93,6 +93,7 @@ export {
   recommendationOfferSettingsRelations,
   activityLogsRelations,
   offerStatsRelations,
+  dailyStatsRelations,
   suggestionsRelations,
 };
 
@@ -102,6 +103,7 @@ export const schema = {
   eventLogs,
   activityLogs,
   offerStats,
+  dailyStats,
   suggestions,
   offers,
   offerTargets,
@@ -127,6 +129,7 @@ export const schema = {
   recommendationOfferSettingsRelations,
   activityLogsRelations,
   offerStatsRelations,
+  dailyStatsRelations,
   suggestionsRelations,
 };
 

@@ -29,6 +29,15 @@ export interface ActivityListQuery {
   offerId?: number;
   limit?: number;
   offset?: number;
+  excludeStorefront?: boolean;
+}
+
+export interface DailyStatPoint {
+  date: string;
+  impressions: number;
+  clicks: number;
+  addToCart: number;
+  conversions: number;
 }
 
 export interface MerchantHealthSnapshot {

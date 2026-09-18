@@ -11,7 +11,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useActivityLogs, useMerchantHealth } from "@/hooks/use-merchant-activity";
+import { DailyMetricChart } from "@/components/activity/daily-metric-chart";
+import {
+  useActivityLogs,
+  useDailyStats,
+  useMerchantHealth,
+} from "@/hooks/use-merchant-activity";
 import type { ActivityLog, MerchantHealth } from "@/lib/schemas/activity";
 
 function tokenBadge(status: MerchantHealth["tokenStatus"]) {
@@ -26,10 +31,28 @@ function severityBadge(severity: ActivityLog["severity"]) {
   return "secondary" as const;
 }
 
+const ACTION_LABELS: Record<string, "created" | "updated" | "deleted" | "status_changed" | "salla_sync_failed"> = {
+  "offer.created": "created",
+  "offer.updated": "updated",
+  "offer.deleted": "deleted",
+  "offer.status_changed": "status_changed",
+  "offer.salla_sync_failed": "salla_sync_failed",
+};
+
+function actionLabel(
+  t: ReturnType<typeof useTranslations<"Activity">>,
+  action: string,
+) {
+  const key = ACTION_LABELS[action];
+  return key ? t(`actions.offer.${key}`) : action;
+}
+
 export function MerchantActivityPage() {
   const t = useTranslations("Activity");
   const health = useMerchantHealth();
+  const daily = useDailyStats();
   const logs = useActivityLogs();
+
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">
       <div>
@@ -44,7 +67,9 @@ export function MerchantActivityPage() {
           ))}
         </div>
       ) : health.isError || !health.data ? (
-        <p className="text-sm text-muted-foreground">{t("error")} {health.error.message}</p>
+        <p className="text-sm text-muted-foreground">
+          {t("error")} {health.error?.message}
+        </p>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -52,7 +77,6 @@ export function MerchantActivityPage() {
             <Kpi label={t("kpis.impressions")} value={String(health.data.stats.impressions)} />
             <Kpi label={t("kpis.clicks")} value={String(health.data.stats.clicks)} />
             <Kpi label={t("kpis.addToCart")} value={String(health.data.stats.addToCart)} />
-            {/* <Kpi label={t("kpis.conversions")} value={String(health.data.stats.conversions)} /> */}
           </div>
           <div className="flex flex-wrap items-center gap-3 rounded-lg border p-4 text-sm">
             <span className="text-muted-foreground">{t("connection")}</span>
@@ -69,43 +93,69 @@ export function MerchantActivityPage() {
         </>
       )}
 
-      <div className="rounded-lg border">
-        {logs.isPending ? (
-          <div className="space-y-3 p-4">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Skeleton key={i} className="h-10 w-full" />
-            ))}
-          </div>
-        ) : logs.isError || !logs.data || logs.data.length === 0 ? (
-          <p className="p-10 text-center text-sm text-muted-foreground">{t("empty")}</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("table.time")}</TableHead>
-                <TableHead>{t("table.action")}</TableHead>
-                <TableHead>{t("table.severity")}</TableHead>
-                <TableHead>{t("table.message")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {logs.data.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {new Date(row.createdAt).toLocaleString()}
-                  </TableCell>
-                  <TableCell className="font-medium">{row.action}</TableCell>
-                  <TableCell>
-                    <Badge variant={severityBadge(row.severity)}>{row.severity}</Badge>
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {row.message ?? row.entityType ?? "—"}
-                  </TableCell>
-                </TableRow>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <DailyMetricChart
+          metric="impressions"
+          data={daily.data}
+          isPending={daily.isPending}
+          isError={daily.isError}
+        />
+        <DailyMetricChart
+          metric="clicks"
+          data={daily.data}
+          isPending={daily.isPending}
+          isError={daily.isError}
+        />
+        <DailyMetricChart
+          metric="addToCart"
+          data={daily.data}
+          isPending={daily.isPending}
+          isError={daily.isError}
+        />
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold">{t("ops.title")}</h2>
+        <div className="rounded-lg border">
+          {logs.isPending ? (
+            <div className="space-y-3 p-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full" />
               ))}
-            </TableBody>
-          </Table>
-        )}
+            </div>
+          ) : logs.isError || !logs.data || logs.data.length === 0 ? (
+            <p className="p-10 text-center text-sm text-muted-foreground">{t("empty")}</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("table.time")}</TableHead>
+                  <TableHead>{t("table.action")}</TableHead>
+                  <TableHead>{t("table.severity")}</TableHead>
+                  <TableHead>{t("table.message")}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {logs.data.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {new Date(row.createdAt).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {actionLabel(t, row.action)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={severityBadge(row.severity)}>{row.severity}</Badge>
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {row.message ?? row.entityType ?? "—"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,15 +1,16 @@
 import {
   bigint,
+  date,
   index,
   integer,
   jsonb,
   pgEnum,
   pgTable,
-  serial,
+  primaryKey,
   text,
   timestamp,
   varchar,
-  bigserial
+  bigserial,
 } from 'drizzle-orm/pg-core';
 import { merchants } from './merchants';
 import { offers } from './offers';
@@ -45,7 +46,10 @@ export const activityLogs = pgTable(
     }),
     severity: activitySeverityEnum('severity').notNull().default('info'),
     message: text('message'),
-    metadata: jsonb('metadata').$type<Record<string, unknown>>().notNull().default({}),
+    metadata: jsonb('metadata')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -77,6 +81,31 @@ export const offerStats = pgTable('offer_stats', {
     .$onUpdate(() => new Date()),
 });
 
+export const dailyStats = pgTable(
+  'daily_stats',
+  {
+    merchantId: integer('merchant_id')
+      .notNull()
+      .references(() => merchants.merchantId, { onDelete: 'cascade' }),
+    date: date('date', { mode: 'string' }).notNull(),
+    impressions: bigint('impressions', { mode: 'number' }).notNull().default(0),
+    clicks: bigint('clicks', { mode: 'number' }).notNull().default(0),
+    addToCart: bigint('add_to_cart', { mode: 'number' }).notNull().default(0),
+    conversions: bigint('conversions', { mode: 'number' }).notNull().default(0),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    primaryKey({
+      name: 'daily_stats_pk',
+      columns: [table.merchantId, table.date],
+    }),
+  ],
+);
+
 export type ActivityLog = typeof activityLogs.$inferSelect;
 export type NewActivityLog = typeof activityLogs.$inferInsert;
 export type OfferStat = typeof offerStats.$inferSelect;
+export type DailyStat = typeof dailyStats.$inferSelect;

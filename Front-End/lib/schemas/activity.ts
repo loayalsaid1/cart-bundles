@@ -41,5 +41,14 @@ export const merchantHealthSchema = z.object({
   redisConnected: z.boolean().optional(),
 }).passthrough();
 
+export const dailyStatPointSchema = z.object({
+  date: z.string(),
+  impressions: z.coerce.number(),
+  clicks: z.coerce.number(),
+  addToCart: z.coerce.number(),
+  conversions: z.coerce.number(),
+});
+
 export type ActivityLog = z.infer<typeof activityLogSchema>;
 export type MerchantHealth = z.infer<typeof merchantHealthSchema>;
+export type DailyStatPoint = z.infer<typeof dailyStatPointSchema>;

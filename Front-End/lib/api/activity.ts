@@ -2,8 +2,10 @@ import { z } from 'zod';
 import { http } from '@/lib/http';
 import {
   activityLogSchema,
+  dailyStatPointSchema,
   merchantHealthSchema,
   type ActivityLog,
+  type DailyStatPoint,
   type MerchantHealth,
 } from '@/lib/schemas/activity';
 
@@ -26,4 +28,9 @@ export async function getActivityLogs(filters: {
   const qs = params.toString();
   const data = await http<unknown>(`/activity${qs ? `?${qs}` : ''}`);
   return z.array(activityLogSchema).parse(data);
+}
+
+export async function getDailyStats(): Promise<DailyStatPoint[]> {
+  const data = await http<unknown>('/activity/stats/daily');
+  return z.array(dailyStatPointSchema).parse(data);
 }
