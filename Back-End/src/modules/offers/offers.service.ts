@@ -2,7 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { eq, and, ilike, sql, exists, or, inArray, SQL } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
 import { offerStats } from '../../database/entities/activity-logs';
-import { offers, offerTargets } from '../../database/schema';
+import {
+  offers,
+  offerTargets,
+  upgradeOfferSettings,
+  recommendationOfferSettings,
+} from '../../database/schema';
 import {
   CACHE_TTL_SECONDS,
   dashboardOffersCacheKey,
@@ -251,10 +256,12 @@ export class OffersService {
         expiryDate: offers.expiryDate,
         // Aggregating targets count directly in PostgreSQL
         targetsCount: sql<number>`(
-        SELECT count(*) 
-        FROM ${offerTargets} 
-        WHERE ${offerTargets.offerId} = ${offers.id}
-      )::int`,
+          SELECT (
+            (SELECT count(*) FROM ${offerTargets} WHERE ${offerTargets.offerId} = ${offers.id}) +
+            (SELECT count(*) FROM ${upgradeOfferSettings} WHERE ${upgradeOfferSettings.offerId} = ${offers.id}) +
+            (SELECT count(*) FROM ${recommendationOfferSettings} WHERE ${recommendationOfferSettings.offerId} = ${offers.id} AND ${recommendationOfferSettings.triggerSallaProductId} IS NOT NULL)
+          )
+        )::int`,
         impressions: sql<number>`coalesce((
           SELECT ${offerStats.impressions} FROM ${offerStats}
           WHERE ${offerStats.offerId} = ${offers.id}
