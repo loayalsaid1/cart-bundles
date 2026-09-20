@@ -9,7 +9,11 @@ import {
   Res,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { CurrentUser, IsPublic } from '../../common/decorators';
+import {
+  CurrentUser,
+  IsPublic,
+  requireMerchantId,
+} from '../../common/decorators';
 import { AuthService } from '../auth/auth.service';
 import type { EmbedContext } from '../auth/types/embed-context.interface';
 import { MerchantsService } from '../merchants/merchants.service';
@@ -144,6 +148,6 @@ export class OAuthController {
     merchantId: number;
     userId: number;
   } {
-    return { merchantId: user.merchantId, userId: user.userId };
+    return { merchantId: requireMerchantId(user), userId: user.userId };
   }
 }

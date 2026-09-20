@@ -4,6 +4,7 @@ import {
   index,
   integer,
   jsonb,
+  numeric,
   pgEnum,
   pgTable,
   primaryKey,
@@ -75,6 +76,15 @@ export const offerStats = pgTable('offer_stats', {
   clicks: bigint('clicks', { mode: 'number' }).notNull().default(0),
   addToCart: bigint('add_to_cart', { mode: 'number' }).notNull().default(0),
   conversions: bigint('conversions', { mode: 'number' }).notNull().default(0),
+  revenueGenerated: numeric('revenue_generated', { precision: 14, scale: 2 })
+    .notNull()
+    .default('0'),
+  revenueAttributed: numeric('revenue_attributed', { precision: 14, scale: 2 })
+    .notNull()
+    .default('0'),
+  conversionsAttributed: bigint('conversions_attributed', { mode: 'number' })
+    .notNull()
+    .default(0),
   updatedAt: timestamp('updated_at', { withTimezone: true })
     .notNull()
     .defaultNow()
@@ -92,6 +102,15 @@ export const dailyStats = pgTable(
     clicks: bigint('clicks', { mode: 'number' }).notNull().default(0),
     addToCart: bigint('add_to_cart', { mode: 'number' }).notNull().default(0),
     conversions: bigint('conversions', { mode: 'number' }).notNull().default(0),
+    revenueGenerated: numeric('revenue_generated', { precision: 14, scale: 2 })
+      .notNull()
+      .default('0'),
+    revenueAttributed: numeric('revenue_attributed', { precision: 14, scale: 2 })
+      .notNull()
+      .default('0'),
+    conversionsAttributed: bigint('conversions_attributed', { mode: 'number' })
+      .notNull()
+      .default(0),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .notNull()
       .defaultNow()

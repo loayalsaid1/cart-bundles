@@ -3,7 +3,7 @@
  * Derived from the local JWT issued after Salla token introspection.
  */
 export interface EmbedContext {
-  merchantId: number;
+  merchantId?: number;
   userId: number;
   role?: 'admin' | 'merchant';
 }

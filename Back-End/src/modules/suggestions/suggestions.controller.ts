@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
-import { CurrentUser } from '../../common/decorators';
+import { CurrentUser, requireMerchantId } from '../../common/decorators';
 import type { EmbedContext } from '../auth/types/embed-context.interface';
 import { CreateSuggestionDto } from './dto/create-suggestion.dto';
 import { SuggestionsService } from './suggestions.service';
@@ -15,6 +15,10 @@ export class SuggestionsController {
 
   @Post()
   create(@CurrentUser() user: EmbedContext, @Body() dto: CreateSuggestionDto) {
-    return this.suggestionsService.create(user.merchantId, user.userId, dto);
+    return this.suggestionsService.create(
+      requireMerchantId(user),
+      user.userId,
+      dto,
+    );
   }
 }

@@ -10,7 +10,11 @@ import {
   Query,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CurrentUser, IsPublic } from '../../common/decorators';
+import {
+  CurrentUser,
+  IsPublic,
+  requireMerchantId,
+} from '../../common/decorators';
 import type { EmbedContext } from '../auth/types/embed-context.interface';
 import { MerchantsService } from '../merchants/merchants.service';
 import { ApplyPricingDto } from './dto';
@@ -29,8 +33,9 @@ export class ProductsController {
     @CurrentUser() user: EmbedContext,
     @Query('query') query?: string,
   ): Promise<Product[]> {
-    const accessToken = await this.getOrThrowValidAccessToken(user.merchantId);
-    return this.productsService.getProducts(accessToken, query, user.merchantId);
+    const merchantId = requireMerchantId(user);
+    const accessToken = await this.getOrThrowValidAccessToken(merchantId);
+    return this.productsService.getProducts(accessToken, query, merchantId);
   }
 
   @Get('embed/categories')
@@ -38,12 +43,9 @@ export class ProductsController {
     @CurrentUser() user: EmbedContext,
     @Query('keyword') keyword?: string,
   ): Promise<Category[]> {
-    const accessToken = await this.getOrThrowValidAccessToken(user.merchantId);
-    return this.productsService.getCategories(
-      accessToken,
-      keyword,
-      user.merchantId,
-    );
+    const merchantId = requireMerchantId(user);
+    const accessToken = await this.getOrThrowValidAccessToken(merchantId);
+    return this.productsService.getCategories(accessToken, keyword, merchantId);
   }
 
   @Get('embed/coupons')
@@ -51,8 +53,9 @@ export class ProductsController {
     @CurrentUser() user: EmbedContext,
     @Query('keyword') keyword?: string,
   ): Promise<Coupon[]> {
-    const accessToken = await this.getOrThrowValidAccessToken(user.merchantId);
-    return this.productsService.getCoupons(accessToken, keyword, user.merchantId);
+    const merchantId = requireMerchantId(user);
+    const accessToken = await this.getOrThrowValidAccessToken(merchantId);
+    return this.productsService.getCoupons(accessToken, keyword, merchantId);
   }
 
   @Post('embed/products/discount')
@@ -60,7 +63,8 @@ export class ProductsController {
     @CurrentUser() user: EmbedContext,
     @Body() dto: ApplyPricingDto,
   ): Promise<ApplyPricingResult> {
-    const accessToken = await this.getOrThrowValidAccessToken(user.merchantId);
+    const merchantId = requireMerchantId(user);
+    const accessToken = await this.getOrThrowValidAccessToken(merchantId);
     const result = await this.productsService.applyBulkPricing(
       accessToken,
       dto.toPayload(),
@@ -70,7 +74,7 @@ export class ProductsController {
       throw new BadGatewayException(result.error);
     }
 
-    await this.merchantsService.invalidateCatalogCache(user.merchantId);
+    await this.merchantsService.invalidateCatalogCache(merchantId);
     return result;
   }
 
