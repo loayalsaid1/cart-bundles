@@ -5,6 +5,7 @@ import { Link, usePathname } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAdminLogout, useAdminOverview } from "@/hooks/use-admin";
+import { ApiError } from "@/lib/http";
 import { AdminLoginForm } from "./admin-login-form";
 
 const NAV_ITEMS = [
@@ -20,7 +21,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const overview = useAdminOverview();
   const logout = useAdminLogout();
 
-  if (overview.isError) {
+  if (
+    overview.isError &&
+    overview.error instanceof ApiError &&
+    overview.error.status === 401
+  ) {
     return <AdminLoginForm />;
   }
 
