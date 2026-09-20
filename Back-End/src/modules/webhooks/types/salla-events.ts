@@ -14,6 +14,15 @@ export interface SallaAppAuthorizedEvent extends SallaAppEventBase {
   };
 }
 
+export interface SallaAppUninstalledEvent extends SallaAppEventBase {
+  event: 'app.uninstalled';
+  data: {
+    uninstallation_date?: string;
+    refunded?: boolean;
+    store_type?: string;
+  };
+}
+
 export interface SallaOrderItem {
   id: number;
   name: string;

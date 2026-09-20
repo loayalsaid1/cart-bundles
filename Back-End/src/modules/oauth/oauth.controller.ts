@@ -16,6 +16,7 @@ import {
 } from '../../common/decorators';
 import { AuthService } from '../auth/auth.service';
 import type { EmbedContext } from '../auth/types/embed-context.interface';
+import { MerchantProfileService } from '../merchants/merchant-profile.service';
 import { MerchantsService } from '../merchants/merchants.service';
 import { TokenExchangeDto } from './dto/token-exchange.dto';
 import { OAuthService } from './oauth.service';
@@ -35,6 +36,7 @@ export class OAuthController {
     private readonly oauthService: OAuthService,
     private readonly authService: AuthService,
     private readonly merchantsService: MerchantsService,
+    private readonly merchantProfile: MerchantProfileService,
   ) {}
 
   /** Step 1: redirect the merchant's browser to Salla to authorize the app. */
@@ -106,6 +108,15 @@ export class OAuthController {
       refreshToken: tokenResponse.refresh_token,
       expiresAt,
     });
+
+    try {
+      await this.merchantProfile.refresh(
+        userInfo.merchantId,
+        tokenResponse.access_token,
+      );
+    } catch {
+      // Fail-soft: tokens already persisted so the merchant can retry later.
+    }
 
     const jwtToken = this.authService.createEmbedToken({
       merchantId: userInfo.merchantId,

@@ -17,6 +17,7 @@ import {
   RefreshResult,
   TokenResult,
 } from './interfaces/merchnatToken.interface';
+import type { MerchantProfileFields } from './types/salla-store-info.types';
 
 const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
 
@@ -79,16 +80,35 @@ export class MerchantsService {
           refreshToken: input.refreshToken,
           expiresAt: input.expiresAt,
           isActive: true,
+          uninstalledAt: null,
         },
       });
     await this.invalidateMerchantCache(input.merchantId);
   }
 
-  /** Deactivate a merchant on `app.uninstalled`. */
-  async deactivate(merchantId: number): Promise<void> {
+  async updateProfile(
+    merchantId: number,
+    fields: MerchantProfileFields,
+  ): Promise<void> {
     await this.db
       .update(merchants)
-      .set({ isActive: false })
+      .set({
+        storeName: fields.storeName,
+        storeEmail: fields.storeEmail,
+        storeDomain: fields.storeDomain,
+        avatar: fields.avatar,
+      })
+      .where(eq(merchants.merchantId, merchantId));
+  }
+
+  /** Deactivate a merchant on `app.uninstalled`. */
+  async deactivate(merchantId: number, uninstalledAt?: Date): Promise<void> {
+    await this.db
+      .update(merchants)
+      .set({
+        isActive: false,
+        uninstalledAt: uninstalledAt ?? new Date(),
+      })
       .where(eq(merchants.merchantId, merchantId));
     await this.invalidateMerchantCache(merchantId);
   }

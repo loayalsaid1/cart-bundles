@@ -1,11 +1,29 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ActivityService } from '../logging/activity.service';
 import { OrderConversionService } from '../logging/order-conversion.service';
+import { MerchantProfileService } from '../merchants/merchant-profile.service';
 import { MerchantsService } from '../merchants/merchants.service';
 import {
   SallaAppAuthorizedEvent,
   SallaAppEventBase,
+  SallaAppUninstalledEvent,
   SallaOrderWebhookEvent,
 } from './types/salla-events';
+
+export function parseUninstalledAt(
+  event: SallaAppUninstalledEvent | SallaAppEventBase,
+): Date {
+  const data = (event as SallaAppUninstalledEvent).data;
+  const raw =
+    (data && 'uninstallation_date' in data
+      ? data.uninstallation_date
+      : undefined) ?? event.created_at;
+  if (raw) {
+    const parsed = new Date(raw.replace(' ', 'T'));
+    if (!Number.isNaN(parsed.getTime())) return parsed;
+  }
+  return new Date();
+}
 
 @Injectable()
 export class WebhooksService {
@@ -13,7 +31,9 @@ export class WebhooksService {
 
   constructor(
     private readonly merchantsService: MerchantsService,
+    private readonly merchantProfile: MerchantProfileService,
     private readonly orderConversions: OrderConversionService,
+    private readonly activityService: ActivityService,
   ) {}
 
   /**
@@ -38,7 +58,7 @@ export class WebhooksService {
         this.logger.log(`Recorded Easy Mode app event: ${data.event}`);
         break;
       case 'app.uninstalled':
-        await this.handleAppUninstalled(data);
+        await this.handleAppUninstalled(data as SallaAppUninstalledEvent);
         break;
       case 'product.created':
       case 'product.updated':
@@ -69,13 +89,34 @@ export class WebhooksService {
       merchantId: merchant,
       accessToken: payload.access_token,
       refreshToken: payload.refresh_token,
-      // Salla sends the expiry as a Unix timestamp in seconds
       expiresAt: new Date(payload.expires * 1000),
     });
+
+    try {
+      await this.merchantProfile.refresh(merchant, payload.access_token);
+    } catch (error) {
+      this.logger.warn(
+        `Store-info sync failed for merchant ${merchant}: ${
+          error instanceof Error ? error.message : 'unknown error'
+        }`,
+      );
+      await this.activityService.enqueue({
+        actorType: 'system',
+        action: 'merchant.profile_sync_failed',
+        severity: 'warn',
+        merchantId: merchant,
+        message: 'Failed to sync Salla store profile',
+      });
+    }
   }
 
   /** Deactivate the merchant on uninstall. */
-  private async handleAppUninstalled(data: SallaAppEventBase): Promise<void> {
-    await this.merchantsService.deactivate(data.merchant);
+  private async handleAppUninstalled(
+    data: SallaAppUninstalledEvent,
+  ): Promise<void> {
+    await this.merchantsService.deactivate(
+      data.merchant,
+      parseUninstalledAt(data),
+    );
   }
 }
