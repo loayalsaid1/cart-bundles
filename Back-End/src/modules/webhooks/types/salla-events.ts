@@ -14,7 +14,31 @@ export interface SallaAppAuthorizedEvent extends SallaAppEventBase {
   };
 }
 
+export interface SallaOrderItem {
+  id: number;
+  name: string;
+  sku: string;
+  quantity: number;
+  product?: {
+    id: number;
+    type: string;
+    name: string;
+    sku: string;
+  } | null;
+}
+
+export interface SallaOrderData {
+  id: number;
+  reference_id: number;
+  status: {
+    id: number;
+    name: string;
+    slug: string;
+  };
+  items: SallaOrderItem[];
+}
+
 export interface SallaOrderWebhookEvent extends SallaAppEventBase {
   event: 'order.created' | 'order.updated';
-  data: Record<string, unknown>;
+  data: SallaOrderData;
 }

@@ -1,3 +1,5 @@
+import type { SallaOrderData } from '../../webhooks/types/salla-events';
+
 export const TERMINAL_ORDER_STATUSES = new Set([
   'canceled',
   'cancelled',
@@ -42,38 +44,31 @@ export function conversionLockKey(
   return `lock:conversion:${merchantId}:${orderId}:${offerId}`;
 }
 
-export function extractOrderId(payload: unknown): number | null {
-  if (!payload || typeof payload !== 'object') return null;
-  const data = payload as Record<string, unknown>;
-  const raw = data.id ?? data.order_id;
-  const id = Number(raw);
+// STRCITLY TYPED EXTRACTION FUNCTIONS
+export function extractOrderId(data: SallaOrderData): number | null {
+  if (!data?.id) return null;
+  const id = Number(data.id);
   return Number.isInteger(id) && id > 0 ? id : null;
 }
 
-export function extractProductQuantities(
-  payload: unknown,
-): Map<number, number> {
-  const quantities = new Map<number, number>();
-  if (!payload || typeof payload !== 'object') return quantities;
-  const data = payload as Record<string, unknown>;
-  const items = Array.isArray(data.items)
-    ? data.items
-    : Array.isArray(data.products)
-      ? data.products
-      : [];
+export function extractOrderStatus(data: SallaOrderData): string {
+  if (!data?.status?.slug) return '';
+  return data.status.slug.toLowerCase();
+}
 
-  for (const item of items) {
-    if (!item || typeof item !== 'object') continue;
-    const row = item as Record<string, unknown>;
-    const product =
-      row.product && typeof row.product === 'object'
-        ? (row.product as Record<string, unknown>)
-        : null;
-    const productId = Number(
-      row.product_id ?? row.id ?? product?.id ?? product?.product_id,
-    );
-    const quantity = Number(row.quantity ?? row.qty ?? 1);
+export function extractProductQuantities(data: SallaOrderData): Map<number, number> {
+  const quantities = new Map<number, number>();
+  
+  if (!Array.isArray(data?.items)) return quantities;
+
+  for (const item of data.items) {
+    // Salla wraps the actual product details inside item.product
+    // If the product was deleted from the store, item.product might be null
+    const productId = Number(item.product?.id);
+    const quantity = Number(item.quantity);
+    
     if (!Number.isInteger(productId) || productId <= 0) continue;
+    
     quantities.set(
       productId,
       (quantities.get(productId) ?? 0) +
@@ -81,23 +76,6 @@ export function extractProductQuantities(
     );
   }
   return quantities;
-}
-
-function asStatusSlug(value: unknown): string {
-  if (typeof value === 'string') return value.toLowerCase();
-  if (typeof value === 'number') return String(value);
-  if (value && typeof value === 'object') {
-    const record = value as Record<string, unknown>;
-    if (typeof record.slug === 'string') return record.slug.toLowerCase();
-    if (typeof record.code === 'string') return record.code.toLowerCase();
-  }
-  return '';
-}
-
-export function extractOrderStatus(payload: unknown): string {
-  if (!payload || typeof payload !== 'object') return '';
-  const data = payload as Record<string, unknown>;
-  return asStatusSlug(data.status);
 }
 
 export function matchOffers(

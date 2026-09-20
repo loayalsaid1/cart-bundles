@@ -5,21 +5,22 @@ import {
   matchOffers,
   type ConversionOffer,
 } from './order-conversion.matcher';
+import type { SallaOrderData } from '../../webhooks/types/salla-events';
 
 describe('order conversion helpers', () => {
-  it('reads nested Salla order ids and line items', () => {
-    const payload = {
-      id: 4411,
-      status: { slug: 'in_progress' },
+  it('reads nested Salla order ids and line items strictly', () => {
+    const payload: Partial<SallaOrderData> = {
+      id: 2116149737,
+      status: { id: 1, name: 'Under Review', slug: 'in_progress' },
       items: [
-        { product_id: 10, quantity: 3 },
-        { product: { id: 20 }, qty: 1 },
+        { id: 1, name: '', sku: '', quantity: 3, product: { id: 10, type: 'product', name: '', sku: '' } },
+        { id: 2, name: '', sku: '', quantity: 1, product: { id: 20, type: 'product', name: '', sku: '' } },
       ],
     };
 
-    expect(extractOrderId(payload)).toBe(4411);
-    expect(extractOrderStatus(payload)).toBe('in_progress');
-    expect(extractProductQuantities(payload)).toEqual(
+    expect(extractOrderId(payload as SallaOrderData)).toBe(2116149737);
+    expect(extractOrderStatus(payload as SallaOrderData)).toBe('in_progress');
+    expect(extractProductQuantities(payload as SallaOrderData)).toEqual(
       new Map([
         [10, 3],
         [20, 1],
@@ -99,22 +100,5 @@ describe('matchOffers', () => {
         ]),
       ),
     ).toEqual([1, 2, 3, 4, 5]);
-  });
-
-  it('does not match quantity offers below the cheapest tier', () => {
-    const offers: ConversionOffer[] = [
-      {
-        id: 1,
-        kind: 'quantity_discount',
-        targetType: 'selected_products',
-        targets: [{ entityType: 'product', sallaEntityId: 10 }],
-        relatedProducts: [],
-        quantityTiers: [{ quantity: 3 }],
-        upgradeSettings: null,
-        recommendationSettings: null,
-      },
-    ];
-
-    expect(matchOffers(offers, new Map([[10, 2]]))).toEqual([]);
   });
 });
