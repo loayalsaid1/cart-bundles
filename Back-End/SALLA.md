@@ -18,9 +18,9 @@ so Admin API calls succeed:
 | `specialoffers.read_write` | Sync quantity / addon / bundle offers to Salla |
 | `webhooks.read_write` | Optional: manage webhook subscriptions via API |
 
-Do **not** request `orders.read` unless we later persist order-level
-conversion from Merchant API. Storefront conversion is tracked by our
-own `/storefront/events` ingest, not by polling Salla orders.
+Do **not** request `orders.read`. Order conversions are attributed from
+`order.created` / `order.updated` webhooks (line items), not by polling
+the Merchant API. Subscribe those events in Partners Portal.
 
 ## Required webhooks
 
@@ -53,6 +53,13 @@ Subscribe these so Redis catalog cache does not serve stale products:
 - `category.created`
 - `category.updated`
 - `category.deleted`
+
+### Order events (conversion attribution)
+
+Subscribe these so paid/created orders can increment `offer.conversion`:
+
+- `order.created`
+- `order.updated`
 
 Unknown events are stored and ignored. We never write to Salla endpoints
 we do not already use.

@@ -21,7 +21,7 @@ const BATCH_SIZE = 500;
 
 async function bootstrap() {
   console.log('Starting standalone Daily Stats Backfill script...');
-  
+
   if (!process.env.DATABASE_URL) {
     console.error('Error: DATABASE_URL is missing from environment.');
     process.exit(1);
@@ -33,9 +33,14 @@ async function bootstrap() {
   const db = drizzle(pool);
 
   const days = 30;
-  console.log(`Aggregating data from activity_logs for the past ${days} days...`);
-  console.log('Note: Impressions are NOT stored in activity_logs and will be 0 historically. They are tracked live moving forward.');
+  console.log(
+    `Aggregating data from activity_logs for the past ${days} days...`,
+  );
+  console.log(
+    'Note: Impressions are NOT stored in activity_logs and will be 0 historically. They are tracked live moving forward.',
+  );
 
+  let failed = false;
   try {
     const { start } = getDateWindow(days);
     const trackedActions = Object.keys(STOREFRONT_ACTION_FIELD);
@@ -98,7 +103,9 @@ async function bootstrap() {
       return;
     }
 
-    console.log(`Found ${bucketList.length} merchant-day buckets. Upserting...`);
+    console.log(
+      `Found ${bucketList.length} merchant-day buckets. Upserting...`,
+    );
 
     for (let i = 0; i < bucketList.length; i += BATCH_SIZE) {
       const batch = bucketList.slice(i, i + BATCH_SIZE);
@@ -120,10 +127,11 @@ async function bootstrap() {
     console.log('Backfill complete!');
   } catch (error) {
     console.error('Backfill failed:', error);
+    failed = true;
   } finally {
     await pool.end();
-    process.exit(0);
+    process.exit(failed ? 1 : 0);
   }
 }
 
-bootstrap();
+void bootstrap();

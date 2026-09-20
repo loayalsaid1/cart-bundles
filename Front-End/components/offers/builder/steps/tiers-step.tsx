@@ -16,7 +16,7 @@ const EMPTY_TIER = {
   pricingType: "percentage" as const,
   discountAmount: 10,
   isSelectedByDefault: false,
-  badgeText: "",
+  badgeText: { ar: "", en: "" },
   labelText: "",
 };
 

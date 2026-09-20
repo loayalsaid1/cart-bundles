@@ -187,7 +187,7 @@ export const quantityOfferTiers = pgTable('quantity_offer_tiers', {
   isSelectedByDefault: boolean('is_selected_by_default')
     .notNull()
     .default(false),
-  badgeText: varchar('badge_text', { length: 100 }),
+  badgeText: jsonb('badge_text').$type<Record<string, string>>(),
   labelText: varchar('label_text', { length: 100 }),
 });
 

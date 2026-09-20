@@ -15,9 +15,10 @@ function toLocaleText(title: Record<string, string>): { ar: string; en?: string 
 }
 
 function toOptionalLocaleText(
-  subtitle?: Record<string, string> | null,
+  subtitle?: Record<string, string> | string | null,
 ): { ar?: string; en?: string } | undefined {
   if (!subtitle) return undefined;
+  if (typeof subtitle === 'string') return { ar: subtitle, en: subtitle };
   return { ar: subtitle.ar, en: subtitle.en };
 }
 
@@ -62,7 +63,7 @@ export function fullOfferToQuantityDraft(offer: QuantityOfferFull): QuantityOffe
           pricingType: t.pricingType,
           discountAmount: t.discountAmount,
           isSelectedByDefault: t.isSelectedByDefault,
-          badgeText: t.badgeText ?? undefined,
+          badgeText: toOptionalLocaleText(t.badgeText) ?? { ar: '', en: '' },
           labelText: t.labelText ?? undefined,
         })),
     },
@@ -95,7 +96,7 @@ export const defaultQuantityDraft: QuantityOfferDraft = {
         pricingType: 'percentage',
         discountAmount: 10,
         isSelectedByDefault: true,
-        badgeText: '',
+        badgeText: { ar: '', en: '' },
         labelText: '',
       },
     ],

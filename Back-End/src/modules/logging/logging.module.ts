@@ -14,6 +14,7 @@ import { StorefrontEventsProcessor } from './storefront-events.processor';
 import { MerchantHealthService } from './merchant-health.service';
 import { AdminStatsService } from './admin-stats.service';
 import { DailyStatsService } from './daily-stats.service';
+import { OrderConversionService } from './order-conversion.service';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { DailyStatsService } from './daily-stats.service';
     MerchantHealthService,
     AdminStatsService,
     DailyStatsService,
+    OrderConversionService,
   ],
   exports: [
     ActivityService,
@@ -44,6 +46,7 @@ import { DailyStatsService } from './daily-stats.service';
     MerchantHealthService,
     AdminStatsService,
     DailyStatsService,
+    OrderConversionService,
   ],
 })
 export class LoggingModule {}

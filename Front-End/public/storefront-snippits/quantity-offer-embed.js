@@ -148,7 +148,10 @@ function renderQuantityOfferCard(offer, core) {
     const originalTotal = unitPrice * tier.quantity;
     const savings = Math.max(0, originalTotal - total);
     const tierTitle = tier.mainTitle?.[lang] || tier.mainTitle?.ar || `${tier.quantity} x`;
-    const badgeText = tier.badgeText || "";
+    const badgeText =
+      (typeof tier.badgeText === "string"
+        ? tier.badgeText
+        : tier.badgeText?.[lang] || tier.badgeText?.ar) || "";
     const pricePerPiece = settings.showPricePerPiece ? (total / tier.quantity).toFixed(2) : null;
 
     const tierItem = document.createElement("div");

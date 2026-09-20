@@ -511,6 +511,10 @@
       "addToCart": {
         "title": "Add to cart",
         "empty": "No add-to-cart events in the last 30 days."
+      },
+      "conversions": {
+        "title": "Conversions",
+        "empty": "No conversions in the last 30 days."
       }
     },
     "actions": {
@@ -607,7 +611,19 @@
       "action": "Action",
       "severity": "Severity",
       "message": "Details",
-      "status": "Status"
+      "status": "Status",
+      "offers": "Offers",
+      "created": "Created"
+    },
+    "nav": {
+      "overview": "Overview",
+      "merchants": "Merchants",
+      "activity": "Activity",
+      "suggestions": "Suggestions"
+    },
+    "merchants": {
+      "title": "Merchants",
+      "empty": "No merchants yet."
     }
   }
 }

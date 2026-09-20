@@ -63,6 +63,17 @@ export interface MerchantHealthSnapshot {
   };
 }
 
+export interface AdminMerchantRow {
+  merchantId: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  offerCounts: {
+    total: number;
+    active: number;
+  };
+}
+
 export interface AdminOverview {
   merchants: {
     total: number;

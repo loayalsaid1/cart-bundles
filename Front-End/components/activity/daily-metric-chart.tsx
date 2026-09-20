@@ -18,12 +18,13 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import type { DailyStatPoint } from "@/lib/schemas/activity";
 
-type MetricKey = "impressions" | "clicks" | "addToCart";
+type MetricKey = "impressions" | "clicks" | "addToCart" | "conversions";
 
 const METRIC_COLOR: Record<MetricKey, string> = {
   impressions: "var(--chart-1)",
   clicks: "var(--chart-5)",
   addToCart: "var(--chart-3)",
+  conversions: "var(--chart-2)",
 };
 
 export function DailyMetricChart({

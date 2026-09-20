@@ -1,15 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { OrderConversionService } from '../logging/order-conversion.service';
 import { MerchantsService } from '../merchants/merchants.service';
 import {
   SallaAppAuthorizedEvent,
   SallaAppEventBase,
+  SallaOrderWebhookEvent,
 } from './types/salla-events';
 
 @Injectable()
 export class WebhooksService {
   private readonly logger = new Logger(WebhooksService.name);
 
-  constructor(private readonly merchantsService: MerchantsService) {}
+  constructor(
+    private readonly merchantsService: MerchantsService,
+    private readonly orderConversions: OrderConversionService,
+  ) {}
 
   /**
    * Dispatch an incoming Salla webhook to the matching handler.
@@ -42,6 +47,12 @@ export class WebhooksService {
       case 'category.updated':
       case 'category.deleted':
         await this.merchantsService.invalidateCatalogCache(data.merchant);
+        break;
+      case 'order.created':
+      case 'order.updated':
+        await this.orderConversions.handleOrderEvent(
+          data as SallaOrderWebhookEvent,
+        );
         break;
       default:
         this.logger.warn(`Unhandled event: ${data.event}`);

@@ -26,4 +26,16 @@ export const adminLoginSchema = z.object({
   success: z.boolean(),
 });
 
+export const adminMerchantSchema = z.object({
+  merchantId: z.coerce.number(),
+  isActive: z.boolean(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  offerCounts: z.object({
+    total: z.coerce.number(),
+    active: z.coerce.number(),
+  }),
+});
+
 export type AdminOverview = z.infer<typeof adminOverviewSchema>;
+export type AdminMerchant = z.infer<typeof adminMerchantSchema>;

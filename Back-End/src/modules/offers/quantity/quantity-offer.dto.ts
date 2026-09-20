@@ -38,9 +38,9 @@ export class TierDto {
   @IsOptional()
   isSelectedByDefault?: boolean;
 
-  @IsString()
+  @IsObject()
   @IsOptional()
-  badgeText?: string;
+  badgeText?: Record<string, string>;
 
   @IsString()
   @IsOptional()

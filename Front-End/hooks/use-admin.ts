@@ -6,6 +6,7 @@ import {
   adminLogin,
   adminLogout,
   getAdminActivity,
+  getAdminMerchants,
   getAdminOverview,
   getAdminSuggestions,
   updateAdminSuggestion,
@@ -25,6 +26,14 @@ export function useAdminActivity() {
   return useQuery({
     queryKey: ["admin", "activity"],
     queryFn: () => getAdminActivity({ limit: 50 }),
+    retry: false,
+  });
+}
+
+export function useAdminMerchants() {
+  return useQuery({
+    queryKey: ["admin", "merchants"],
+    queryFn: getAdminMerchants,
     retry: false,
   });
 }

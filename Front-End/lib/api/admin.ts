@@ -1,7 +1,13 @@
 import { z } from 'zod';
 import { http } from '@/lib/http';
 import { activityLogSchema, type ActivityLog } from '@/lib/schemas/activity';
-import { adminLoginSchema, adminOverviewSchema, type AdminOverview } from '@/lib/schemas/admin';
+import {
+  adminLoginSchema,
+  adminMerchantSchema,
+  adminOverviewSchema,
+  type AdminMerchant,
+  type AdminOverview,
+} from '@/lib/schemas/admin';
 import {
   suggestionSchema,
   type Suggestion,
@@ -40,6 +46,11 @@ export async function getAdminActivity(filters: {
   const qs = params.toString();
   const data = await http<unknown>(`/admin/activity${qs ? `?${qs}` : ''}`);
   return z.array(activityLogSchema).parse(data);
+}
+
+export async function getAdminMerchants(): Promise<AdminMerchant[]> {
+  const data = await http<unknown>('/admin/merchants');
+  return z.array(adminMerchantSchema).parse(data);
 }
 
 export async function getAdminSuggestions(status?: SuggestionStatus): Promise<Suggestion[]> {

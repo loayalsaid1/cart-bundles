@@ -61,8 +61,8 @@ export function MerchantActivityPage() {
       </div>
 
       {health.isPending ? (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+          {Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className="h-20 w-full" />
           ))}
         </div>
@@ -72,11 +72,12 @@ export function MerchantActivityPage() {
         </p>
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
             <Kpi label={t("kpis.activeOffers")} value={String(health.data.offerCounts.active)} />
             <Kpi label={t("kpis.impressions")} value={String(health.data.stats.impressions)} />
             <Kpi label={t("kpis.clicks")} value={String(health.data.stats.clicks)} />
             <Kpi label={t("kpis.addToCart")} value={String(health.data.stats.addToCart)} />
+            <Kpi label={t("kpis.conversions")} value={String(health.data.stats.conversions)} />
           </div>
           <div className="flex flex-wrap items-center gap-3 rounded-lg border p-4 text-sm">
             <span className="text-muted-foreground">{t("connection")}</span>
@@ -93,7 +94,7 @@ export function MerchantActivityPage() {
         </>
       )}
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <DailyMetricChart
           metric="impressions"
           data={daily.data}
@@ -108,6 +109,12 @@ export function MerchantActivityPage() {
         />
         <DailyMetricChart
           metric="addToCart"
+          data={daily.data}
+          isPending={daily.isPending}
+          isError={daily.isError}
+        />
+        <DailyMetricChart
+          metric="conversions"
           data={daily.data}
           isPending={daily.isPending}
           isError={daily.isError}

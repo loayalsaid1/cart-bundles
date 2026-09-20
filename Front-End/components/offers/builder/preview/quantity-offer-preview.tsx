@@ -163,12 +163,12 @@ export function QuantityOfferPreview({
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {tier.badgeText && (
+                      {(tier.badgeText?.[lang] || tier.badgeText?.ar) && (
                         <span
                           className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
                           style={{ backgroundColor: colors.badgeBg, color: colors.badgeText }}
                         >
-                          {tier.badgeText}
+                          {tier.badgeText?.[lang] || tier.badgeText?.ar}
                         </span>
                       )}
                       {savings > 0 && (

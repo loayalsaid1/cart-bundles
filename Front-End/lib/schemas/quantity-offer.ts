@@ -24,7 +24,12 @@ export const quantityTierDraftSchema = z
     pricingType: pricingTypeSchema,
     discountAmount: z.number().positive(),
     isSelectedByDefault: z.boolean().optional(),
-    badgeText: z.string().optional(),
+    badgeText: z
+      .object({
+        ar: z.string().optional(),
+        en: z.string().optional(),
+      })
+      .optional(),
     labelText: z.string().optional(),
   })
   .superRefine((tier, ctx) => {
@@ -66,7 +71,10 @@ const quantityTierFullSchema = z.object({
   pricingType: pricingTypeSchema,
   discountAmount: z.coerce.number(),
   isSelectedByDefault: z.boolean(),
-  badgeText: z.string().nullable().optional(),
+  badgeText: z
+    .union([z.string(), z.record(z.string(), z.string())])
+    .nullable()
+    .optional(),
   labelText: z.string().nullable().optional(),
 });
 

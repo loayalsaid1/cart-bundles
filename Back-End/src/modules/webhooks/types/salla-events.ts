@@ -13,3 +13,8 @@ export interface SallaAppAuthorizedEvent extends SallaAppEventBase {
     expires: number;
   };
 }
+
+export interface SallaOrderWebhookEvent extends SallaAppEventBase {
+  event: 'order.created' | 'order.updated';
+  data: Record<string, unknown>;
+}

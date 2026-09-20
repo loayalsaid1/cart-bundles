@@ -18,6 +18,11 @@ export class AdminActivityController {
     return this.adminStatsService.getAdminOverview();
   }
 
+  @Get('merchants')
+  async merchants() {
+    return this.adminStatsService.listMerchants();
+  }
+
   @Get('activity')
   async list(
     @Query('merchantId', new ParseIntPipe({ optional: true }))
@@ -36,4 +41,3 @@ export class AdminActivityController {
     });
   }
 }
-

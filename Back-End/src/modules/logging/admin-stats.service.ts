@@ -6,7 +6,7 @@ import { activityLogs } from '../../database/entities/activity-logs';
 import { merchants } from '../../database/entities/merchants';
 import { offers } from '../../database/entities/offers';
 import { RedisService } from '../../redis/redis.service';
-import type { AdminOverview } from './types/activity.types';
+import type { AdminMerchantRow, AdminOverview } from './types/activity.types';
 
 const ADMIN_OVERVIEW_CACHE_KEY = 'admin:overview';
 const ADMIN_OVERVIEW_TTL_SECONDS = 60;
@@ -25,7 +25,9 @@ export class AdminStatsService {
   }
 
   async getAdminOverview(): Promise<AdminOverview> {
-    const cached = await this.redis.get<AdminOverview>(ADMIN_OVERVIEW_CACHE_KEY);
+    const cached = await this.redis.get<AdminOverview>(
+      ADMIN_OVERVIEW_CACHE_KEY,
+    );
     if (cached) return cached;
 
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -82,7 +84,43 @@ export class AdminStatsService {
       recentErrors,
     };
 
-    await this.redis.set(ADMIN_OVERVIEW_CACHE_KEY, overview, ADMIN_OVERVIEW_TTL_SECONDS);
+    await this.redis.set(
+      ADMIN_OVERVIEW_CACHE_KEY,
+      overview,
+      ADMIN_OVERVIEW_TTL_SECONDS,
+    );
     return overview;
+  }
+
+  async listMerchants(): Promise<AdminMerchantRow[]> {
+    const rows = await this.db
+      .select({
+        merchantId: merchants.merchantId,
+        isActive: merchants.isActive,
+        createdAt: merchants.createdAt,
+        updatedAt: merchants.updatedAt,
+        offerTotal: sql<number>`coalesce((
+          select count(*)::int from ${offers}
+          where ${offers.merchantId} = ${merchants.merchantId}
+        ), 0)`,
+        offerActive: sql<number>`coalesce((
+          select count(*)::int from ${offers}
+          where ${offers.merchantId} = ${merchants.merchantId}
+            and ${offers.status} = 'active'
+        ), 0)`,
+      })
+      .from(merchants)
+      .orderBy(desc(merchants.createdAt));
+
+    return rows.map((row) => ({
+      merchantId: row.merchantId,
+      isActive: row.isActive,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      offerCounts: {
+        total: row.offerTotal,
+        active: row.offerActive,
+      },
+    }));
   }
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useTranslations } from "next-intl";
 import { Skeleton } from "@/components/ui/skeleton";
 
 /** Shared shell: title + bordered body with loading/empty/data states. */
@@ -20,7 +19,6 @@ export function AdminSection({
   skeletonRows: number;
   children: ReactNode;
 }) {
-  const t = useTranslations("Admin");
   return (
     <section className="space-y-3">
       <h2 className="text-lg font-semibold">{title}</h2>
