@@ -576,9 +576,32 @@
     "kpis": {
       "merchants": "التجار",
       "activeMerchants": "التجار النشطون",
+      "zeroOffers": "تجار بدون عروض",
       "offers": "العروض",
       "webhooks": "الإشعارات (24س)",
       "redis": "ريديس"
+    },
+    "health": {
+      "operational": "جميع الأنظمة الأساسية تعمل بكفاءة",
+      "operationalSub": "جميع الأحداث ومعالجة البيانات تعمل بسلاسة.",
+      "degraded": "تنبيه: يتطلب النظام المتابعة",
+      "degradedSub": "تم تسجيل {count} أخطاء خلال الـ 24 ساعة الماضية.",
+      "badgeHealthy": "سليم",
+      "badgeDegraded": "منخفض"
+    },
+    "charts": {
+      "activityTrend": "اتجاه نشاط المنصة (الظهور مقابل التحويلات)",
+      "offerTypes": "العروض النشطة حسب النوع",
+      "emptyActivity": "لم يتم تسجيل أي نشاط للمنصة بعد.",
+      "emptyOffers": "لا توجد عروض نشطة بعد.",
+      "impressions": "الظهور",
+      "conversions": "التحويلات"
+    },
+    "quickActions": {
+      "title": "إجراءات سريعة",
+      "merchants": "إدارة التجار",
+      "suggestions": "مراجعة الاقتراحات",
+      "activity": "سجلات الأحداث"
     },
     "errors": {
       "title": "الأخطاء الأخيرة",

@@ -79,12 +79,23 @@ export interface AdminOverview {
     total: number;
     active: number;
     inactive: number;
+    zeroOffersCount: number;
   };
   offers: {
     total: number;
     active: number;
+    kindBreakdown: Record<string, number>;
   };
   webhooksLast24h: number;
+  systemHealth: {
+    status: 'healthy' | 'degraded';
+    errorCount24h: number;
+  };
+  dailyPerformance: Array<{
+    date: string;
+    impressions: number;
+    conversions: number;
+  }>;
   recentErrors: Array<{
     id: number;
     merchantId: number | null;

@@ -576,9 +576,32 @@
     "kpis": {
       "merchants": "Merchants",
       "activeMerchants": "Active merchants",
+      "zeroOffers": "Merchants w/o offers",
       "offers": "Offers",
       "webhooks": "Webhooks (24h)",
       "redis": "Redis"
+    },
+    "health": {
+      "operational": "All Core Systems Operational",
+      "operationalSub": "All merchant queues and webhook events are processing smoothly.",
+      "degraded": "System Attention Needed",
+      "degradedSub": "{count} error logs recorded in the last 24 hours.",
+      "badgeHealthy": "Healthy",
+      "badgeDegraded": "Degraded"
+    },
+    "charts": {
+      "activityTrend": "Platform Activity Trend (Impressions vs Conversions)",
+      "offerTypes": "Active Offers by Type",
+      "emptyActivity": "No platform activity recorded yet.",
+      "emptyOffers": "No active offers found yet.",
+      "impressions": "Impressions",
+      "conversions": "Conversions"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "merchants": "Manage Merchants",
+      "suggestions": "Review Suggestions",
+      "activity": "System Event Logs"
     },
     "errors": {
       "title": "Recent errors",
