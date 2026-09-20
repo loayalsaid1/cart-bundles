@@ -14,10 +14,13 @@ import {
   type SuggestionStatus,
 } from '@/lib/schemas/suggestions';
 
-export async function adminLogin(password: string): Promise<{ success: boolean }> {
+export async function adminLogin(input: {
+  email: string;
+  password: string;
+}): Promise<{ success: boolean }> {
   const data = await http<unknown>('/admin/login', {
     method: 'POST',
-    body: JSON.stringify({ password }),
+    body: JSON.stringify(input),
   });
   return adminLoginSchema.parse(data);
 }

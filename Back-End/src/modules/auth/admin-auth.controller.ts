@@ -7,11 +7,11 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import type { Response, Request } from 'express';
 import { IsPublic, RateLimit } from '../../common/decorators';
 import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
 import { ActivityService } from '../logging/activity.service';
+import { AdminAuthService } from './admin-auth.service';
 import { AuthService } from './auth.service';
 import { AdminLoginDto } from './dto/admin-login.dto';
 
@@ -20,7 +20,7 @@ import { AdminLoginDto } from './dto/admin-login.dto';
 export class AdminAuthController {
   constructor(
     private readonly authService: AuthService,
-    private readonly configService: ConfigService,
+    private readonly adminAuthService: AdminAuthService,
     private readonly activityService: ActivityService,
   ) {}
 
@@ -32,8 +32,26 @@ export class AdminAuthController {
     @Res({ passthrough: true }) res: Response,
     @Req() req: Request,
   ): Promise<{ success: boolean }> {
-    const expected = this.configService.get<string>('ADMIN_PASSWORD');
-    if (!expected || dto.password !== expected) {
+    try {
+      const { userId } = await this.adminAuthService.login(
+        dto.email,
+        dto.password,
+      );
+      const token = this.authService.createEmbedToken({
+        userId,
+        role: 'admin',
+      });
+
+      res.cookie('adminToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        path: '/',
+        maxAge: 12 * 60 * 60 * 1000,
+      });
+
+      return { success: true };
+    } catch {
       const ip = req.ip ?? req.socket.remoteAddress ?? 'unknown';
       await this.activityService.enqueue({
         merchantId: null,
@@ -43,24 +61,8 @@ export class AdminAuthController {
         message: 'Admin login failed',
         metadata: { ip, attempt: 'failed' },
       });
-      throw new UnauthorizedException('Invalid admin password');
+      throw new UnauthorizedException('Invalid admin credentials');
     }
-
-    const token = this.authService.createEmbedToken({
-      merchantId: 0,
-      userId: 0,
-      role: 'admin',
-    });
-
-    res.cookie('adminToken', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 12 * 60 * 60 * 1000,
-    });
-
-    return { success: true };
   }
 
   @Post('logout')

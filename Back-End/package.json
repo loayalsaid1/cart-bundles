@@ -21,7 +21,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
-    "db:backfill-daily-stats": "ts-node --transpile-only scripts/run-backfill.ts"
+    "db:backfill-daily-stats": "ts-node --transpile-only scripts/run-backfill.ts",
+    "db:seed-admin": "ts-node --transpile-only scripts/seed-admin.ts"
   },
   "dependencies": {
     "@nestjs/bullmq": "^12.0.0",

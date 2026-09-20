@@ -10,6 +10,7 @@ import { useAdminLogin } from "@/hooks/use-admin";
 export function AdminLoginForm() {
   const t = useTranslations("Admin");
   const login = useAdminLogin();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   return (
@@ -18,7 +19,7 @@ export function AdminLoginForm() {
         className="w-full max-w-md space-y-6 rounded-2xl border bg-card p-8 shadow-sm"
         onSubmit={(e) => {
           e.preventDefault();
-          login.mutate(password);
+          login.mutate({ email, password });
         }}
       >
         <div className="space-y-2 text-center">
@@ -26,6 +27,16 @@ export function AdminLoginForm() {
             {t("login.title")}
           </h1>
           <p className="text-sm text-muted-foreground">{t("login.subtitle")}</p>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="admin-email">{t("login.email")}</Label>
+          <Input
+            id="admin-email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="username"
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="admin-password">{t("login.password")}</Label>
@@ -40,7 +51,7 @@ export function AdminLoginForm() {
         <Button
           type="submit"
           className="w-full"
-          disabled={!password || login.isPending}
+          disabled={!email || !password || login.isPending}
         >
           {login.isPending ? t("login.submitting") : t("login.submit")}
         </Button>

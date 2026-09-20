@@ -566,12 +566,13 @@
     "disconnected": "Disconnected",
     "login": {
       "title": "Admin login",
-      "subtitle": "Enter the admin password to continue.",
+      "subtitle": "Enter your admin email and password.",
+      "email": "Email",
       "password": "Password",
       "submit": "Sign in",
       "submitting": "Signing in...",
       "success": "Signed in.",
-      "failed": "Invalid password."
+      "failed": "Invalid email or password."
     },
     "kpis": {
       "merchants": "Merchants",
