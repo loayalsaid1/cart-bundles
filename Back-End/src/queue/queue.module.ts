@@ -1,7 +1,8 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
-import { DEFAULT_JOB_OPTIONS } from './queue.constants';
+import { DEFAULT_JOB_OPTIONS, QUEUES } from './queue.constants';
+import { QueueHealthService } from './queue-health.service';
 
 @Global()
 @Module({
@@ -13,7 +14,13 @@ import { DEFAULT_JOB_OPTIONS } from './queue.constants';
         defaultJobOptions: DEFAULT_JOB_OPTIONS,
       }),
     }),
+    BullModule.registerQueue(
+      { name: QUEUES.WEBHOOKS },
+      { name: QUEUES.ACTIVITY },
+      { name: QUEUES.STOREFRONT },
+    ),
   ],
-  exports: [BullModule],
+  providers: [QueueHealthService],
+  exports: [BullModule, QueueHealthService],
 })
 export class QueueModule {}

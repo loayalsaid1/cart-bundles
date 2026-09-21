@@ -6,6 +6,7 @@ import {
   adminLogin,
   adminLogout,
   getAdminActivity,
+  getAdminMerchantDetail,
   getAdminMerchants,
   getAdminOverview,
   getAdminSuggestions,
@@ -34,6 +35,15 @@ export function useAdminMerchants() {
   return useQuery({
     queryKey: ["admin", "merchants"],
     queryFn: getAdminMerchants,
+    retry: false,
+  });
+}
+
+export function useAdminMerchantDetail(merchantId: number | null) {
+  return useQuery({
+    queryKey: ["admin", "merchant", merchantId],
+    queryFn: () => getAdminMerchantDetail(merchantId!),
+    enabled: merchantId !== null,
     retry: false,
   });
 }

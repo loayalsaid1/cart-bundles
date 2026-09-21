@@ -1,21 +1,26 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useAdminOverview } from "@/hooks/use-admin";
 import { KpiGrid, KpiSkeleton } from "./admin-kpi";
-import { AdminErrorsTable } from "./admin-tables";
+import { AdminErrorsTable, AdminTopMerchantsTable } from "./admin-tables";
 import { AdminHealthBanner } from "./admin-health-banner";
 import { AdminOverviewCharts } from "./admin-overview-charts";
 import { AdminQuickActions } from "./admin-quick-actions";
+import { AdminMerchantModal } from "./admin-merchant-modal";
 
 export function AdminOverviewPage() {
-  const t = useTranslations("Admin");
+  const t = useTranslations("Admin") as any;
   const overview = useAdminOverview();
+  const [selectedMerchantId, setSelectedMerchantId] = useState<number | null>(null);
 
   const data = overview.data;
-  const activeMerchantRatio =
-    data && data.merchants.total > 0
-      ? Math.round((data.merchants.active / data.merchants.total) * 100)
+  const failedJobsCount =
+    data && data.queueHealth
+      ? data.queueHealth.webhooksFailed +
+        data.queueHealth.activityFailed +
+        data.queueHealth.storefrontFailed
       : 0;
 
   return (
@@ -29,6 +34,7 @@ export function AdminOverviewPage() {
         <AdminHealthBanner
           status={data.systemHealth?.status ?? "healthy"}
           errorCount24h={data.systemHealth?.errorCount24h ?? 0}
+          failedJobs={failedJobsCount}
         />
       )}
 
@@ -39,26 +45,37 @@ export function AdminOverviewPage() {
           columns={5}
           items={[
             {
-              label: t("kpis.merchants"),
-              value: String(data.merchants.total),
+              label: t("kpis.revenue"),
+              value: `SAR ${Number(data.revenueAttributed ?? "0").toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}`,
             },
             {
               label: t("kpis.activeMerchants"),
-              value: `${data.merchants.active} (${activeMerchantRatio}%)`,
+              value: `${data.merchants.active} / ${data.merchants.total}`,
             },
             {
-              label: t("kpis.zeroOffers"),
-              value: String(data.merchants.zeroOffersCount ?? 0),
+              label: t("kpis.conversions"),
+              value: (data.conversions ?? 0).toLocaleString(),
+            },
+            {
+              label: t("kpis.failedJobs"),
+              value: String(failedJobsCount),
             },
             {
               label: t("kpis.offers"),
               value: `${data.offers.active} / ${data.offers.total}`,
             },
-            {
-              label: t("kpis.webhooks"),
-              value: String(data.webhooksLast24h),
-            },
           ]}
+        />
+      )}
+
+      {data && (
+        <AdminTopMerchantsTable
+          rows={data.topMerchants ?? []}
+          isPending={overview.isPending}
+          onSelectMerchant={(id) => setSelectedMerchantId(id)}
         />
       )}
 
@@ -74,6 +91,11 @@ export function AdminOverviewPage() {
       <AdminErrorsTable
         rows={overview.data?.recentErrors ?? []}
         isPending={overview.isPending || !overview.data}
+      />
+
+      <AdminMerchantModal
+        merchantId={selectedMerchantId}
+        onClose={() => setSelectedMerchantId(null)}
       />
     </div>
   );

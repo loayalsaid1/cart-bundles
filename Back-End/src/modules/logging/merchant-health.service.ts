@@ -126,6 +126,9 @@ export class MerchantHealthService {
       clicks: Number(raw.clicks ?? 0),
       addToCart: Number(raw.addToCart ?? 0),
       conversions: Number(raw.conversions ?? 0),
+      conversionsAttributed: Number(raw.conversionsAttributed ?? 0),
+      revenueGenerated: Number(raw.revenueGenerated ?? 0),
+      revenueAttributed: Number(raw.revenueAttributed ?? 0),
     };
   }
 }

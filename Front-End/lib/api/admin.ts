@@ -3,9 +3,11 @@ import { http } from '@/lib/http';
 import { activityLogSchema, type ActivityLog } from '@/lib/schemas/activity';
 import {
   adminLoginSchema,
+  adminMerchantDetailSchema,
   adminMerchantSchema,
   adminOverviewSchema,
   type AdminMerchant,
+  type AdminMerchantDetail,
   type AdminOverview,
 } from '@/lib/schemas/admin';
 import {
@@ -54,6 +56,13 @@ export async function getAdminActivity(filters: {
 export async function getAdminMerchants(): Promise<AdminMerchant[]> {
   const data = await http<unknown>('/admin/merchants');
   return z.array(adminMerchantSchema).parse(data);
+}
+
+export async function getAdminMerchantDetail(
+  merchantId: number,
+): Promise<AdminMerchantDetail> {
+  const data = await http<unknown>(`/admin/merchants/${merchantId}`);
+  return adminMerchantDetailSchema.parse(data);
 }
 
 export async function getAdminSuggestions(status?: SuggestionStatus): Promise<Suggestion[]> {

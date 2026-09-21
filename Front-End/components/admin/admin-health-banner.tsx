@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 interface AdminHealthBannerProps {
   status: "healthy" | "degraded";
   errorCount24h: number;
+  failedJobs?: number;
 }
 
 export function AdminHealthBanner({

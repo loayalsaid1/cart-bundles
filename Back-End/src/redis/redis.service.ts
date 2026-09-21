@@ -106,6 +106,10 @@ export class RedisService implements OnModuleDestroy {
     await this.client.hincrby(key, field, amount);
   }
 
+  async hIncrByFloat(key: string, field: string, amount: number): Promise<void> {
+    await this.client.hincrbyfloat(key, field, amount);
+  }
+
   async hGetAll(key: string): Promise<Record<string, string>> {
     return this.client.hgetall(key);
   }

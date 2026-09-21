@@ -575,8 +575,11 @@
       "failed": "البريد الإلكتروني أو كلمة المرور غير صحيحة."
     },
     "kpis": {
+      "revenue": "الإيرادات المحققة",
       "merchants": "التجار",
       "activeMerchants": "التجار النشطون",
+      "conversions": "التحويلات",
+      "failedJobs": "المهام الفاشلة",
       "zeroOffers": "تجار بدون عروض",
       "offers": "العروض",
       "webhooks": "الإشعارات (24س)",
@@ -589,6 +592,12 @@
       "degradedSub": "تم تسجيل {count} أخطاء خلال الـ 24 ساعة الماضية.",
       "badgeHealthy": "سليم",
       "badgeDegraded": "منخفض"
+    },
+    "topMerchants": {
+      "title": "أفضل التجار حسب الأداء",
+      "empty": "لم يتم تسجيل تحويلات لأي متجر بعد.",
+      "conversions": "التحويلات",
+      "revenueAttributed": "الإيرادات المنسوبة"
     },
     "charts": {
       "activityTrend": "اتجاه نشاط المنصة (الظهور مقابل التحويلات)",
@@ -647,7 +656,35 @@
     },
     "merchants": {
       "title": "التجار",
-      "empty": "لا يوجد تجار بعد."
+      "activeTitle": "التجار النشطون",
+      "churnedTitle": "التجار غير المفعّلين / المحذوفون",
+      "empty": "لا يوجد تجار نشطون بعد.",
+      "churnedEmpty": "لا يوجد تجار محذوفون.",
+      "unnamed": "متجر بدون اسم",
+      "email": "البريد الإلكتروني",
+      "uninstalledAt": "تاريخ إلغاء التثبيت"
+    },
+    "modal": {
+      "title": "تفاصيل المتجر",
+      "subtitle": "الملف التعريفي، حالة الاتصال، وإحصائيات الأداء.",
+      "email": "البريد الإلكتروني",
+      "domain": "النطاق",
+      "status": "الحالة",
+      "tokenStatus": "حالة الرمز",
+      "lastWebhook": "آخر إشعار",
+      "offers": "العروض",
+      "activeOffers": "نشط",
+      "totalOffers": "الإجمالي",
+      "churned": "ملغى التثبيت",
+      "statsTitle": "إحصائيات الأداء",
+      "impressions": "الظهور",
+      "clicks": "النقر",
+      "addToCart": "إضافة للسلة",
+      "conversions": "التحويلات",
+      "attributed": "منسوبة",
+      "revenueGenerated": "إجمالي الإيرادات المولّدة",
+      "revenueAttributed": "الإيرادات المنسوبة للأداة",
+      "close": "إغلاق"
     }
   }
 }

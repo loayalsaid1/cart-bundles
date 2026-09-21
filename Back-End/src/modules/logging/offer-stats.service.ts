@@ -24,18 +24,11 @@ interface StatDeltas {
   clicks: number;
   addToCart: number;
   conversions: number;
+  conversionsAttributed: number;
+  revenueGenerated: number;
+  revenueAttributed: number;
 }
 
-/**
- * Soft-CQRS counter path: storefront events increment per-offer hashes in
- * Redis, and a single periodic worker flushes them into `offer_stats` with one
- * atomic upsert per offer. This keeps the public ingest path off the DB.
- *
- * A hash is renamed to a `:flushing:` key (with a TTL) before being written.
- * If the process dies mid-flush the leftover key is re-applied on the next
- * run, so counters are never silently lost (a rare double count is the
- * accepted trade-off for a soft analytics counter).
- */
 @Injectable()
 export class OfferStatsService {
   private readonly logger = new Logger(OfferStatsService.name);
@@ -53,8 +46,28 @@ export class OfferStatsService {
     merchantId: number,
     offerId: number,
     field: OfferStatField,
+    amount = 1,
   ): Promise<void> {
-    await this.redis.hIncrBy(offerStatsHashKey(merchantId, offerId), field, 1);
+    await this.redis.hIncrBy(
+      offerStatsHashKey(merchantId, offerId),
+      field,
+      amount,
+    );
+  }
+
+  async bufferRevenue(
+    merchantId: number,
+    offerId: number,
+    generated: number,
+    attributed: number,
+  ): Promise<void> {
+    const key = offerStatsHashKey(merchantId, offerId);
+    if (generated > 0) {
+      await this.redis.hIncrByFloat(key, 'revenueGenerated', generated);
+    }
+    if (attributed > 0) {
+      await this.redis.hIncrByFloat(key, 'revenueAttributed', attributed);
+    }
   }
 
   /** Cheap ownership check used before writing audit rows for storefront events. */
@@ -120,12 +133,18 @@ export class OfferStatsService {
       clicks: Number(raw.clicks ?? 0),
       addToCart: Number(raw.addToCart ?? 0),
       conversions: Number(raw.conversions ?? 0),
+      conversionsAttributed: Number(raw.conversionsAttributed ?? 0),
+      revenueGenerated: Number(raw.revenueGenerated ?? 0),
+      revenueAttributed: Number(raw.revenueAttributed ?? 0),
     };
     const total =
       deltas.impressions +
       deltas.clicks +
       deltas.addToCart +
-      deltas.conversions;
+      deltas.conversions +
+      deltas.conversionsAttributed +
+      deltas.revenueGenerated +
+      deltas.revenueAttributed;
     return total > 0 ? deltas : null;
   }
 
@@ -146,7 +165,17 @@ export class OfferStatsService {
 
     await this.db
       .insert(offerStats)
-      .values({ offerId, merchantId, ...deltas })
+      .values({
+        offerId,
+        merchantId,
+        impressions: deltas.impressions,
+        clicks: deltas.clicks,
+        addToCart: deltas.addToCart,
+        conversions: deltas.conversions,
+        conversionsAttributed: deltas.conversionsAttributed,
+        revenueGenerated: String(deltas.revenueGenerated),
+        revenueAttributed: String(deltas.revenueAttributed),
+      })
       .onConflictDoUpdate({
         target: [offerStats.offerId],
         set: {
@@ -154,13 +183,26 @@ export class OfferStatsService {
           clicks: sql`${offerStats.clicks} + ${deltas.clicks}`,
           addToCart: sql`${offerStats.addToCart} + ${deltas.addToCart}`,
           conversions: sql`${offerStats.conversions} + ${deltas.conversions}`,
+          conversionsAttributed: sql`${offerStats.conversionsAttributed} + ${deltas.conversionsAttributed}`,
+          revenueGenerated: sql`${offerStats.revenueGenerated} + ${deltas.revenueGenerated}`,
+          revenueAttributed: sql`${offerStats.revenueAttributed} + ${deltas.revenueAttributed}`,
           updatedAt: new Date(),
         },
       });
 
     await this.db
       .insert(dailyStats)
-      .values({ merchantId, date: today, ...deltas })
+      .values({
+        merchantId,
+        date: today,
+        impressions: deltas.impressions,
+        clicks: deltas.clicks,
+        addToCart: deltas.addToCart,
+        conversions: deltas.conversions,
+        conversionsAttributed: deltas.conversionsAttributed,
+        revenueGenerated: String(deltas.revenueGenerated),
+        revenueAttributed: String(deltas.revenueAttributed),
+      })
       .onConflictDoUpdate({
         target: [dailyStats.merchantId, dailyStats.date],
         set: {
@@ -168,6 +210,9 @@ export class OfferStatsService {
           clicks: sql`${dailyStats.clicks} + ${deltas.clicks}`,
           addToCart: sql`${dailyStats.addToCart} + ${deltas.addToCart}`,
           conversions: sql`${dailyStats.conversions} + ${deltas.conversions}`,
+          conversionsAttributed: sql`${dailyStats.conversionsAttributed} + ${deltas.conversionsAttributed}`,
+          revenueGenerated: sql`${dailyStats.revenueGenerated} + ${deltas.revenueGenerated}`,
+          revenueAttributed: sql`${dailyStats.revenueAttributed} + ${deltas.revenueAttributed}`,
           updatedAt: new Date(),
         },
       });
@@ -193,6 +238,42 @@ export class OfferStatsService {
     if (deltas.conversions) {
       pipeline.hincrby(readKey, 'conversions', deltas.conversions);
       pipeline.hincrby(merchantKey, 'conversions', deltas.conversions);
+    }
+    if (deltas.conversionsAttributed) {
+      pipeline.hincrby(
+        readKey,
+        'conversionsAttributed',
+        deltas.conversionsAttributed,
+      );
+      pipeline.hincrby(
+        merchantKey,
+        'conversionsAttributed',
+        deltas.conversionsAttributed,
+      );
+    }
+    if (deltas.revenueGenerated) {
+      pipeline.hincrbyfloat(
+        readKey,
+        'revenueGenerated',
+        deltas.revenueGenerated,
+      );
+      pipeline.hincrbyfloat(
+        merchantKey,
+        'revenueGenerated',
+        deltas.revenueGenerated,
+      );
+    }
+    if (deltas.revenueAttributed) {
+      pipeline.hincrbyfloat(
+        readKey,
+        'revenueAttributed',
+        deltas.revenueAttributed,
+      );
+      pipeline.hincrbyfloat(
+        merchantKey,
+        'revenueAttributed',
+        deltas.revenueAttributed,
+      );
     }
     await pipeline.exec();
   }

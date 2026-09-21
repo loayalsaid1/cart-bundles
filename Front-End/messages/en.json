@@ -575,8 +575,11 @@
       "failed": "Invalid email or password."
     },
     "kpis": {
+      "revenue": "Attributed Revenue",
       "merchants": "Merchants",
-      "activeMerchants": "Active merchants",
+      "activeMerchants": "Active Merchants",
+      "conversions": "Conversions",
+      "failedJobs": "Failed Jobs",
       "zeroOffers": "Merchants w/o offers",
       "offers": "Offers",
       "webhooks": "Webhooks (24h)",
@@ -589,6 +592,12 @@
       "degradedSub": "{count} error logs recorded in the last 24 hours.",
       "badgeHealthy": "Healthy",
       "badgeDegraded": "Degraded"
+    },
+    "topMerchants": {
+      "title": "Top Merchants by Performance",
+      "empty": "No merchants with conversions recorded yet.",
+      "conversions": "Conversions",
+      "revenueAttributed": "Attributed Revenue"
     },
     "charts": {
       "activityTrend": "Platform Activity Trend (Impressions vs Conversions)",
@@ -647,7 +656,35 @@
     },
     "merchants": {
       "title": "Merchants",
-      "empty": "No merchants yet."
+      "activeTitle": "Active Merchants",
+      "churnedTitle": "Churned / Uninstalled Merchants",
+      "empty": "No active merchants yet.",
+      "churnedEmpty": "No uninstalled merchants.",
+      "unnamed": "Unnamed Store",
+      "email": "Email",
+      "uninstalledAt": "Uninstalled At"
+    },
+    "modal": {
+      "title": "Merchant Details",
+      "subtitle": "Store profile, connection status, and performance analytics.",
+      "email": "Email",
+      "domain": "Domain",
+      "status": "Status",
+      "tokenStatus": "Token Status",
+      "lastWebhook": "Last Webhook",
+      "offers": "Offers",
+      "activeOffers": "active",
+      "totalOffers": "total",
+      "churned": "Uninstalled",
+      "statsTitle": "Analytics Stats",
+      "impressions": "Impressions",
+      "clicks": "Clicks",
+      "addToCart": "Add to Cart",
+      "conversions": "Conversions",
+      "attributed": "attributed",
+      "revenueGenerated": "Total Revenue Generated",
+      "revenueAttributed": "Widget Attributed Revenue",
+      "close": "Close"
     }
   }
 }

@@ -11,9 +11,15 @@ import {
   extractOrderId,
   extractOrderStatus,
   extractProductQuantities,
+  extractProductAmounts,
   matchOffers,
   TERMINAL_ORDER_STATUSES,
 } from './utils/order-conversion.matcher';
+import { calculateExtraRevenue } from './utils/conversion-revenue';
+import {
+  ConversionAttributor,
+  isWidgetSource,
+} from './utils/conversion-attributor';
 
 const CONVERSION_TTL_SECONDS = 60 * 60 * 24 * 30;
 
@@ -26,6 +32,7 @@ export class OrderConversionService {
     private readonly redis: RedisService,
     private readonly offerStats: OfferStatsService,
     private readonly activityService: ActivityService,
+    private readonly attributor: ConversionAttributor,
   ) {}
 
   private get db() {
@@ -47,13 +54,40 @@ export class OrderConversionService {
     const quantities = extractProductQuantities(event.data);
     if (quantities.size === 0) return;
 
-    const offerIds = matchOffers(
-      await this.loadActiveOffers(event.merchant),
-      quantities,
+    const amounts = extractProductAmounts(event.data);
+    const activeOffers = await this.loadActiveOffers(event.merchant);
+    const matchedOffers = activeOffers.filter((offer) =>
+      matchOffers([offer], quantities).includes(offer.id),
     );
 
-    for (const offerId of offerIds) {
-      await this.recordConversion(event.merchant, orderId, offerId);
+    const productIds = new Set(quantities.keys());
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    for (const offer of matchedOffers) {
+      const revenue = calculateExtraRevenue(
+        offer,
+        amounts,
+        productIds,
+        quantities,
+      );
+
+      const hasSignal = await this.attributor.hasWidgetSignal({
+        merchantId: event.merchant,
+        offerId: offer.id,
+        since: sevenDaysAgo,
+      });
+
+      const source = isWidgetSource(hasSignal);
+      const attributedRevenue = source === 'widget' ? revenue : 0;
+
+      await this.recordConversion(
+        event.merchant,
+        orderId,
+        offer.id,
+        revenue,
+        attributedRevenue,
+        source,
+      );
     }
   }
 
@@ -77,6 +111,9 @@ export class OrderConversionService {
     merchantId: number,
     orderId: number,
     offerId: number,
+    revenue: number,
+    attributedRevenue: number,
+    source: 'widget' | 'inferred',
   ): Promise<void> {
     const acquired = await this.redis.setNx(
       conversionLockKey(merchantId, orderId, offerId),
@@ -86,6 +123,20 @@ export class OrderConversionService {
     if (!acquired) return;
 
     await this.offerStats.buffer(merchantId, offerId, 'conversions');
+    if (source === 'widget') {
+      await this.offerStats.buffer(
+        merchantId,
+        offerId,
+        'conversionsAttributed',
+      );
+    }
+    await this.offerStats.bufferRevenue(
+      merchantId,
+      offerId,
+      revenue,
+      attributedRevenue,
+    );
+
     await this.activityService.record({
       merchantId,
       actorType: 'salla',
@@ -93,7 +144,12 @@ export class OrderConversionService {
       entityType: 'order',
       entityId: orderId,
       offerId,
-      metadata: { sallaOrderId: orderId },
+      metadata: {
+        sallaOrderId: orderId,
+        source,
+        revenue,
+        attributedRevenue,
+      },
     });
   }
 }

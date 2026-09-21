@@ -1,44 +1,24 @@
-import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
-import { promisify } from 'node:util';
+import argon2 from 'argon2';
 
-const scryptAsync = promisify(scrypt);
-const N = 32768;
-const R = 8;
-const P = 1;
-const KEYLEN = 32;
-const MAXMEM = 64 * 1024 * 1024;
+// Recommended OWASP baseline settings for Argon2id
+const options = {
+  type: argon2.argon2id, // The safest variant against side-channel and GPU attacks
+  memoryCost: 65536,     // 64 MB of RAM used per hash (adjust based on your server)
+  timeCost: 3,           // Number of iterations (CPU cost)
+  parallelism: 4         // Number of threads
+} as const;
 
 export async function hashPassword(plain: string): Promise<string> {
-  const salt = randomBytes(16);
-  const derived = (await scryptAsync(plain, salt, KEYLEN, {
-    N,
-    r: R,
-    p: P,
-    maxmem: MAXMEM,
-  })) as Buffer;
-  return `scrypt$${N}$${R}$${P}$${salt.toString('base64')}$${derived.toString('base64')}`;
+  // Returns a fully formatted string like: $argon2id$v=19$m=65536,t=3,p=4$...
+  return argon2.hash(plain, options);
 }
 
-export async function verifyPassword(
-  plain: string,
-  stored: string,
-): Promise<boolean> {
-  const parts = stored.split('$');
-  if (parts.length !== 6 || parts[0] !== 'scrypt') return false;
-  const n = Number(parts[1]);
-  const r = Number(parts[2]);
-  const p = Number(parts[3]);
-  const salt = Buffer.from(parts[4], 'base64');
-  const expected = Buffer.from(parts[5], 'base64');
-  if (!n || !r || !p || salt.length === 0 || expected.length === 0) {
+export async function verifyPassword(plain: string, stored: string): Promise<boolean> {
+  try {
+    // argon2 extracts the salt, memory, and time parameters directly from the stored string
+    return await argon2.verify(stored, plain);
+  } catch (err) {
+    // Fails safely if the stored string is completely malformed or empty
     return false;
   }
-  const derived = (await scryptAsync(plain, salt, expected.length, {
-    N: n,
-    r,
-    p,
-    maxmem: Math.max(MAXMEM, 128 * n * r * p * 2),
-  })) as Buffer;
-  if (derived.length !== expected.length) return false;
-  return timingSafeEqual(derived, expected);
 }

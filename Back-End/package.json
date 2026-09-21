@@ -22,7 +22,9 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:backfill-daily-stats": "ts-node --transpile-only scripts/run-backfill.ts",
-    "db:seed-admin": "ts-node --transpile-only scripts/seed-admin.ts"
+    "db:seed-admin": "ts-node --transpile-only scripts/seed-admin.ts",
+    "db:backfill-merchant-profiles": "ts-node --transpile-only scripts/backfill-merchant-profiles.ts",
+    "db:backfill-uninstalled-at": "ts-node --transpile-only scripts/backfill-uninstalled-at.ts"
   },
   "dependencies": {
     "@nestjs/bullmq": "^12.0.0",
@@ -33,6 +35,7 @@
     "@nestjs/mapped-types": "^2.1.0",
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/schedule": "^6.1.1",
+    "argon2": "^0.45.1",
     "bullmq": "^6.3.4",
     "cache-manager": "^7.2.8",
     "class-transformer": "^0.5.1",

@@ -12,7 +12,27 @@ export const adminOverviewSchema = z.object({
     active: z.number(),
     kindBreakdown: z.record(z.string(), z.number()).optional().default({}),
   }),
-  webhooksLast24h: z.number(),
+  revenueAttributed: z.coerce.string().optional().default('0'),
+  conversions: z.number().optional().default(0),
+  queueHealth: z
+    .object({
+      webhooksFailed: z.number(),
+      activityFailed: z.number(),
+      storefrontFailed: z.number(),
+    })
+    .optional()
+    .default({ webhooksFailed: 0, activityFailed: 0, storefrontFailed: 0 }),
+  topMerchants: z
+    .array(
+      z.object({
+        merchantId: z.number(),
+        storeName: z.string().nullable(),
+        conversions: z.number(),
+        revenueAttributed: z.coerce.string(),
+      }),
+    )
+    .optional()
+    .default([]),
   systemHealth: z
     .object({
       status: z.enum(['healthy', 'degraded']),
@@ -47,6 +67,11 @@ export const adminLoginSchema = z.object({
 
 export const adminMerchantSchema = z.object({
   merchantId: z.coerce.number(),
+  storeName: z.string().nullable().optional(),
+  storeEmail: z.string().nullable().optional(),
+  storeDomain: z.string().nullable().optional(),
+  avatar: z.string().nullable().optional(),
+  uninstalledAt: z.string().nullable().optional(),
   isActive: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -56,5 +81,20 @@ export const adminMerchantSchema = z.object({
   }),
 });
 
+export const adminMerchantDetailSchema = adminMerchantSchema.extend({
+  tokenStatus: z.enum(['valid', 'expiring', 'expired', 'missing']),
+  lastWebhookAt: z.string().nullable(),
+  stats: z.object({
+    impressions: z.number(),
+    clicks: z.number(),
+    addToCart: z.number(),
+    conversions: z.number(),
+    conversionsAttributed: z.number(),
+    revenueGenerated: z.number(),
+    revenueAttributed: z.number(),
+  }),
+});
+
 export type AdminOverview = z.infer<typeof adminOverviewSchema>;
 export type AdminMerchant = z.infer<typeof adminMerchantSchema>;
+export type AdminMerchantDetail = z.infer<typeof adminMerchantDetailSchema>;

@@ -60,17 +60,39 @@ export interface MerchantHealthSnapshot {
     clicks: number;
     addToCart: number;
     conversions: number;
+    conversionsAttributed: number;
+    revenueGenerated: number;
+    revenueAttributed: number;
   };
 }
 
 export interface AdminMerchantRow {
   merchantId: number;
+  storeName: string | null;
+  storeEmail: string | null;
+  storeDomain: string | null;
+  avatar: string | null;
+  uninstalledAt: Date | null;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
   offerCounts: {
     total: number;
     active: number;
+  };
+}
+
+export interface AdminMerchantDetail extends AdminMerchantRow {
+  tokenStatus: 'valid' | 'expiring' | 'expired' | 'missing';
+  lastWebhookAt: string | null;
+  stats: {
+    impressions: number;
+    clicks: number;
+    addToCart: number;
+    conversions: number;
+    conversionsAttributed: number;
+    revenueGenerated: number;
+    revenueAttributed: number;
   };
 }
 
@@ -86,7 +108,19 @@ export interface AdminOverview {
     active: number;
     kindBreakdown: Record<string, number>;
   };
-  webhooksLast24h: number;
+  revenueAttributed: string;
+  conversions: number;
+  queueHealth: {
+    webhooksFailed: number;
+    activityFailed: number;
+    storefrontFailed: number;
+  };
+  topMerchants: Array<{
+    merchantId: number;
+    storeName: string | null;
+    conversions: number;
+    revenueAttributed: string;
+  }>;
   systemHealth: {
     status: 'healthy' | 'degraded';
     errorCount24h: number;
@@ -112,6 +146,9 @@ export interface OfferStatsSnapshot {
   clicks: number;
   addToCart: number;
   conversions: number;
+  conversionsAttributed: number;
+  revenueGenerated: number;
+  revenueAttributed: number;
 }
 
 export const STOREFRONT_EVENTS = [
@@ -124,7 +161,11 @@ export const STOREFRONT_EVENTS = [
 export type StorefrontEventName = (typeof STOREFRONT_EVENTS)[number];
 
 export type OfferStatField =
-  'impressions' | 'clicks' | 'addToCart' | 'conversions';
+  | 'impressions'
+  | 'clicks'
+  | 'addToCart'
+  | 'conversions'
+  | 'conversionsAttributed';
 
 export const STOREFRONT_EVENT_FIELD: Record<
   StorefrontEventName,

@@ -1,4 +1,11 @@
-import { Controller, Get, ParseIntPipe, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
+  Query,
+} from '@nestjs/common';
 import { Roles } from '../../common/decorators';
 import { Role } from '../../common/enums';
 import { ActivityService } from './activity.service';
@@ -21,6 +28,15 @@ export class AdminActivityController {
   @Get('merchants')
   async merchants() {
     return this.adminStatsService.listMerchants();
+  }
+
+  @Get('merchants/:merchantId')
+  async merchantDetail(@Param('merchantId', ParseIntPipe) merchantId: number) {
+    const detail = await this.adminStatsService.getMerchantDetail(merchantId);
+    if (!detail) {
+      throw new NotFoundException(`Merchant ${merchantId} not found`);
+    }
+    return detail;
   }
 
   @Get('activity')

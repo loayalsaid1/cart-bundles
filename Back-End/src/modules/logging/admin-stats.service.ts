@@ -1,14 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { and, desc, eq, gte, sql } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
-import { eventLogs } from '../../database/entities/event-logs';
-import { activityLogs, dailyStats } from '../../database/entities/activity-logs';
+import { activityLogs, dailyStats, offerStats } from '../../database/entities/activity-logs';
 import { merchants } from '../../database/entities/merchants';
 import { offers } from '../../database/entities/offers';
+import { QueueHealthService } from '../../queue/queue-health.service';
 import { RedisService } from '../../redis/redis.service';
-import type { AdminMerchantRow, AdminOverview } from './types/activity.types';
+import { MerchantHealthService } from './merchant-health.service';
+import type {
+  AdminMerchantDetail,
+  AdminMerchantRow,
+  AdminOverview,
+} from './types/activity.types';
 
-const ADMIN_OVERVIEW_CACHE_KEY = 'admin:overview';
+const ADMIN_OVERVIEW_CACHE_KEY = 'admin:overview:v2';
 const ADMIN_OVERVIEW_TTL_SECONDS = 60;
 
 @Injectable()
@@ -18,6 +23,8 @@ export class AdminStatsService {
   constructor(
     private readonly drizzleService: DrizzleService,
     private readonly redis: RedisService,
+    private readonly queueHealthService: QueueHealthService,
+    private readonly merchantHealthService: MerchantHealthService,
   ) {}
 
   private get db() {
@@ -30,7 +37,6 @@ export class AdminStatsService {
     );
     if (cached) return cached;
 
-    const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const fourteenDaysAgoStr = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
       .toISOString()
       .slice(0, 10);
@@ -40,7 +46,9 @@ export class AdminStatsService {
       offerRows,
       kindBreakdownRows,
       zeroOffersRows,
-      webhookRows,
+      platformStatsRows,
+      topMerchantsRows,
+      queueHealth,
       recentErrors,
       dailyPerfRows,
     ] = await Promise.all([
@@ -86,10 +94,25 @@ export class AdminStatsService {
 
       this.db
         .select({
-          count: sql<number>`count(*)::int`,
+          revenueAttributed: sql<string>`coalesce(sum(${offerStats.revenueAttributed}), 0)::text`,
+          conversions: sql<number>`coalesce(sum(${offerStats.conversions}), 0)::int`,
         })
-        .from(eventLogs)
-        .where(gte(eventLogs.eventDate, since24h)),
+        .from(offerStats),
+
+      this.db
+        .select({
+          merchantId: offerStats.merchantId,
+          storeName: merchants.storeName,
+          conversions: sql<number>`coalesce(sum(${offerStats.conversions}), 0)::int`,
+          revenueAttributed: sql<string>`coalesce(sum(${offerStats.revenueAttributed}), 0)::text`,
+        })
+        .from(offerStats)
+        .leftJoin(merchants, eq(offerStats.merchantId, merchants.merchantId))
+        .groupBy(offerStats.merchantId, merchants.storeName)
+        .orderBy(desc(sql`sum(${offerStats.conversions})`))
+        .limit(5),
+
+      this.queueHealthService.getFailedCounts(),
 
       this.db
         .select({
@@ -118,7 +141,7 @@ export class AdminStatsService {
 
     const merchantRow = merchantRows[0];
     const offerRow = offerRows[0];
-    const webhookRow = webhookRows[0];
+    const platformStats = platformStatsRows[0];
     const zeroOffersCount = zeroOffersRows[0]?.count ?? 0;
 
     const kindBreakdown: Record<string, number> = {};
@@ -127,6 +150,11 @@ export class AdminStatsService {
         kindBreakdown[r.kind] = r.count;
       }
     }
+
+    const failedSum =
+      queueHealth.webhooksFailed +
+      queueHealth.activityFailed +
+      queueHealth.storefrontFailed;
 
     const overview: AdminOverview = {
       merchants: {
@@ -140,9 +168,13 @@ export class AdminStatsService {
         active: offerRow?.active ?? 0,
         kindBreakdown,
       },
-      webhooksLast24h: webhookRow?.count ?? 0,
+      revenueAttributed: platformStats?.revenueAttributed ?? '0',
+      conversions: platformStats?.conversions ?? 0,
+      queueHealth,
+      topMerchants: topMerchantsRows,
       systemHealth: {
-        status: recentErrors.length > 5 ? 'degraded' : 'healthy',
+        status:
+          failedSum > 0 || recentErrors.length > 5 ? 'degraded' : 'healthy',
         errorCount24h: recentErrors.length,
       },
       dailyPerformance: dailyPerfRows,
@@ -161,6 +193,11 @@ export class AdminStatsService {
     const rows = await this.db
       .select({
         merchantId: merchants.merchantId,
+        storeName: merchants.storeName,
+        storeEmail: merchants.storeEmail,
+        storeDomain: merchants.storeDomain,
+        avatar: merchants.avatar,
+        uninstalledAt: merchants.uninstalledAt,
         isActive: merchants.isActive,
         createdAt: merchants.createdAt,
         updatedAt: merchants.updatedAt,
@@ -179,6 +216,11 @@ export class AdminStatsService {
 
     return rows.map((row) => ({
       merchantId: row.merchantId,
+      storeName: row.storeName,
+      storeEmail: row.storeEmail,
+      storeDomain: row.storeDomain,
+      avatar: row.avatar,
+      uninstalledAt: row.uninstalledAt,
       isActive: row.isActive,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
@@ -187,5 +229,67 @@ export class AdminStatsService {
         active: row.offerActive,
       },
     }));
+  }
+
+  async getMerchantDetail(
+    merchantId: number,
+  ): Promise<AdminMerchantDetail | null> {
+    const [row] = await this.db
+      .select({
+        merchantId: merchants.merchantId,
+        storeName: merchants.storeName,
+        storeEmail: merchants.storeEmail,
+        storeDomain: merchants.storeDomain,
+        avatar: merchants.avatar,
+        uninstalledAt: merchants.uninstalledAt,
+        isActive: merchants.isActive,
+        createdAt: merchants.createdAt,
+        updatedAt: merchants.updatedAt,
+        offerTotal: sql<number>`coalesce((
+          select count(*)::int from ${offers}
+          where ${offers.merchantId} = ${merchants.merchantId}
+        ), 0)`,
+        offerActive: sql<number>`coalesce((
+          select count(*)::int from ${offers}
+          where ${offers.merchantId} = ${merchants.merchantId}
+            and ${offers.status} = 'active'
+        ), 0)`,
+      })
+      .from(merchants)
+      .where(eq(merchants.merchantId, merchantId))
+      .limit(1);
+
+    if (!row) return null;
+
+    const health = await this.merchantHealthService.getMerchantHealth(
+      merchantId,
+    );
+
+    return {
+      merchantId: row.merchantId,
+      storeName: row.storeName,
+      storeEmail: row.storeEmail,
+      storeDomain: row.storeDomain,
+      avatar: row.avatar,
+      uninstalledAt: row.uninstalledAt,
+      isActive: row.isActive,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      offerCounts: {
+        total: row.offerTotal,
+        active: row.offerActive,
+      },
+      tokenStatus: health?.tokenStatus ?? 'missing',
+      lastWebhookAt: health?.lastWebhookAt ?? null,
+      stats: health?.stats ?? {
+        impressions: 0,
+        clicks: 0,
+        addToCart: 0,
+        conversions: 0,
+        conversionsAttributed: 0,
+        revenueGenerated: 0,
+        revenueAttributed: 0,
+      },
+    };
   }
 }

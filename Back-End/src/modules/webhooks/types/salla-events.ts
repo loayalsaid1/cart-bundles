@@ -23,11 +23,17 @@ export interface SallaAppUninstalledEvent extends SallaAppEventBase {
   };
 }
 
+export interface SallaOrderItemAmounts {
+  price_without_tax?: { amount?: number };
+  total?: { amount?: number };
+}
+
 export interface SallaOrderItem {
   id: number;
   name: string;
   sku: string;
   quantity: number;
+  amounts?: SallaOrderItemAmounts;
   product?: {
     id: number;
     type: string;

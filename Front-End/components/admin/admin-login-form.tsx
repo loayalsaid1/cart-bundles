@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useAdminLogin } from "@/hooks/use-admin";
 
 export function AdminLoginForm() {
-  const t = useTranslations("Admin");
+  const t = useTranslations("Admin") as any;
   const login = useAdminLogin();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

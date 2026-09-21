@@ -114,3 +114,69 @@ export function AdminActivityTable({
     </AdminSection>
   );
 }
+
+export function AdminTopMerchantsTable({
+  rows,
+  isPending,
+  onSelectMerchant,
+}: {
+  rows: Array<{
+    merchantId: number;
+    storeName: string | null;
+    conversions: number;
+    revenueAttributed: string;
+  }>;
+  isPending: boolean;
+  onSelectMerchant?: (merchantId: number) => void;
+}) {
+  const t = useTranslations("Admin") as any;
+  return (
+    <AdminSection
+      title={t("topMerchants.title")}
+      isPending={isPending}
+      isEmpty={rows.length === 0}
+      emptyLabel={t("topMerchants.empty")}
+      skeletonRows={3}
+    >
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>{t("table.merchant")}</TableHead>
+            <TableHead>{t("topMerchants.conversions")}</TableHead>
+            <TableHead>{t("topMerchants.revenueAttributed")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((row) => (
+            <TableRow
+              key={row.merchantId}
+              className={onSelectMerchant ? "cursor-pointer hover:bg-muted/50" : ""}
+              onClick={() => onSelectMerchant?.(row.merchantId)}
+            >
+              <TableCell className="font-medium">
+                {row.storeName ? (
+                  <span>
+                    {row.storeName}{" "}
+                    <span className="text-xs font-normal text-muted-foreground">
+                      (#{row.merchantId})
+                    </span>
+                  </span>
+                ) : (
+                  `#${row.merchantId}`
+                )}
+              </TableCell>
+              <TableCell>{row.conversions.toLocaleString()}</TableCell>
+              <TableCell className="font-semibold text-emerald-600 dark:text-emerald-400">
+                SAR{" "}
+                {Number(row.revenueAttributed).toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </AdminSection>
+  );
+}

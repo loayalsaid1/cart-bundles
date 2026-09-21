@@ -78,6 +78,34 @@ export function extractProductQuantities(data: SallaOrderData): Map<number, numb
   return quantities;
 }
 
+export function extractProductAmounts(data: SallaOrderData): Map<number, number> {
+  const amounts = new Map<number, number>();
+
+  if (!Array.isArray(data?.items)) return amounts;
+
+  for (const item of data.items) {
+    const productId = Number(item.product?.id);
+    if (!Number.isInteger(productId) || productId <= 0) continue;
+
+    const total = item.amounts?.total?.amount;
+    const fallback = item.amounts?.price_without_tax?.amount;
+
+    let lineAmount = 0;
+    if (typeof total === 'number' && Number.isFinite(total) && total >= 0) {
+      lineAmount = total;
+    } else if (
+      typeof fallback === 'number' &&
+      Number.isFinite(fallback) &&
+      fallback >= 0
+    ) {
+      lineAmount = fallback;
+    }
+
+    amounts.set(productId, (amounts.get(productId) ?? 0) + lineAmount);
+  }
+  return amounts;
+}
+
 export function matchOffers(
   merchantOffers: ConversionOffer[],
   quantities: Map<number, number>,

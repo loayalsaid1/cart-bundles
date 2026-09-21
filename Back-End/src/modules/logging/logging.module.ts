@@ -15,6 +15,7 @@ import { MerchantHealthService } from './merchant-health.service';
 import { AdminStatsService } from './admin-stats.service';
 import { DailyStatsService } from './daily-stats.service';
 import { OrderConversionService } from './order-conversion.service';
+import { ConversionAttributor } from './utils/conversion-attributor';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { OrderConversionService } from './order-conversion.service';
     AdminStatsService,
     DailyStatsService,
     OrderConversionService,
+    ConversionAttributor,
   ],
   exports: [
     ActivityService,
@@ -47,6 +49,7 @@ import { OrderConversionService } from './order-conversion.service';
     AdminStatsService,
     DailyStatsService,
     OrderConversionService,
+    ConversionAttributor,
   ],
 })
 export class LoggingModule {}
