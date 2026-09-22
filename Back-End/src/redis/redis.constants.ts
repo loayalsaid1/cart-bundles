@@ -112,6 +112,14 @@ export function parseOfferStatsHashKey(
   return { merchantId, offerId };
 }
 
+/** Per-merchant inverted offer-match index, serialized as JSON. */
+export const OFFER_MATCH_INDEX_PREFIX = 'match:offer-index:';
+export const OFFER_MATCH_INDEX_TTL_SECONDS = 10 * 60;
+
+export function offerMatchIndexKey(merchantId: number): string {
+  return `${OFFER_MATCH_INDEX_PREFIX}${merchantId}`;
+}
+
 export const OFFER_STATS_READ_PREFIX = 'stats:read:';
 
 export function offerStatsReadHashKey(merchantId: number, offerId: number): string {

@@ -1,27 +1,29 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
-import { offers } from '../../database/entities/offers';
 import { RedisService } from '../../redis/redis.service';
 import { ActivityService } from './activity.service';
+import { CatalogCacheService } from './catalog-cache.service';
+import { OfferIndexCacheService } from './offer-index-cache.service';
 import { OfferStatsService } from './offer-stats.service';
 import type { SallaOrderWebhookEvent } from '../webhooks/types/salla-events';
 import {
   conversionLockKey,
   extractOrderId,
   extractOrderStatus,
-  extractProductQuantities,
   extractProductAmounts,
-  matchOffers,
+  extractProductQuantities,
+  type MatchContext,
   TERMINAL_ORDER_STATUSES,
 } from './utils/order-conversion.matcher';
+import { matchOffersFromIndex } from './utils/offer-match-index';
 import { calculateExtraRevenue } from './utils/conversion-revenue';
-import {
-  ConversionAttributor,
-  isWidgetSource,
-} from './utils/conversion-attributor';
+import { ConversionAttributor } from './utils/conversion-attributor';
 
-const CONVERSION_TTL_SECONDS = 60 * 60 * 24 * 30;
+/** 30-day lock so the same (order, offer) pair is never double-counted. */
+const CONVERSION_LOCK_TTL_SECONDS = 60 * 60 * 24 * 30;
+
+/** Attribution window: we look back 7 days for a prior widget interaction. */
+const ATTRIBUTION_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
 @Injectable()
 export class OrderConversionService {
@@ -33,6 +35,8 @@ export class OrderConversionService {
     private readonly offerStats: OfferStatsService,
     private readonly activityService: ActivityService,
     private readonly attributor: ConversionAttributor,
+    private readonly offerIndexCache: OfferIndexCacheService,
+    private readonly catalogCache: CatalogCacheService,
   ) {}
 
   private get db() {
@@ -40,10 +44,11 @@ export class OrderConversionService {
   }
 
   async handleOrderEvent(event: SallaOrderWebhookEvent): Promise<void> {
+    // ── 1. Basic guards ──────────────────────────────────────────────────
     const orderId = extractOrderId(event.data);
     if (!orderId) {
       this.logger.warn(
-        `Order webhook ${event.event} for merchant ${event.merchant} missing order id`,
+        `Order webhook ${event.event} for merchant ${event.merchant} is missing an order id`,
       );
       return;
     }
@@ -55,100 +60,100 @@ export class OrderConversionService {
     if (quantities.size === 0) return;
 
     const amounts = extractProductAmounts(event.data);
-    const activeOffers = await this.loadActiveOffers(event.merchant);
-    const matchedOffers = activeOffers.filter((offer) =>
-      matchOffers([offer], quantities).includes(offer.id),
-    );
 
-    const productIds = new Set(quantities.keys());
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    // ── 2. Get the pre-built inverted index (Redis hit ~95% of the time) ──
+    const index = await this.offerIndexCache.getOrBuild(event.merchant);
 
+    // ── 3. Build match context with category expansion ───────────────────
+    // Derive the category IDs the merchant's active offers care about directly
+    // from the index — we only call Salla for categories that are actually
+    // targeted by at least one offer.
+    const ctx =
+      index.byCategory.size > 0
+        ? await this.catalogCache.buildMatchContext(
+            event.merchant,
+            [...index.byCategory.keys()],
+          )
+        : { categoryProducts: new Map<number, Set<number>>() };
+
+    // ── 4. Candidate selection + per-offer validation (O(orderSize + candidates)) ──
+    const matchedOffers = matchOffersFromIndex(index, quantities, ctx);
+    if (matchedOffers.length === 0) return;
+
+    // ── 5. Single attribution query for ALL matched offers ────────────────
+    const since = new Date(Date.now() - ATTRIBUTION_WINDOW_MS);
+    const attributedOfferIds = await this.attributor.batchHasWidgetSignal({
+      merchantId: event.merchant,
+      offerIds: matchedOffers.map((o) => o.id),
+      since,
+    });
+
+    // ── 6. Record influence per matched offer ─────────────────────────────
+    const orderProductIds = new Set(quantities.keys());
     for (const offer of matchedOffers) {
       const revenue = calculateExtraRevenue(
         offer,
         amounts,
-        productIds,
+        orderProductIds,
         quantities,
       );
-
-      const hasSignal = await this.attributor.hasWidgetSignal({
-        merchantId: event.merchant,
-        offerId: offer.id,
-        since: sevenDaysAgo,
-      });
-
-      const source = isWidgetSource(hasSignal);
-      const attributedRevenue = source === 'widget' ? revenue : 0;
-
-      await this.recordConversion(
+      const isAttributed = attributedOfferIds.has(offer.id);
+      await this.recordInfluence(
         event.merchant,
         orderId,
         offer.id,
         revenue,
-        attributedRevenue,
-        source,
+        isAttributed,
       );
     }
   }
 
-  async loadActiveOffers(merchantId: number) {
-    return this.db.query.offers.findMany({
-      where: and(
-        eq(offers.merchantId, merchantId),
-        eq(offers.status, 'active'),
-      ),
-      with: {
-        targets: true,
-        relatedProducts: true,
-        quantityTiers: true,
-        upgradeSettings: true,
-        recommendationSettings: true,
-      },
-    });
-  }
+  // ---------------------------------------------------------------------------
+  // Private: idempotent influence recording
+  // ---------------------------------------------------------------------------
 
-  private async recordConversion(
+  private async recordInfluence(
     merchantId: number,
     orderId: number,
     offerId: number,
     revenue: number,
-    attributedRevenue: number,
-    source: 'widget' | 'inferred',
+    isAttributed: boolean,
   ): Promise<void> {
+    // Redis lock prevents the same (order, offer) pair from being counted twice
+    // even if the webhook fires multiple times (e.g. order.created + order.updated).
     const acquired = await this.redis.setNx(
       conversionLockKey(merchantId, orderId, offerId),
       '1',
-      CONVERSION_TTL_SECONDS,
+      CONVERSION_LOCK_TTL_SECONDS,
     );
     if (!acquired) return;
 
+    // "conversions" here means "influenced orders" — an order that contained
+    // products matching this offer.  "conversionsAttributed" narrows that to
+    // orders where a prior widget interaction (click / add_to_cart) was found.
     await this.offerStats.buffer(merchantId, offerId, 'conversions');
-    if (source === 'widget') {
-      await this.offerStats.buffer(
-        merchantId,
-        offerId,
-        'conversionsAttributed',
-      );
+    if (isAttributed) {
+      await this.offerStats.buffer(merchantId, offerId, 'conversionsAttributed');
     }
+
     await this.offerStats.bufferRevenue(
       merchantId,
       offerId,
       revenue,
-      attributedRevenue,
+      isAttributed ? revenue : 0,
     );
 
     await this.activityService.record({
       merchantId,
       actorType: 'salla',
-      action: 'offer.conversion',
+      action: 'offer.influenced_order',
       entityType: 'order',
       entityId: orderId,
       offerId,
       metadata: {
         sallaOrderId: orderId,
-        source,
+        attributed: isAttributed,
         revenue,
-        attributedRevenue,
       },
     });
   }

@@ -9,6 +9,10 @@ export const TERMINAL_ORDER_STATUSES = new Set([
   'restored',
 ]);
 
+// ---------------------------------------------------------------------------
+// Offer shape expected by the matcher
+// ---------------------------------------------------------------------------
+
 export interface ConversionTarget {
   entityType: string;
   sallaEntityId: number;
@@ -26,7 +30,10 @@ export interface ConversionOffer {
   id: number;
   kind: string;
   targetType: string;
+  /** Product-entity targets (entityType === 'product') */
   targets: ConversionTarget[];
+  /** Category IDs extracted from targets where entityType === 'category' */
+  categoryIds: number[];
   relatedProducts: ConversionRelatedProduct[];
   quantityTiers: ConversionQuantityTier[];
   upgradeSettings: { upgradeSallaProductId: number } | null;
@@ -36,6 +43,24 @@ export interface ConversionOffer {
   } | null;
 }
 
+// ---------------------------------------------------------------------------
+// Context passed into matching — carries the expanded category→product map
+// so the matcher never has to fetch data itself.
+// ---------------------------------------------------------------------------
+
+export interface MatchContext {
+  /**
+   * Maps Salla categoryId → Set of Salla productIds belonging to that category.
+   * Built once per order event from the CatalogCacheService, then passed down.
+   * Missing entries are treated as empty sets (category products unknown → no match).
+   */
+  categoryProducts: Map<number, Set<number>>;
+}
+
+// ---------------------------------------------------------------------------
+// Redis lock key helpers
+// ---------------------------------------------------------------------------
+
 export function conversionLockKey(
   merchantId: number,
   orderId: number,
@@ -44,7 +69,10 @@ export function conversionLockKey(
   return `lock:conversion:${merchantId}:${orderId}:${offerId}`;
 }
 
-// STRCITLY TYPED EXTRACTION FUNCTIONS
+// ---------------------------------------------------------------------------
+// Order data extraction helpers
+// ---------------------------------------------------------------------------
+
 export function extractOrderId(data: SallaOrderData): number | null {
   if (!data?.id) return null;
   const id = Number(data.id);
@@ -56,19 +84,19 @@ export function extractOrderStatus(data: SallaOrderData): string {
   return data.status.slug.toLowerCase();
 }
 
-export function extractProductQuantities(data: SallaOrderData): Map<number, number> {
+export function extractProductQuantities(
+  data: SallaOrderData,
+): Map<number, number> {
   const quantities = new Map<number, number>();
-  
+
   if (!Array.isArray(data?.items)) return quantities;
 
   for (const item of data.items) {
-    // Salla wraps the actual product details inside item.product
-    // If the product was deleted from the store, item.product might be null
     const productId = Number(item.product?.id);
     const quantity = Number(item.quantity);
-    
+
     if (!Number.isInteger(productId) || productId <= 0) continue;
-    
+
     quantities.set(
       productId,
       (quantities.get(productId) ?? 0) +
@@ -78,7 +106,9 @@ export function extractProductQuantities(data: SallaOrderData): Map<number, numb
   return quantities;
 }
 
-export function extractProductAmounts(data: SallaOrderData): Map<number, number> {
+export function extractProductAmounts(
+  data: SallaOrderData,
+): Map<number, number> {
   const amounts = new Map<number, number>();
 
   if (!Array.isArray(data?.items)) return amounts;
@@ -106,46 +136,61 @@ export function extractProductAmounts(data: SallaOrderData): Map<number, number>
   return amounts;
 }
 
+// ---------------------------------------------------------------------------
+// Public matching entry point
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns the subset of `merchantOffers` whose trigger conditions are met by
+ * the given order products.  Pass an empty `MatchContext` when no category
+ * expansion data is available — category-targeted offers will simply not match.
+ */
 export function matchOffers(
   merchantOffers: ConversionOffer[],
   quantities: Map<number, number>,
-): number[] {
-  const matched: number[] = [];
+  ctx: MatchContext = { categoryProducts: new Map() },
+): ConversionOffer[] {
   const productIds = new Set(quantities.keys());
-
-  for (const offer of merchantOffers) {
-    if (offerMatches(offer, productIds, quantities)) {
-      matched.push(offer.id);
-    }
-  }
-  return matched;
+  return merchantOffers.filter((offer) =>
+    offerMatches(offer, productIds, quantities, ctx),
+  );
 }
+
+// ---------------------------------------------------------------------------
+// Per-offer dispatch
+// ---------------------------------------------------------------------------
 
 function offerMatches(
   offer: ConversionOffer,
   productIds: Set<number>,
   quantities: Map<number, number>,
+  ctx: MatchContext,
 ): boolean {
   switch (offer.kind) {
     case 'quantity_discount':
-      return matchesQuantity(offer, productIds, quantities);
+      return matchesQuantity(offer, productIds, quantities, ctx);
     case 'product_add_on':
-      return matchesAddon(offer, productIds);
+      return matchesAddon(offer, productIds, ctx);
     case 'bundle':
-      return matchesBundle(offer, productIds);
+      return matchesBundle(offer, productIds, ctx);
     case 'upgrade_offer':
       return matchesUpgrade(offer, productIds);
     case 'cart_recommendation':
-      return matchesRecommendation(offer, productIds);
+      return matchesRecommendation(offer, productIds, ctx);
     default:
       return false;
   }
 }
 
+// ---------------------------------------------------------------------------
+// Type-specific matchers
+// ---------------------------------------------------------------------------
+
 function matchesQuantity(
   offer: ConversionOffer,
   productIds: Set<number>,
   quantities: Map<number, number>,
+  ctx: MatchContext,
 ): boolean {
   const minQty = Math.min(
     ...offer.quantityTiers.map((tier) => tier.quantity),
@@ -153,38 +198,27 @@ function matchesQuantity(
   );
   if (!Number.isFinite(minQty)) return false;
 
-  const productTargets = offer.targets.filter(
-    (target) => target.entityType === 'product',
-  );
-  const candidateIds =
-    offer.targetType === 'all_products' || productTargets.length === 0
-      ? [...productIds]
-      : productTargets
-          .map((target) => target.sallaEntityId)
-          .filter((id) => productIds.has(id));
-
+  const candidateIds = resolveTargetProductIds(offer, productIds, ctx);
   return candidateIds.some((id) => (quantities.get(id) ?? 0) >= minQty);
 }
 
 function matchesAddon(
   offer: ConversionOffer,
   productIds: Set<number>,
+  ctx: MatchContext,
 ): boolean {
-  if (!triggerPresent(offer, productIds)) return false;
-  return offer.relatedProducts.some((row) =>
-    productIds.has(row.sallaProductId),
-  );
+  if (!triggerPresent(offer, productIds, ctx)) return false;
+  return offer.relatedProducts.some((row) => productIds.has(row.sallaProductId));
 }
 
 function matchesBundle(
   offer: ConversionOffer,
   productIds: Set<number>,
+  ctx: MatchContext,
 ): boolean {
-  if (!triggerPresent(offer, productIds)) return false;
+  if (!triggerPresent(offer, productIds, ctx)) return false;
   if (offer.relatedProducts.length === 0) return false;
-  return offer.relatedProducts.every((row) =>
-    productIds.has(row.sallaProductId),
-  );
+  return offer.relatedProducts.every((row) => productIds.has(row.sallaProductId));
 }
 
 function matchesUpgrade(
@@ -199,9 +233,12 @@ function matchesUpgrade(
 function matchesRecommendation(
   offer: ConversionOffer,
   productIds: Set<number>,
+  ctx: MatchContext,
 ): boolean {
   const settings = offer.recommendationSettings;
   if (!settings) return false;
+
+  // cart_related mode: the trigger product must be in the order
   if (
     settings.mode === 'cart_related' &&
     settings.triggerSallaProductId &&
@@ -209,20 +246,73 @@ function matchesRecommendation(
   ) {
     return false;
   }
-  return offer.relatedProducts.some((row) =>
-    productIds.has(row.sallaProductId),
-  );
+
+  return offer.relatedProducts.some((row) => productIds.has(row.sallaProductId));
 }
 
+// ---------------------------------------------------------------------------
+// Shared helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns true when at least one of the offer's trigger targets (product or
+ * category) is represented in the order's productIds.
+ */
 function triggerPresent(
   offer: ConversionOffer,
   productIds: Set<number>,
+  ctx: MatchContext,
 ): boolean {
+  if (offer.targetType === 'all_products') return true;
+
   const productTargets = offer.targets.filter(
-    (target) => target.entityType === 'product',
+    (t) => t.entityType === 'product',
   );
-  if (offer.targetType === 'all_products' || productTargets.length === 0) {
-    return true;
+
+  if (productTargets.length > 0) {
+    if (productTargets.some((t) => productIds.has(t.sallaEntityId))) return true;
   }
-  return productTargets.some((target) => productIds.has(target.sallaEntityId));
+
+  // Fall through to category expansion
+  for (const catId of offer.categoryIds) {
+    const catProducts = ctx.categoryProducts.get(catId);
+    if (catProducts && [...productIds].some((p) => catProducts.has(p))) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Returns the effective set of candidate product IDs for an offer, accounting
+ * for all_products, product targets, and category expansion.
+ */
+function resolveTargetProductIds(
+  offer: ConversionOffer,
+  orderProductIds: Set<number>,
+  ctx: MatchContext,
+): number[] {
+  if (offer.targetType === 'all_products' || offer.targets.length === 0) {
+    return [...orderProductIds];
+  }
+
+  const result = new Set<number>();
+
+  // Direct product targets that are in the order
+  for (const t of offer.targets) {
+    if (t.entityType === 'product' && orderProductIds.has(t.sallaEntityId)) {
+      result.add(t.sallaEntityId);
+    }
+  }
+
+  // Category targets — expand and intersect with order products
+  for (const catId of offer.categoryIds) {
+    const catProducts = ctx.categoryProducts.get(catId) ?? new Set<number>();
+    for (const p of orderProductIds) {
+      if (catProducts.has(p)) result.add(p);
+    }
+  }
+
+  return [...result];
 }

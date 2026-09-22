@@ -151,11 +151,16 @@ export interface OfferStatsSnapshot {
   revenueAttributed: number;
 }
 
+/**
+ * Events fired by the cart widget JS and accepted by /storefront/events.
+ * `offer.add_to_cart` is the primary conversion metric — it means a shopper
+ * clicked "Add" inside the widget. Order-level influence tracking is handled
+ * server-side via webhooks and is NOT reported by the widget.
+ */
 export const STOREFRONT_EVENTS = [
   'offer.impression',
   'offer.click',
   'offer.add_to_cart',
-  'offer.conversion',
 ] as const;
 
 export type StorefrontEventName = (typeof STOREFRONT_EVENTS)[number];
@@ -172,9 +177,8 @@ export const STOREFRONT_EVENT_FIELD: Record<
   OfferStatField
 > = {
   'offer.impression': 'impressions',
-  'offer.click': 'clicks',
+  'offer.click':      'clicks',
   'offer.add_to_cart': 'addToCart',
-  'offer.conversion': 'conversions',
 };
 
 /** Payload accepted by the public storefront ingest endpoint and its worker. */

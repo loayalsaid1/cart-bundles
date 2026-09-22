@@ -16,10 +16,14 @@ import { AdminStatsService } from './admin-stats.service';
 import { DailyStatsService } from './daily-stats.service';
 import { OrderConversionService } from './order-conversion.service';
 import { ConversionAttributor } from './utils/conversion-attributor';
+import { OfferIndexCacheService } from './offer-index-cache.service';
+import { CatalogCacheService } from './catalog-cache.service';
+import { MerchantsModule } from '../merchants/merchants.module';
 
 @Module({
   imports: [
     DrizzleModule,
+    MerchantsModule,
     BullModule.registerQueue(
       { name: QUEUES.ACTIVITY },
       { name: QUEUES.STOREFRONT },
@@ -41,6 +45,8 @@ import { ConversionAttributor } from './utils/conversion-attributor';
     DailyStatsService,
     OrderConversionService,
     ConversionAttributor,
+    OfferIndexCacheService,
+    CatalogCacheService,
   ],
   exports: [
     ActivityService,
@@ -50,6 +56,8 @@ import { ConversionAttributor } from './utils/conversion-attributor';
     DailyStatsService,
     OrderConversionService,
     ConversionAttributor,
+    OfferIndexCacheService,
+    CatalogCacheService,
   ],
 })
 export class LoggingModule {}

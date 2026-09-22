@@ -13,6 +13,12 @@ export interface AttributionInput {
   since: Date;
 }
 
+export interface BatchAttributionInput {
+  merchantId: number;
+  offerIds: number[];
+  since: Date;
+}
+
 @Injectable()
 export class ConversionAttributor {
   constructor(private readonly drizzleService: DrizzleService) {}
@@ -21,21 +27,47 @@ export class ConversionAttributor {
     return this.drizzleService.db;
   }
 
-  async hasWidgetSignal(input: AttributionInput): Promise<boolean> {
+  /**
+   * Checks whether ANY of the provided offer IDs has a widget signal
+   * (click or add_to_cart from the storefront) for this merchant in the given
+   * time window.
+   *
+   * Single DB round-trip regardless of how many offers matched.
+   * Returns a Set of offerIds that have at least one widget interaction.
+   */
+  async batchHasWidgetSignal(
+    input: BatchAttributionInput,
+  ): Promise<Set<number>> {
+    if (input.offerIds.length === 0) return new Set();
+
     const rows = await this.db
-      .select({ id: activityLogs.id })
+      .select({ offerId: activityLogs.offerId })
       .from(activityLogs)
       .where(
         and(
           eq(activityLogs.merchantId, input.merchantId),
-          eq(activityLogs.offerId, input.offerId),
+          inArray(activityLogs.offerId, input.offerIds),
           eq(activityLogs.actorType, 'storefront'),
           inArray(activityLogs.action, ['offer.click', 'offer.add_to_cart']),
           gte(activityLogs.createdAt, input.since),
         ),
-      )
-      .limit(1);
+      );
 
-    return rows.length > 0;
+    return new Set(
+      rows.map((r) => r.offerId).filter((id): id is number => id !== null),
+    );
+  }
+
+  /**
+   * @deprecated Use batchHasWidgetSignal for batch attribution.
+   * Kept for any one-off call sites that haven't migrated yet.
+   */
+  async hasWidgetSignal(input: AttributionInput): Promise<boolean> {
+    const set = await this.batchHasWidgetSignal({
+      merchantId: input.merchantId,
+      offerIds: [input.offerId],
+      since: input.since,
+    });
+    return set.has(input.offerId);
   }
 }

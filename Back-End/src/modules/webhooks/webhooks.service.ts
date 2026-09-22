@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ActivityService } from '../logging/activity.service';
+import { CatalogCacheService } from '../logging/catalog-cache.service';
 import { OrderConversionService } from '../logging/order-conversion.service';
 import { MerchantProfileService } from '../merchants/merchant-profile.service';
 import { MerchantsService } from '../merchants/merchants.service';
@@ -34,6 +35,7 @@ export class WebhooksService {
     private readonly merchantProfile: MerchantProfileService,
     private readonly orderConversions: OrderConversionService,
     private readonly activityService: ActivityService,
+    private readonly catalogCache: CatalogCacheService,
   ) {}
 
   /**
@@ -66,7 +68,13 @@ export class WebhooksService {
       case 'category.created':
       case 'category.updated':
       case 'category.deleted':
-        await this.merchantsService.invalidateCatalogCache(data.merchant);
+        // Invalidate both the catalog lookup cache (category → product IDs)
+        // and the storefront offers cache so the next order event or widget
+        // load gets fresh data.
+        await Promise.all([
+          this.merchantsService.invalidateCatalogCache(data.merchant),
+          this.catalogCache.invalidate(data.merchant),
+        ]);
         break;
       case 'order.created':
       case 'order.updated':

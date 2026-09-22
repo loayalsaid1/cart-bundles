@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ActivityService } from '../logging/activity.service';
+import { OfferIndexCacheService } from '../logging/offer-index-cache.service';
 import { MerchantsService } from '../merchants/merchants.service';
 
 @Injectable()
@@ -7,6 +8,7 @@ export class OfferSideEffectsService {
   constructor(
     private readonly merchantsService: MerchantsService,
     private readonly activityService: ActivityService,
+    private readonly offerIndexCache: OfferIndexCacheService,
   ) {}
 
   async afterWrite(
@@ -15,7 +17,13 @@ export class OfferSideEffectsService {
     action: 'offer.created' | 'offer.updated' | 'offer.deleted' | 'offer.status_changed',
     extra?: Record<string, unknown>,
   ): Promise<void> {
-    await this.merchantsService.invalidateStorefrontCache(merchantId);
+    // Invalidate the storefront offer cache and the order-matching index in parallel.
+    // The index is rebuilt lazily on the next order event.
+    await Promise.all([
+      this.merchantsService.invalidateStorefrontCache(merchantId),
+      this.offerIndexCache.invalidate(merchantId),
+    ]);
+
     await this.activityService.enqueue({
       merchantId,
       actorType: 'merchant',
