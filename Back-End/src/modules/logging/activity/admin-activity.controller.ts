@@ -6,11 +6,11 @@ import {
   ParseIntPipe,
   Query,
 } from '@nestjs/common';
-import { Roles } from '../../common/decorators';
-import { Role } from '../../common/enums';
+import { Roles } from '../../../common/decorators';
+import { Role } from '../../../common/enums';
 import { ActivityService } from './activity.service';
-import { AdminStatsService } from './admin-stats.service';
-import type { ActivitySeverity } from './types/activity.types';
+import { AdminStatsService } from '../stats/admin-stats.service';
+import type { ActivitySeverity } from '../types/activity.types';
 
 @Roles([Role.Admin])
 @Controller('admin')

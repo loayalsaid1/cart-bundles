@@ -5,11 +5,11 @@ import {
   ParseIntPipe,
   Query,
 } from '@nestjs/common';
-import { CurrentUser } from '../../common/decorators';
+import { CurrentUser } from '../../../common/decorators';
 import { ActivityService } from './activity.service';
-import { DailyStatsService } from './daily-stats.service';
-import { MerchantHealthService } from './merchant-health.service';
-import type { ActivitySeverity } from './types/activity.types';
+import { DailyStatsService } from '../stats/daily-stats.service';
+import { MerchantHealthService } from '../stats/merchant-health.service';
+import type { ActivitySeverity } from '../types/activity.types';
 
 @Controller('activity')
 export class ActivityController {

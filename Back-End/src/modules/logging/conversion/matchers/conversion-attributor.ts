@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { and, eq, gte, inArray } from 'drizzle-orm';
-import { DrizzleService } from '../../../database/drizzle.service';
-import { activityLogs } from '../../../database/entities/activity-logs';
+import { DrizzleService } from '../../../../database/drizzle.service';
+import { activityLogs } from '../../../../database/entities/activity-logs';
 
 export function isWidgetSource(found: boolean): 'widget' | 'inferred' {
   return found ? 'widget' : 'inferred';

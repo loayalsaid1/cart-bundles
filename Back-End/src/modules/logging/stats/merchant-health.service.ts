@@ -1,17 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { desc, eq, sql } from 'drizzle-orm';
-import { DrizzleService } from '../../database/drizzle.service';
-import { eventLogs } from '../../database/entities/event-logs';
-import { activityLogs } from '../../database/entities/activity-logs';
-import { merchants } from '../../database/entities/merchants';
-import { offers } from '../../database/entities/offers';
+import { DrizzleService } from '../../../database/drizzle.service';
+import { eventLogs } from '../../../database/entities/event-logs';
+import { activityLogs } from '../../../database/entities/activity-logs';
+import { merchants } from '../../../database/entities/merchants';
+import { offers } from '../../../database/entities/offers';
 import {
   CACHE_TTL_SECONDS,
   merchantStatusCacheKey,
   merchantTotalStatsReadHashKey,
-} from '../../redis/redis.constants';
-import { RedisService } from '../../redis/redis.service';
-import type { MerchantHealthSnapshot } from './types/activity.types';
+} from '../../../redis/redis.constants';
+import { RedisService } from '../../../redis/redis.service';
+import type { MerchantHealthSnapshot } from '../types/stats.types';
 
 const TOKEN_EXPIRING_MS = 15 * 60 * 1000;
 

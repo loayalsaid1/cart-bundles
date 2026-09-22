@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { ActivityService } from '../logging/activity.service';
-import { OfferIndexCacheService } from '../logging/offer-index-cache.service';
+import { ActivityService } from '../logging/activity/activity.service';
+import { OfferIndexCacheService } from '../logging/conversion/offer-index-cache.service';
 import { MerchantsService } from '../merchants/merchants.service';
 
 @Injectable()

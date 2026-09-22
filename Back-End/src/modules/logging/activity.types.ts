@@ -1,5 +1,4 @@
-/**
- * @deprecated Types moved to `./types/activity.types`. This re-export exists
- * only to keep older imports compiling; import from the new path instead.
- */
+/** @deprecated Import from the specific types files instead. */
 export * from './types/activity.types';
+export * from './types/stats.types';
+export * from './types/storefront.types';

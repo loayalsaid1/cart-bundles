@@ -1,4 +1,4 @@
-import { matchOffers } from './utils/order-conversion.matcher';
+import { matchOffers } from './matchers/order-conversion.matcher';
 
 describe('OrderConversionService', () => {
   it('uses the shared matcher', () => {

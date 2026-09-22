@@ -5,7 +5,7 @@ import {
   suggestions,
   type SuggestionStatus,
 } from '../../database/entities/suggestions';
-import { ActivityService } from '../logging/activity.service';
+import { ActivityService } from '../logging/activity/activity.service';
 
 export type { SuggestionStatus };
 

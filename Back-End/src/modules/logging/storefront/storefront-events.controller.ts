@@ -8,11 +8,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Queue } from 'bullmq';
-import { IsPublic, RateLimit } from '../../common/decorators';
-import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
-import { QUEUES } from '../../queue/queue.constants';
-import { StorefrontEventDto } from './dto/storefront-event.dto';
-import type { StorefrontEventJob } from './types/activity.types';
+import { IsPublic, RateLimit } from '../../../common/decorators';
+import { RateLimitGuard } from '../../../common/guards/rate-limit.guard';
+import { QUEUES } from '../../../queue/queue.constants';
+import { StorefrontEventDto } from '../dto/storefront-event.dto';
+import type { StorefrontEventJob } from '../types/storefront.types';
 
 @IsPublic()
 @Controller('storefront/events')

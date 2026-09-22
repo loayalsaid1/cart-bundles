@@ -10,7 +10,7 @@ import {
 import type { Response, Request } from 'express';
 import { IsPublic, RateLimit } from '../../common/decorators';
 import { RateLimitGuard } from '../../common/guards/rate-limit.guard';
-import { ActivityService } from '../logging/activity.service';
+import { ActivityService } from '../logging/activity/activity.service';
 import { AdminAuthService } from './admin-auth.service';
 import { AuthService } from './auth.service';
 import { AdminLoginDto } from './dto/admin-login.dto';

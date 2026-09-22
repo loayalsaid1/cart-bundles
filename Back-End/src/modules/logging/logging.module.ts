@@ -2,23 +2,27 @@ import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { DrizzleModule } from '../../database/drizzle.module';
 import { QUEUES } from '../../queue/queue.constants';
-import { ActivityController } from './activity.controller';
-import { ActivityProcessor } from './activity.processor';
-import { ActivityService } from './activity.service';
-import { AdminActivityController } from './admin-activity.controller';
-import { LogRetentionService } from './log-retention.service';
-import { OfferStatsService } from './offer-stats.service';
-import { StorefrontEventsController } from './storefront-events.controller';
-import { StorefrontEventsProcessor } from './storefront-events.processor';
-
-import { MerchantHealthService } from './merchant-health.service';
-import { AdminStatsService } from './admin-stats.service';
-import { DailyStatsService } from './daily-stats.service';
-import { OrderConversionService } from './order-conversion.service';
-import { ConversionAttributor } from './utils/conversion-attributor';
-import { OfferIndexCacheService } from './offer-index-cache.service';
-import { CatalogCacheService } from './catalog-cache.service';
 import { MerchantsModule } from '../merchants/merchants.module';
+
+import { ActivityController } from './activity/activity.controller';
+import { ActivityProcessor } from './activity/activity.processor';
+import { ActivityService } from './activity/activity.service';
+import { AdminActivityController } from './activity/admin-activity.controller';
+
+import { AdminStatsService } from './stats/admin-stats.service';
+import { DailyStatsService } from './stats/daily-stats.service';
+import { MerchantHealthService } from './stats/merchant-health.service';
+import { OfferStatsService } from './stats/offer-stats.service';
+
+import { CatalogCacheService } from './conversion/catalog-cache.service';
+import { ConversionAttributor } from './conversion/matchers/conversion-attributor';
+import { OfferIndexCacheService } from './conversion/offer-index-cache.service';
+import { OrderConversionService } from './conversion/order-conversion.service';
+
+import { StorefrontEventsController } from './storefront/storefront-events.controller';
+import { StorefrontEventsProcessor } from './storefront/storefront-events.processor';
+
+import { LogRetentionService } from './retention/log-retention.service';
 
 @Module({
   imports: [

@@ -1,15 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { and, desc, eq, SQL, sql } from 'drizzle-orm';
-import { DrizzleService } from '../../database/drizzle.service';
-import { activityLogs } from '../../database/entities/activity-logs';
+import { DrizzleService } from '../../../database/drizzle.service';
+import { activityLogs } from '../../../database/entities/activity-logs';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { redactJson } from '../../common/utils/redact';
-import { QUEUES } from '../../queue/queue.constants';
+import { redactJson } from '../../../common/utils/redact';
+import { QUEUES } from '../../../queue/queue.constants';
 import type {
   ActivityListQuery,
   RecordActivityInput,
-} from './types/activity.types';
+} from '../types/activity.types';
 
 @Injectable()
 export class ActivityService {

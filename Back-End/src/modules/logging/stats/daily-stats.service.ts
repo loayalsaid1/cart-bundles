@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { and, eq, gte, lte } from 'drizzle-orm';
-import { DrizzleService } from '../../database/drizzle.service';
-import { dailyStats } from '../../database/entities/activity-logs';
-import type { DailyStatPoint } from './types/activity.types';
-import { getDateWindow } from './utils/date-window.util';
+import { DrizzleService } from '../../../database/drizzle.service';
+import { dailyStats } from '../../../database/entities/activity-logs';
+import type { DailyStatPoint } from '../types/stats.types';
+import { getDateWindow } from './date-window.util';
 
 /**
  * Read-only query service for merchant daily activity statistics.

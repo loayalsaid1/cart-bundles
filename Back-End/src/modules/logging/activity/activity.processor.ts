@@ -1,9 +1,9 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import { QUEUES } from '../../queue/queue.constants';
+import { QUEUES } from '../../../queue/queue.constants';
 import { ActivityService } from './activity.service';
-import type { RecordActivityInput } from './types/activity.types';
+import type { RecordActivityInput } from '../types/activity.types';
 
 @Processor(QUEUES.ACTIVITY)
 export class ActivityProcessor extends WorkerHost {

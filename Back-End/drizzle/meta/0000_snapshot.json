@@ -1,0 +1,1487 @@
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "prevId": "",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.activity_logs": {
+      "name": "activity_logs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigserial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "merchant_id": {
+          "name": "merchant_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "actor_type": {
+          "name": "actor_type",
+          "type": "activity_actor_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "actor_id": {
+          "name": "actor_id",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "action": {
+          "name": "action",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entity_type": {
+          "name": "entity_type",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "entity_id": {
+          "name": "entity_id",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "offer_id": {
+          "name": "offer_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "severity": {
+          "name": "severity",
+          "type": "activity_severity",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'info'"
+        },
+        "message": {
+          "name": "message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "activity_logs_action_idx": {
+          "name": "activity_logs_action_idx",
+          "columns": [
+            {
+              "expression": "action",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "activity_logs_merchant_created_idx": {
+          "name": "activity_logs_merchant_created_idx",
+          "columns": [
+            {
+              "expression": "merchant_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int4_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "created_at",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int4_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "activity_logs_offer_idx": {
+          "name": "activity_logs_offer_idx",
+          "columns": [
+            {
+              "expression": "offer_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int4_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "activity_logs_merchant_id_merchants_merchant_id_fk": {
+          "name": "activity_logs_merchant_id_merchants_merchant_id_fk",
+          "tableFrom": "activity_logs",
+          "tableTo": "merchants",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "merchant_id"
+          ],
+          "columnsTo": [
+            "merchant_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "activity_logs_offer_id_offers_id_fk": {
+          "name": "activity_logs_offer_id_offers_id_fk",
+          "tableFrom": "activity_logs",
+          "tableTo": "offers",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "offer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.offer_stats": {
+      "name": "offer_stats",
+      "schema": "",
+      "columns": {
+        "offer_id": {
+          "name": "offer_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "merchant_id": {
+          "name": "merchant_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "impressions": {
+          "name": "impressions",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "clicks": {
+          "name": "clicks",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "add_to_cart": {
+          "name": "add_to_cart",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "conversions": {
+          "name": "conversions",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "offer_stats_offer_id_offers_id_fk": {
+          "name": "offer_stats_offer_id_offers_id_fk",
+          "tableFrom": "offer_stats",
+          "tableTo": "offers",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "offer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "offer_stats_merchant_id_merchants_merchant_id_fk": {
+          "name": "offer_stats_merchant_id_merchants_merchant_id_fk",
+          "tableFrom": "offer_stats",
+          "tableTo": "merchants",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "merchant_id"
+          ],
+          "columnsTo": [
+            "merchant_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.suggestions": {
+      "name": "suggestions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "merchant_id": {
+          "name": "merchant_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar(160)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "body": {
+          "name": "body",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "suggestion_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'new'"
+        },
+        "admin_note": {
+          "name": "admin_note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "suggestions_merchant_created_idx": {
+          "name": "suggestions_merchant_created_idx",
+          "columns": [
+            {
+              "expression": "merchant_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int4_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "created_at",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int4_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "suggestions_status_idx": {
+          "name": "suggestions_status_idx",
+          "columns": [
+            {
+              "expression": "status",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "enum_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "suggestions_merchant_id_merchants_merchant_id_fk": {
+          "name": "suggestions_merchant_id_merchants_merchant_id_fk",
+          "tableFrom": "suggestions",
+          "tableTo": "merchants",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "merchant_id"
+          ],
+          "columnsTo": [
+            "merchant_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.addon_offer_settings": {
+      "name": "addon_offer_settings",
+      "schema": "",
+      "columns": {
+        "offer_id": {
+          "name": "offer_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "max_items": {
+          "name": "max_items",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 8
+        },
+        "products_preselected_by_default": {
+          "name": "products_preselected_by_default",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "show_product_options": {
+          "name": "show_product_options",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "display_orientation": {
+          "name": "display_orientation",
+          "type": "display_orientation",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'horizontal'"
+        },
+        "discount_type": {
+          "name": "discount_type",
+          "type": "addon_discount_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "discount_amount": {
+          "name": "discount_amount",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "position_desktop": {
+          "name": "position_desktop",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "position_mobile": {
+          "name": "position_mobile",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "addon_offer_settings_offer_id_offers_id_fk": {
+          "name": "addon_offer_settings_offer_id_offers_id_fk",
+          "tableFrom": "addon_offer_settings",
+          "tableTo": "offers",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "offer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.bundle_offer_settings": {
+      "name": "bundle_offer_settings",
+      "schema": "",
+      "columns": {
+        "offer_id": {
+          "name": "offer_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "discount_type": {
+          "name": "discount_type",
+          "type": "bundle_discount_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "discount_amount": {
+          "name": "discount_amount",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "bundle_offer_settings_offer_id_offers_id_fk": {
+          "name": "bundle_offer_settings_offer_id_offers_id_fk",
+          "tableFrom": "bundle_offer_settings",
+          "tableTo": "offers",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "offer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.offer_targets": {
+      "name": "offer_targets",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "offer_id": {
+          "name": "offer_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "entity_type": {
+          "name": "entity_type",
+          "type": "offer_target_entity",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "salla_entity_id": {
+          "name": "salla_entity_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "offer_targets_offer_id_offers_id_fk": {
+          "name": "offer_targets_offer_id_offers_id_fk",
+          "tableFrom": "offer_targets",
+          "tableTo": "offers",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "offer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.upgrade_offer_settings": {
+      "name": "upgrade_offer_settings",
+      "schema": "",
+      "columns": {
+        "offer_id": {
+          "name": "offer_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "base_salla_product_id": {
+          "name": "base_salla_product_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "upgrade_salla_product_id": {
+          "name": "upgrade_salla_product_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "coupon_code": {
+          "name": "coupon_code",
+          "type": "varchar(64)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "salla_coupon_id": {
+          "name": "salla_coupon_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "upgrade_offer_settings_offer_id_offers_id_fk": {
+          "name": "upgrade_offer_settings_offer_id_offers_id_fk",
+          "tableFrom": "upgrade_offer_settings",
+          "tableTo": "offers",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "offer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.offers": {
+      "name": "offers",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "merchant_id": {
+          "name": "merchant_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind": {
+          "name": "kind",
+          "type": "offer_kind",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "internal_name": {
+          "name": "internal_name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subtitle": {
+          "name": "subtitle",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "target_type": {
+          "name": "target_type",
+          "type": "target_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'selected_products'"
+        },
+        "expiry_date": {
+          "name": "expiry_date",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "offer_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'draft'"
+        },
+        "redirect_to_cart_after_add": {
+          "name": "redirect_to_cart_after_add",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "hide_salla_popup": {
+          "name": "hide_salla_popup",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "salla_offer_id": {
+          "name": "salla_offer_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "offers_merchant_id_merchants_merchant_id_fk": {
+          "name": "offers_merchant_id_merchants_merchant_id_fk",
+          "tableFrom": "offers",
+          "tableTo": "merchants",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "merchant_id"
+          ],
+          "columnsTo": [
+            "merchant_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.offer_appearance": {
+      "name": "offer_appearance",
+      "schema": "",
+      "columns": {
+        "offer_id": {
+          "name": "offer_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "border_radius_px": {
+          "name": "border_radius_px",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "colors": {
+          "name": "colors",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::jsonb"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "offer_appearance_offer_id_offers_id_fk": {
+          "name": "offer_appearance_offer_id_offers_id_fk",
+          "tableFrom": "offer_appearance",
+          "tableTo": "offers",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "offer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.offer_related_products": {
+      "name": "offer_related_products",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "offer_id": {
+          "name": "offer_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "salla_product_id": {
+          "name": "salla_product_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "is_preselected": {
+          "name": "is_preselected",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "offer_related_products_offer_id_offers_id_fk": {
+          "name": "offer_related_products_offer_id_offers_id_fk",
+          "tableFrom": "offer_related_products",
+          "tableTo": "offers",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "offer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.quantity_offer_settings": {
+      "name": "quantity_offer_settings",
+      "schema": "",
+      "columns": {
+        "offer_id": {
+          "name": "offer_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "allow_different_options_per_piece": {
+          "name": "allow_different_options_per_piece",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "hide_theme_default_options": {
+          "name": "hide_theme_default_options",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "show_price_per_piece": {
+          "name": "show_price_per_piece",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "round_price_to_nearest_integer": {
+          "name": "round_price_to_nearest_integer",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "apply_even_with_coupon": {
+          "name": "apply_even_with_coupon",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "hide_quantity_field": {
+          "name": "hide_quantity_field",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "quantity_offer_settings_offer_id_offers_id_fk": {
+          "name": "quantity_offer_settings_offer_id_offers_id_fk",
+          "tableFrom": "quantity_offer_settings",
+          "tableTo": "offers",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "offer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.quantity_offer_tiers": {
+      "name": "quantity_offer_tiers",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "offer_id": {
+          "name": "offer_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position": {
+          "name": "position",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "quantity": {
+          "name": "quantity",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "main_title": {
+          "name": "main_title",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "subtitle": {
+          "name": "subtitle",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pricing_type": {
+          "name": "pricing_type",
+          "type": "pricing_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "discount_amount": {
+          "name": "discount_amount",
+          "type": "numeric(10, 2)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_selected_by_default": {
+          "name": "is_selected_by_default",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "badge_text": {
+          "name": "badge_text",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "label_text": {
+          "name": "label_text",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "quantity_offer_tiers_offer_id_offers_id_fk": {
+          "name": "quantity_offer_tiers_offer_id_offers_id_fk",
+          "tableFrom": "quantity_offer_tiers",
+          "tableTo": "offers",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "offer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.recommendation_offer_settings": {
+      "name": "recommendation_offer_settings",
+      "schema": "",
+      "columns": {
+        "offer_id": {
+          "name": "offer_id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "mode": {
+          "name": "mode",
+          "type": "recommendation_mode",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'general'"
+        },
+        "trigger_salla_product_id": {
+          "name": "trigger_salla_product_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "recommendation_offer_settings_offer_id_offers_id_fk": {
+          "name": "recommendation_offer_settings_offer_id_offers_id_fk",
+          "tableFrom": "recommendation_offer_settings",
+          "tableTo": "offers",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "offer_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "users_email_unique": {
+          "columns": [
+            "email"
+          ],
+          "nullsNotDistinct": false,
+          "name": "users_email_unique"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.merchants": {
+      "name": "merchants",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "merchant_id": {
+          "name": "merchant_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "access_token": {
+          "name": "access_token",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "refresh_token": {
+          "name": "refresh_token",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "merchants_merchant_id_unique": {
+          "columns": [
+            "merchant_id"
+          ],
+          "nullsNotDistinct": false,
+          "name": "merchants_merchant_id_unique"
+        }
+      },
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.event_logs": {
+      "name": "event_logs",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "event_name": {
+          "name": "event_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_data": {
+          "name": "event_data",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_date": {
+          "name": "event_date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "merchant_id": {
+          "name": "merchant_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "event_logs_merchant_date_idx": {
+          "name": "event_logs_merchant_date_idx",
+          "columns": [
+            {
+              "expression": "merchant_id",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int4_ops",
+              "isExpression": false
+            },
+            {
+              "expression": "event_date",
+              "asc": true,
+              "nulls": "last",
+              "opclass": "int4_ops",
+              "isExpression": false
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    },
+    "public.daily_stats": {
+      "name": "daily_stats",
+      "schema": "",
+      "columns": {
+        "merchant_id": {
+          "name": "merchant_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "impressions": {
+          "name": "impressions",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "clicks": {
+          "name": "clicks",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "add_to_cart": {
+          "name": "add_to_cart",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "conversions": {
+          "name": "conversions",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "daily_stats_merchant_id_merchants_merchant_id_fk": {
+          "name": "daily_stats_merchant_id_merchants_merchant_id_fk",
+          "tableFrom": "daily_stats",
+          "tableTo": "merchants",
+          "schemaTo": "public",
+          "columnsFrom": [
+            "merchant_id"
+          ],
+          "columnsTo": [
+            "merchant_id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "daily_stats_pk": {
+          "name": "daily_stats_pk",
+          "columns": [
+            "merchant_id",
+            "date"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {},
+      "policies": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.activity_actor_type": {
+      "name": "activity_actor_type",
+      "values": [
+        "merchant",
+        "admin",
+        "system",
+        "storefront",
+        "salla"
+      ],
+      "schema": "public"
+    },
+    "public.activity_severity": {
+      "name": "activity_severity",
+      "values": [
+        "info",
+        "warn",
+        "error"
+      ],
+      "schema": "public"
+    },
+    "public.addon_discount_type": {
+      "name": "addon_discount_type",
+      "values": [
+        "percentage",
+        "free-product"
+      ],
+      "schema": "public"
+    },
+    "public.bundle_discount_type": {
+      "name": "bundle_discount_type",
+      "values": [
+        "percentage",
+        "free-product"
+      ],
+      "schema": "public"
+    },
+    "public.display_orientation": {
+      "name": "display_orientation",
+      "values": [
+        "vertical",
+        "horizontal"
+      ],
+      "schema": "public"
+    },
+    "public.offer_kind": {
+      "name": "offer_kind",
+      "values": [
+        "quantity_discount",
+        "product_add_on",
+        "bundle",
+        "upgrade_offer",
+        "cart_recommendation"
+      ],
+      "schema": "public"
+    },
+    "public.offer_status": {
+      "name": "offer_status",
+      "values": [
+        "draft",
+        "active",
+        "paused",
+        "expired"
+      ],
+      "schema": "public"
+    },
+    "public.offer_target_entity": {
+      "name": "offer_target_entity",
+      "values": [
+        "product",
+        "category"
+      ],
+      "schema": "public"
+    },
+    "public.pricing_type": {
+      "name": "pricing_type",
+      "values": [
+        "percentage",
+        "fixed"
+      ],
+      "schema": "public"
+    },
+    "public.recommendation_mode": {
+      "name": "recommendation_mode",
+      "values": [
+        "cart_related",
+        "general"
+      ],
+      "schema": "public"
+    },
+    "public.suggestion_status": {
+      "name": "suggestion_status",
+      "values": [
+        "new",
+        "reviewed",
+        "planned",
+        "done",
+        "rejected"
+      ],
+      "schema": "public"
+    },
+    "public.target_type": {
+      "name": "target_type",
+      "values": [
+        "all_products",
+        "selected_products",
+        "selected_categories"
+      ],
+      "schema": "public"
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "tables": {}
+  }
+}

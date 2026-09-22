@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { lt } from 'drizzle-orm';
-import { DrizzleService } from '../../database/drizzle.service';
-import { activityLogs } from '../../database/entities/activity-logs';
-import { eventLogs } from '../../database/entities/event-logs';
+import { DrizzleService } from '../../../database/drizzle.service';
+import { activityLogs } from '../../../database/entities/activity-logs';
+import { eventLogs } from '../../../database/entities/event-logs';
 
 const RETENTION_DAYS = 30;
 

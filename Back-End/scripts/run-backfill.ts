@@ -9,7 +9,7 @@ import {
   dailyStats,
 } from '../src/database/entities/activity-logs';
 import { and, eq, gte, inArray, sql } from 'drizzle-orm';
-import { getDateWindow } from '../src/modules/logging/utils/date-window.util';
+import { getDateWindow } from '../src/modules/logging/stats/date-window.util';
 
 const STOREFRONT_ACTION_FIELD = {
   'offer.click': 'clicks',

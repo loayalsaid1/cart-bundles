@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DrizzleService } from '../../database/drizzle.service';
-import { RedisService } from '../../redis/redis.service';
-import { ActivityService } from './activity.service';
+import { DrizzleService } from '../../../database/drizzle.service';
+import { RedisService } from '../../../redis/redis.service';
+import { ActivityService } from '../activity/activity.service';
 import { CatalogCacheService } from './catalog-cache.service';
 import { OfferIndexCacheService } from './offer-index-cache.service';
-import { OfferStatsService } from './offer-stats.service';
-import type { SallaOrderWebhookEvent } from '../webhooks/types/salla-events';
+import { OfferStatsService } from '../stats/offer-stats.service';
+import type { SallaOrderWebhookEvent } from '../../webhooks/types/salla-events';
 import {
   conversionLockKey,
   extractOrderId,
@@ -14,10 +14,10 @@ import {
   extractProductQuantities,
   type MatchContext,
   TERMINAL_ORDER_STATUSES,
-} from './utils/order-conversion.matcher';
-import { matchOffersFromIndex } from './utils/offer-match-index';
-import { calculateExtraRevenue } from './utils/conversion-revenue';
-import { ConversionAttributor } from './utils/conversion-attributor';
+} from './matchers/order-conversion.matcher';
+import { matchOffersFromIndex } from './matchers/offer-match-index';
+import { calculateExtraRevenue } from './matchers/conversion-revenue';
+import { ConversionAttributor } from './matchers/conversion-attributor';
 
 /** 30-day lock so the same (order, offer) pair is never double-counted. */
 const CONVERSION_LOCK_TTL_SECONDS = 60 * 60 * 24 * 30;

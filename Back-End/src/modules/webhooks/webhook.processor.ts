@@ -2,7 +2,7 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { QUEUES } from '../../queue/queue.constants';
-import { ActivityService } from '../logging/activity.service';
+import { ActivityService } from '../logging/activity/activity.service';
 import { EventLoggerService } from './event-logger.service';
 import { INLINE_WEBHOOK_EVENTS } from './inline-events';
 import type { SallaAppEventBase } from './types/salla-events';

@@ -120,6 +120,18 @@ export function offerMatchIndexKey(merchantId: number): string {
   return `${OFFER_MATCH_INDEX_PREFIX}${merchantId}`;
 }
 
+/** Category → product ID lists fetched from Salla API. */
+export const CATEGORY_PRODUCTS_TTL_SECONDS = CACHE_TTL_SECONDS.CATEGORIES;
+
+export function categoryProductsKey(merchantId: number, categoryId: number): string {
+  return `${CACHE_PREFIX.CATEGORIES}${merchantId}:cat-products:${categoryId}`;
+}
+
+/** Prefix used to bulk-invalidate all category-product caches for a merchant. */
+export function categoryProductsPrefix(merchantId: number): string {
+  return `${CACHE_PREFIX.CATEGORIES}${merchantId}:cat-products:`;
+}
+
 export const OFFER_STATS_READ_PREFIX = 'stats:read:';
 
 export function offerStatsReadHashKey(merchantId: number, offerId: number): string {

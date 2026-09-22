@@ -1,13 +1,13 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
-import { QUEUES } from '../../queue/queue.constants';
-import { ActivityService } from './activity.service';
-import { OfferStatsService } from './offer-stats.service';
+import { QUEUES } from '../../../queue/queue.constants';
+import { ActivityService } from '../activity/activity.service';
+import { OfferStatsService } from '../stats/offer-stats.service';
 import {
   STOREFRONT_EVENT_FIELD,
   type StorefrontEventJob,
-} from './types/activity.types';
+} from '../types/storefront.types';
 
 @Processor(QUEUES.STOREFRONT)
 export class StorefrontEventsProcessor extends WorkerHost {

@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
 import { and, eq, sql } from 'drizzle-orm';
-import { DrizzleService } from '../../database/drizzle.service';
-import { dailyStats, offerStats } from '../../database/entities/activity-logs';
-import { offers } from '../../database/entities/offers';
+import { DrizzleService } from '../../../database/drizzle.service';
+import { dailyStats, offerStats } from '../../../database/entities/activity-logs';
+import { offers } from '../../../database/entities/offers';
 import {
   OFFER_STATS_FLUSH_INTERVAL_MS,
   OFFER_STATS_FLUSH_LOCK,
@@ -12,9 +12,9 @@ import {
   parseOfferStatsHashKey,
   offerStatsReadHashKey,
   merchantTotalStatsReadHashKey,
-} from '../../redis/redis.constants';
-import { RedisService } from '../../redis/redis.service';
-import type { OfferStatField } from './types/activity.types';
+} from '../../../redis/redis.constants';
+import { RedisService } from '../../../redis/redis.service';
+import type { OfferStatField } from '../types/storefront.types';
 
 const PROCESSING_MARKER = ':flushing:';
 const PROCESSING_TTL_SECONDS = 24 * 60 * 60;

@@ -1,19 +1,19 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { and, eq } from 'drizzle-orm';
-import { DrizzleService } from '../../database/drizzle.service';
-import { offers } from '../../database/entities/offers';
+import { DrizzleService } from '../../../database/drizzle.service';
+import { offers } from '../../../database/entities/offers';
 import {
   OFFER_MATCH_INDEX_TTL_SECONDS,
   offerMatchIndexKey,
-} from '../../redis/redis.constants';
-import { RedisService } from '../../redis/redis.service';
-import type { ConversionOffer } from './utils/order-conversion.matcher';
+} from '../../../redis/redis.constants';
+import { RedisService } from '../../../redis/redis.service';
+import type { ConversionOffer } from './matchers/order-conversion.matcher';
 import {
   buildOfferIndex,
   deserializeIndex,
   type OfferMatchIndex,
   serializeIndex,
-} from './utils/offer-match-index';
+} from './matchers/offer-match-index';
 
 @Injectable()
 export class OfferIndexCacheService {

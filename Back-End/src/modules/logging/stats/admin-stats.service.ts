@@ -1,17 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { and, desc, eq, gte, sql } from 'drizzle-orm';
-import { DrizzleService } from '../../database/drizzle.service';
-import { activityLogs, dailyStats, offerStats } from '../../database/entities/activity-logs';
-import { merchants } from '../../database/entities/merchants';
-import { offers } from '../../database/entities/offers';
-import { QueueHealthService } from '../../queue/queue-health.service';
-import { RedisService } from '../../redis/redis.service';
+import { DrizzleService } from '../../../database/drizzle.service';
+import { activityLogs, dailyStats, offerStats } from '../../../database/entities/activity-logs';
+import { merchants } from '../../../database/entities/merchants';
+import { offers } from '../../../database/entities/offers';
+import { QueueHealthService } from '../../../queue/queue-health.service';
+import { RedisService } from '../../../redis/redis.service';
 import { MerchantHealthService } from './merchant-health.service';
 import type {
   AdminMerchantDetail,
   AdminMerchantRow,
   AdminOverview,
-} from './types/activity.types';
+} from '../types/stats.types';
 
 const ADMIN_OVERVIEW_CACHE_KEY = 'admin:overview:v2';
 const ADMIN_OVERVIEW_TTL_SECONDS = 60;

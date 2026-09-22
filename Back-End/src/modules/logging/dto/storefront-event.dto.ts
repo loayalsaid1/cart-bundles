@@ -2,7 +2,7 @@ import { IsIn, IsInt, IsOptional, IsString } from 'class-validator';
 import {
   STOREFRONT_EVENTS,
   type StorefrontEventName,
-} from '../types/activity.types';
+} from '../types/storefront.types';
 
 export class StorefrontEventDto {
   @IsInt()
