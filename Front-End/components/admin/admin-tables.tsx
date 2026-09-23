@@ -109,7 +109,7 @@ export function AdminActivityTable({
             <TableHead>{t("table.action")}</TableHead>
             <TableHead>{t("table.severity")}</TableHead>
             <TableHead>{t("table.message")}</TableHead>
-            <TableHead className="text-end">Details</TableHead>
+            <TableHead className="text-end">{t("table.details")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -120,7 +120,7 @@ export function AdminActivityTable({
               </TableCell>
               <TableCell>
                 <Badge variant={actorVariant(row.actorType)} className="text-[10px] capitalize">
-                  {row.actorType}
+                  {tAct(`actors.${row.actorType}` as any) || row.actorType}
                 </Badge>
               </TableCell>
               <TableCell>
@@ -141,7 +141,7 @@ export function AdminActivityTable({
               </TableCell>
               <TableCell>
                 <Badge variant={severityVariant(row.severity)} className="text-[10px] uppercase">
-                  {row.severity}
+                  {tAct(`severities.${row.severity}` as any) || row.severity}
                 </Badge>
               </TableCell>
               <TableCell className="max-w-xs truncate text-xs text-muted-foreground">

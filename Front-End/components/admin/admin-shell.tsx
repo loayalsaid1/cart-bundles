@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAdminLogout, useAdminOverview } from "@/hooks/use-admin";
 import { ApiError } from "@/lib/http";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 import { AdminLoginForm } from "./admin-login-form";
 
 const NAV_ITEMS = [
@@ -26,7 +28,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     overview.error instanceof ApiError &&
     overview.error.status === 401
   ) {
-    return <AdminLoginForm />;
+    return (
+      <div className="relative min-h-dvh">
+        <div className="absolute top-4 end-4 z-50 flex items-center gap-2">
+          <LanguageSwitcher />
+          <ThemeSwitcher />
+        </div>
+        <AdminLoginForm />
+      </div>
+    );
   }
 
   return (
@@ -57,7 +67,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="border-t p-3">
+        <div className="border-t p-3 space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <LanguageSwitcher />
+            <ThemeSwitcher />
+          </div>
           <Button
             variant="outline"
             className="w-full"
@@ -70,30 +84,36 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <nav
-          className="flex gap-2 overflow-x-auto border-b p-3 md:hidden"
-          aria-label={t("title")}
-        >
-          {NAV_ITEMS.map((item) => {
-            const active = item.exact
-              ? pathname === item.href
-              : pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "whitespace-nowrap rounded-md px-3 py-2 text-sm",
-                  active
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground",
-                )}
-              >
-                {t(`nav.${item.key}`)}
-              </Link>
-            );
-          })}
-        </nav>
+        <div className="flex items-center justify-between border-b p-3 md:hidden">
+          <nav
+            className="flex gap-2 overflow-x-auto"
+            aria-label={t("title")}
+          >
+            {NAV_ITEMS.map((item) => {
+              const active = item.exact
+                ? pathname === item.href
+                : pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "whitespace-nowrap rounded-md px-3 py-2 text-sm",
+                    active
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted text-muted-foreground",
+                  )}
+                >
+                  {t(`nav.${item.key}`)}
+                </Link>
+              );
+            })}
+          </nav>
+          <div className="flex items-center gap-2 shrink-0 ms-2">
+            <LanguageSwitcher />
+            <ThemeSwitcher />
+          </div>
+        </div>
         <div className="mx-auto w-full max-w-7xl flex-1 space-y-8 p-6">
           {children}
         </div>

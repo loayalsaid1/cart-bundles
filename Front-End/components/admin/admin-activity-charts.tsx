@@ -91,7 +91,7 @@ export function AdminActivityCharts({ logs }: { logs: ActivityLog[] }) {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-semibold">
-              Severity Distribution
+              {t("charts.severityDistribution")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -137,7 +137,7 @@ export function AdminActivityCharts({ logs }: { logs: ActivityLog[] }) {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-semibold">
-              Actor Breakdown
+              {t("charts.actorBreakdown")}
             </CardTitle>
           </CardHeader>
           <CardContent>

@@ -1,7 +1,9 @@
+import { redirect } from '@/i18n/routing';
 import {
   extractApiErrorMessage,
   isTokenExpiredError,
 } from '@/lib/http-error';
+import { getLocale } from 'next-intl/server';
 
 export class ApiError extends Error {
   status: number;
@@ -25,7 +27,9 @@ async function handleTokenExpiry(): Promise<void> {
   if (typeof window === 'undefined' || expiryHandled) return;
   expiryHandled = true;
   if (window.location.pathname.includes('/admin')) {
-    window.location.reload();
+    // redirect to admin login
+    const locale = await getLocale();
+    redirect({ href: "/login", locale: locale })
     return;
   }
   const { embedded } = await import('@salla.sa/embedded-sdk');

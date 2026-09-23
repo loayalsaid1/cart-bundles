@@ -646,7 +646,17 @@
         "title": "Activity Payload & Metadata",
         "button": "JSON Data",
         "noMetadata": "No extra metadata available for this event.",
-        "close": "Close"
+        "close": "Close",
+        "merchantId": "Merchant ID:",
+        "actorType": "Actor Type:",
+        "actorId": "Actor ID:",
+        "offerId": "Offer ID:",
+        "entity": "Entity:",
+        "payload": "JSON Metadata Payload:"
+      },
+      "charts": {
+        "severityDistribution": "Severity Distribution",
+        "actorBreakdown": "Actor Breakdown"
       },
       "stats": {
         "totalEvents": "Total Logged Events",
@@ -657,7 +667,8 @@
       "pagination": {
         "showing": "Showing {count} entries",
         "prev": "Previous",
-        "next": "Next"
+        "next": "Next",
+        "page": "Page {page}"
       }
     },
     "suggestions": {
@@ -683,6 +694,7 @@
       "action": "Action",
       "severity": "Severity",
       "message": "Details",
+      "details": "Details",
       "status": "Status",
       "offers": "Offers",
       "created": "Created"

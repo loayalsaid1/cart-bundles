@@ -646,7 +646,17 @@
         "title": "بيانات وتفاصيل الحدث",
         "button": "بيانات JSON",
         "noMetadata": "لا تتوفر بيانات تفصيلية إضافية لهذا الحدث.",
-        "close": "إغلاق"
+        "close": "إغلاق",
+        "merchantId": "معرف التاجر:",
+        "actorType": "نوع الطرف:",
+        "actorId": "معرف الطرف:",
+        "offerId": "معرف العرض:",
+        "entity": "الكيان:",
+        "payload": "بيانات JSON التفصيلية:"
+      },
+      "charts": {
+        "severityDistribution": "توزيع مستويات الشدة",
+        "actorBreakdown": "تصنيف الأطراف"
       },
       "stats": {
         "totalEvents": "إجمالي الأحداث المسجلة",
@@ -657,7 +667,8 @@
       "pagination": {
         "showing": "عرض {count} سجل",
         "prev": "السابق",
-        "next": "التالي"
+        "next": "التالي",
+        "page": "الصفحة {page}"
       }
     },
     "suggestions": {
@@ -683,6 +694,7 @@
       "action": "الإجراء",
       "severity": "الشدة",
       "message": "التفاصيل",
+      "details": "التفاصيل",
       "status": "الحالة",
       "offers": "العروض",
       "created": "تاريخ الإنشاء"

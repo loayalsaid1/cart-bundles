@@ -20,6 +20,7 @@ export function AdminActivityMetadataModal({
   onClose: () => void;
 }) {
   const t = useTranslations("Admin.activity.metadata");
+  const tAct = useTranslations("Admin.activity");
 
   if (!log) return null;
 
@@ -34,7 +35,7 @@ export function AdminActivityMetadataModal({
               {log.action}
             </DialogTitle>
             <Badge variant="outline" className="text-[10px] uppercase">
-              {log.severity}
+              {tAct(`severities.${log.severity}` as any) || log.severity}
             </Badge>
           </div>
           <DialogDescription className="text-xs text-muted-foreground">
@@ -45,28 +46,28 @@ export function AdminActivityMetadataModal({
         <div className="space-y-3 py-2 text-xs">
           <div className="grid grid-cols-2 gap-2 rounded-lg border bg-muted/30 p-3 text-xs">
             <div>
-              <span className="font-semibold text-muted-foreground">Merchant ID:</span>{" "}
+              <span className="font-semibold text-muted-foreground">{t("merchantId")}</span>{" "}
               {log.merchantId ? `#${log.merchantId}` : "—"}
             </div>
             <div>
-              <span className="font-semibold text-muted-foreground">Actor Type:</span>{" "}
-              <span className="capitalize">{log.actorType}</span>
+              <span className="font-semibold text-muted-foreground">{t("actorType")}</span>{" "}
+              <span className="capitalize">{tAct(`actors.${log.actorType}` as any) || log.actorType}</span>
             </div>
             {log.actorId && (
               <div>
-                <span className="font-semibold text-muted-foreground">Actor ID:</span>{" "}
+                <span className="font-semibold text-muted-foreground">{t("actorId")}</span>{" "}
                 {log.actorId}
               </div>
             )}
             {log.offerId && (
               <div>
-                <span className="font-semibold text-muted-foreground">Offer ID:</span>{" "}
+                <span className="font-semibold text-muted-foreground">{t("offerId")}</span>{" "}
                 #{log.offerId}
               </div>
             )}
             {log.entityType && (
               <div>
-                <span className="font-semibold text-muted-foreground">Entity:</span>{" "}
+                <span className="font-semibold text-muted-foreground">{t("entity")}</span>{" "}
                 {log.entityType} {log.entityId ? `(#${log.entityId})` : ""}
               </div>
             )}
@@ -79,7 +80,7 @@ export function AdminActivityMetadataModal({
           )}
 
           <div>
-            <p className="mb-1 font-semibold text-muted-foreground">JSON Metadata Payload:</p>
+            <p className="mb-1 font-semibold text-muted-foreground">{t("payload")}</p>
             {hasMetadata ? (
               <pre className="max-h-64 overflow-auto rounded-lg border bg-zinc-950 p-3 text-[11px] text-zinc-100 dark:bg-zinc-900">
                 {JSON.stringify(log.metadata, null, 2)}

@@ -98,7 +98,7 @@ export function AdminActivityPage() {
               {t("pagination.prev")}
             </Button>
             <span className="font-semibold text-foreground">
-              Page {page + 1}
+              {t("pagination.page", { page: String(page + 1) })}
             </span>
             <Button
               variant="outline"
