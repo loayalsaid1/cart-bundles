@@ -98,10 +98,10 @@ export function DailyMetricChart({
                       labelFormatter={(value) =>
                         typeof value === "string"
                           ? format.dateTime(new Date(`${value}T00:00:00Z`), {
-                              month: "short",
-                              day: "numeric",
-                              timeZone: "UTC",
-                            })
+                            month: "short",
+                            day: "numeric",
+                            timeZone: "UTC",
+                          })
                           : String(value ?? "")
                       }
                     />
@@ -114,7 +114,6 @@ export function DailyMetricChart({
                   fill={`var(--color-${metric})`}
                   fillOpacity={0.18}
                   strokeWidth={2}
-                  isAnimationActive={false}
                 />
               </AreaChart>
             </ChartContainer>
