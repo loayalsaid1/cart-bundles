@@ -23,10 +23,18 @@ export function useAdminOverview() {
   });
 }
 
-export function useAdminActivity() {
+export function useAdminActivity(filters: {
+  merchantId?: number;
+  actorType?: string;
+  action?: string;
+  severity?: string;
+  search?: string;
+  limit?: number;
+  offset?: number;
+} = {}) {
   return useQuery({
-    queryKey: ["admin", "activity"],
-    queryFn: () => getAdminActivity({ limit: 50 }),
+    queryKey: ["admin", "activity", filters],
+    queryFn: () => getAdminActivity(filters),
     retry: false,
   });
 }

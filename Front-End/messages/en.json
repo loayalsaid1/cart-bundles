@@ -618,8 +618,47 @@
       "empty": "No recent errors."
     },
     "activity": {
-      "title": "Activity",
-      "empty": "No activity yet."
+      "title": "System Activity & Audit Log",
+      "subtitle": "Real-time audit log of system events, merchant actions, and error logs across the platform.",
+      "empty": "No activity logs match your filters.",
+      "filters": {
+        "searchPlaceholder": "Search action or message...",
+        "allSeverities": "All Severities",
+        "allActors": "All Actors",
+        "actor": "Actor",
+        "merchantId": "Merchant ID...",
+        "clear": "Reset Filters"
+      },
+      "severities": {
+        "info": "Info",
+        "warn": "Warning",
+        "error": "Error",
+        "critical": "Critical"
+      },
+      "actors": {
+        "merchant": "Merchant",
+        "admin": "Admin",
+        "system": "System Worker",
+        "storefront": "Storefront",
+        "salla": "Salla Platform"
+      },
+      "metadata": {
+        "title": "Activity Payload & Metadata",
+        "button": "JSON Data",
+        "noMetadata": "No extra metadata available for this event.",
+        "close": "Close"
+      },
+      "stats": {
+        "totalEvents": "Total Logged Events",
+        "errorRate": "Error Events",
+        "systemEvents": "System Jobs",
+        "merchantActions": "Merchant Actions"
+      },
+      "pagination": {
+        "showing": "Showing {count} entries",
+        "prev": "Previous",
+        "next": "Next"
+      }
     },
     "suggestions": {
       "title": "Suggestions",

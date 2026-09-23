@@ -24,10 +24,30 @@ export interface RecordActivityInput {
 
 export interface ActivityListQuery {
   merchantId?: number;
+  actorType?: ActivityActorType;
   action?: string;
   severity?: ActivitySeverity;
+  search?: string;
   offerId?: number;
   limit?: number;
   offset?: number;
   excludeStorefront?: boolean;
+}
+
+export interface ActivityListResponse {
+  items: Array<{
+    id: number;
+    merchantId: number | null;
+    actorType: ActivityActorType;
+    actorId: string | null;
+    action: string;
+    entityType: string | null;
+    entityId: string | null;
+    offerId: number | null;
+    severity: ActivitySeverity;
+    message: string | null;
+    metadata: Record<string, unknown>;
+    createdAt: Date;
+  }>;
+  hasMore: boolean;
 }

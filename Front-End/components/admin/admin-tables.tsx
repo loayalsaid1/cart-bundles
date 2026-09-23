@@ -67,12 +67,31 @@ export function AdminActivityTable({
   rows,
   isPending,
   isError,
+  onSelectMerchant,
+  onViewMetadata,
 }: {
   rows: ActivityLog[] | undefined;
   isPending: boolean;
   isError: boolean;
+  onSelectMerchant?: (merchantId: number) => void;
+  onViewMetadata?: (log: ActivityLog) => void;
 }) {
   const t = useTranslations("Admin");
+  const tAct = useTranslations("Admin.activity");
+
+  const actorVariant = (actor: string) => {
+    switch (actor) {
+      case "merchant":
+        return "default";
+      case "admin":
+        return "secondary";
+      case "system":
+        return "outline";
+      default:
+        return "outline";
+    }
+  };
+
   return (
     <AdminSection
       title={t("activity.title")}
@@ -85,27 +104,59 @@ export function AdminActivityTable({
         <TableHeader>
           <TableRow>
             <TableHead>{t("table.time")}</TableHead>
+            <TableHead>{tAct("filters.actor")}</TableHead>
             <TableHead>{t("table.merchant")}</TableHead>
             <TableHead>{t("table.action")}</TableHead>
             <TableHead>{t("table.severity")}</TableHead>
             <TableHead>{t("table.message")}</TableHead>
+            <TableHead className="text-end">Details</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {(rows ?? []).map((row) => (
             <TableRow key={row.id}>
-              <TableCell className="text-xs text-muted-foreground">
+              <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                 {new Date(row.createdAt).toLocaleString()}
               </TableCell>
-              <TableCell>{row.merchantId ?? "—"}</TableCell>
-              <TableCell className="font-medium">{row.action}</TableCell>
               <TableCell>
-                <Badge variant={severityVariant(row.severity)}>
+                <Badge variant={actorVariant(row.actorType)} className="text-[10px] capitalize">
+                  {row.actorType}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                {row.merchantId ? (
+                  <button
+                    type="button"
+                    onClick={() => onSelectMerchant?.(row.merchantId!)}
+                    className="font-semibold text-primary hover:underline"
+                  >
+                    #{row.merchantId}
+                  </button>
+                ) : (
+                  <span className="text-muted-foreground">—</span>
+                )}
+              </TableCell>
+              <TableCell className="font-mono text-xs font-medium">
+                {row.action}
+              </TableCell>
+              <TableCell>
+                <Badge variant={severityVariant(row.severity)} className="text-[10px] uppercase">
                   {row.severity}
                 </Badge>
               </TableCell>
-              <TableCell className="text-xs text-muted-foreground">
+              <TableCell className="max-w-xs truncate text-xs text-muted-foreground">
                 {row.message ?? row.entityType ?? "—"}
+              </TableCell>
+              <TableCell className="text-end">
+                {onViewMetadata && (
+                  <button
+                    type="button"
+                    onClick={() => onViewMetadata(row)}
+                    className="rounded bg-muted px-2 py-1 text-[11px] font-medium text-foreground hover:bg-accent transition-colors"
+                  >
+                    JSON
+                  </button>
+                )}
               </TableCell>
             </TableRow>
           ))}

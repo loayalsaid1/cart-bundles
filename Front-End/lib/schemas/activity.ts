@@ -17,6 +17,11 @@ export const activityLogSchema = z.object({
   createdAt: z.string(),
 }).passthrough();
 
+export const activityListResponseSchema = z.object({
+  items: z.array(activityLogSchema),
+  hasMore: z.boolean(),
+});
+
 export const merchantHealthSchema = z.object({
   merchantId: z.coerce.number(),
   isActive: z.boolean(),
@@ -50,5 +55,6 @@ export const dailyStatPointSchema = z.object({
 });
 
 export type ActivityLog = z.infer<typeof activityLogSchema>;
+export type ActivityListResponse = z.infer<typeof activityListResponseSchema>;
 export type MerchantHealth = z.infer<typeof merchantHealthSchema>;
 export type DailyStatPoint = z.infer<typeof dailyStatPointSchema>;

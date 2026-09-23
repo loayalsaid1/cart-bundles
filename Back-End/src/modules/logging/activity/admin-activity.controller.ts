@@ -10,7 +10,10 @@ import { Roles } from '../../../common/decorators';
 import { Role } from '../../../common/enums';
 import { ActivityService } from './activity.service';
 import { AdminStatsService } from '../stats/admin-stats.service';
-import type { ActivitySeverity } from '../types/activity.types';
+import type {
+  ActivityActorType,
+  ActivitySeverity,
+} from '../types/activity.types';
 
 @Roles([Role.Admin])
 @Controller('admin')
@@ -43,15 +46,19 @@ export class AdminActivityController {
   async list(
     @Query('merchantId', new ParseIntPipe({ optional: true }))
     merchantId?: number,
+    @Query('actorType') actorType?: ActivityActorType,
     @Query('action') action?: string,
     @Query('severity') severity?: ActivitySeverity,
+    @Query('search') search?: string,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
     @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
   ) {
     return this.activityService.list({
       merchantId,
+      actorType,
       action,
       severity,
+      search,
       limit,
       offset,
     });

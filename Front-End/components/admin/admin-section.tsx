@@ -42,9 +42,9 @@ export function AdminSection({
 }
 
 export function severityVariant(
-  severity: "info" | "warn" | "error",
+  severity?: string,
 ): "destructive" | "outline" | "secondary" {
-  if (severity === "error") return "destructive";
+  if (severity === "error" || severity === "critical") return "destructive";
   if (severity === "warn") return "outline";
   return "secondary";
 }

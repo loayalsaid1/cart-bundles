@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { http } from '@/lib/http';
-import { activityLogSchema, type ActivityLog } from '@/lib/schemas/activity';
+import {
+  activityListResponseSchema,
+  activityLogSchema,
+  type ActivityListResponse,
+  type ActivityLog,
+} from '@/lib/schemas/activity';
 import {
   adminLoginSchema,
   adminMerchantDetailSchema,
@@ -39,18 +44,24 @@ export async function getAdminOverview(): Promise<AdminOverview> {
 
 export async function getAdminActivity(filters: {
   merchantId?: number;
+  actorType?: string;
   action?: string;
   severity?: string;
+  search?: string;
   limit?: number;
-} = {}): Promise<ActivityLog[]> {
+  offset?: number;
+} = {}): Promise<ActivityListResponse> {
   const params = new URLSearchParams();
   if (filters.merchantId) params.set('merchantId', String(filters.merchantId));
+  if (filters.actorType) params.set('actorType', filters.actorType);
   if (filters.action) params.set('action', filters.action);
   if (filters.severity) params.set('severity', filters.severity);
+  if (filters.search) params.set('search', filters.search);
   if (filters.limit) params.set('limit', String(filters.limit));
+  if (filters.offset) params.set('offset', String(filters.offset));
   const qs = params.toString();
   const data = await http<unknown>(`/admin/activity${qs ? `?${qs}` : ''}`);
-  return z.array(activityLogSchema).parse(data);
+  return activityListResponseSchema.parse(data);
 }
 
 export async function getAdminMerchants(): Promise<AdminMerchant[]> {
