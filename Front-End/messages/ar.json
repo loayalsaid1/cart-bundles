@@ -137,7 +137,7 @@
       "kpis": {
         "active": "العروض النشطة",
         "targeted": "المنتجات المستهدفة",
-        "revenue": "الظهور",
+        "impression": "الظهور",
         "conversion": "التحويلات",
         "addToCart": "الإضافة للسلة",
         "na": "—"

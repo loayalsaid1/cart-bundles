@@ -67,7 +67,7 @@ export function OfferMasterList() {
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
         <KpiCard label={t("masterList.kpis.active")} value={String(activeCount)} />
         <KpiCard label={t("masterList.kpis.targeted")} value={String(targetsCount)} />
-        <KpiCard label={t("masterList.kpis.revenue")} value={String(impressions)} />
+        <KpiCard label={t("masterList.kpis.impression")} value={String(impressions)} />
         <KpiCard label={t("masterList.kpis.addToCart")} value={String(addToCart)} />
         <KpiCard label={t("masterList.kpis.conversion")} value={String(conversions)} />
       </div>
