@@ -1,14 +1,55 @@
 -- Current sql file was generated after introspecting the database
 -- If you want to run this migration please uncomment this code before executing migrations
 /*
+CREATE TYPE "public"."activity_actor_type" AS ENUM('merchant', 'admin', 'system', 'storefront', 'salla');--> statement-breakpoint
+CREATE TYPE "public"."activity_severity" AS ENUM('info', 'warn', 'error');--> statement-breakpoint
 CREATE TYPE "public"."addon_discount_type" AS ENUM('percentage', 'free-product');--> statement-breakpoint
+CREATE TYPE "public"."bundle_discount_type" AS ENUM('percentage', 'free-product');--> statement-breakpoint
 CREATE TYPE "public"."display_orientation" AS ENUM('vertical', 'horizontal');--> statement-breakpoint
 CREATE TYPE "public"."offer_kind" AS ENUM('quantity_discount', 'product_add_on', 'bundle', 'upgrade_offer', 'cart_recommendation');--> statement-breakpoint
 CREATE TYPE "public"."offer_status" AS ENUM('draft', 'active', 'paused', 'expired');--> statement-breakpoint
 CREATE TYPE "public"."offer_target_entity" AS ENUM('product', 'category');--> statement-breakpoint
 CREATE TYPE "public"."pricing_type" AS ENUM('percentage', 'fixed');--> statement-breakpoint
 CREATE TYPE "public"."recommendation_mode" AS ENUM('cart_related', 'general');--> statement-breakpoint
+CREATE TYPE "public"."suggestion_status" AS ENUM('new', 'reviewed', 'planned', 'done', 'rejected');--> statement-breakpoint
 CREATE TYPE "public"."target_type" AS ENUM('all_products', 'selected_products', 'selected_categories');--> statement-breakpoint
+CREATE TABLE "activity_logs" (
+	"id" bigserial PRIMARY KEY NOT NULL,
+	"merchant_id" integer,
+	"actor_type" "activity_actor_type" NOT NULL,
+	"actor_id" varchar(64),
+	"action" varchar(100) NOT NULL,
+	"entity_type" varchar(64),
+	"entity_id" varchar(64),
+	"offer_id" integer,
+	"severity" "activity_severity" DEFAULT 'info' NOT NULL,
+	"message" text,
+	"metadata" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "offer_stats" (
+	"offer_id" integer PRIMARY KEY NOT NULL,
+	"merchant_id" integer NOT NULL,
+	"impressions" bigint DEFAULT 0 NOT NULL,
+	"clicks" bigint DEFAULT 0 NOT NULL,
+	"add_to_cart" bigint DEFAULT 0 NOT NULL,
+	"conversions" bigint DEFAULT 0 NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "suggestions" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"merchant_id" integer NOT NULL,
+	"user_id" integer,
+	"title" varchar(160) NOT NULL,
+	"body" text NOT NULL,
+	"status" "suggestion_status" DEFAULT 'new' NOT NULL,
+	"admin_note" text,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "addon_offer_settings" (
 	"offer_id" integer PRIMARY KEY NOT NULL,
 	"max_items" integer DEFAULT 8 NOT NULL,
@@ -23,7 +64,7 @@ CREATE TABLE "addon_offer_settings" (
 --> statement-breakpoint
 CREATE TABLE "bundle_offer_settings" (
 	"offer_id" integer PRIMARY KEY NOT NULL,
-	"discount_type" "pricing_type",
+	"discount_type" "bundle_discount_type",
 	"discount_amount" numeric(10, 2)
 );
 --> statement-breakpoint
@@ -103,13 +144,6 @@ CREATE TABLE "recommendation_offer_settings" (
 	"trigger_salla_product_id" bigint
 );
 --> statement-breakpoint
-CREATE TABLE "event_logs" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"event_name" text NOT NULL,
-	"event_data" jsonb NOT NULL,
-	"event_date" timestamp DEFAULT now() NOT NULL
-);
---> statement-breakpoint
 CREATE TABLE "users" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"name" varchar(255) NOT NULL,
@@ -130,6 +164,30 @@ CREATE TABLE "merchants" (
 	CONSTRAINT "merchants_merchant_id_unique" UNIQUE("merchant_id")
 );
 --> statement-breakpoint
+CREATE TABLE "event_logs" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"event_name" text NOT NULL,
+	"event_data" jsonb NOT NULL,
+	"event_date" timestamp DEFAULT now() NOT NULL,
+	"merchant_id" integer NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "daily_stats" (
+	"merchant_id" integer NOT NULL,
+	"date" date NOT NULL,
+	"impressions" bigint DEFAULT 0 NOT NULL,
+	"clicks" bigint DEFAULT 0 NOT NULL,
+	"add_to_cart" bigint DEFAULT 0 NOT NULL,
+	"conversions" bigint DEFAULT 0 NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "daily_stats_pk" PRIMARY KEY("merchant_id","date")
+);
+--> statement-breakpoint
+ALTER TABLE "activity_logs" ADD CONSTRAINT "activity_logs_merchant_id_merchants_merchant_id_fk" FOREIGN KEY ("merchant_id") REFERENCES "public"."merchants"("merchant_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "activity_logs" ADD CONSTRAINT "activity_logs_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "offer_stats" ADD CONSTRAINT "offer_stats_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "offer_stats" ADD CONSTRAINT "offer_stats_merchant_id_merchants_merchant_id_fk" FOREIGN KEY ("merchant_id") REFERENCES "public"."merchants"("merchant_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "suggestions" ADD CONSTRAINT "suggestions_merchant_id_merchants_merchant_id_fk" FOREIGN KEY ("merchant_id") REFERENCES "public"."merchants"("merchant_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "addon_offer_settings" ADD CONSTRAINT "addon_offer_settings_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "bundle_offer_settings" ADD CONSTRAINT "bundle_offer_settings_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "offer_targets" ADD CONSTRAINT "offer_targets_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -139,5 +197,12 @@ ALTER TABLE "offer_appearance" ADD CONSTRAINT "offer_appearance_offer_id_offers_
 ALTER TABLE "offer_related_products" ADD CONSTRAINT "offer_related_products_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "quantity_offer_settings" ADD CONSTRAINT "quantity_offer_settings_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "quantity_offer_tiers" ADD CONSTRAINT "quantity_offer_tiers_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "recommendation_offer_settings" ADD CONSTRAINT "recommendation_offer_settings_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "recommendation_offer_settings" ADD CONSTRAINT "recommendation_offer_settings_offer_id_offers_id_fk" FOREIGN KEY ("offer_id") REFERENCES "public"."offers"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "daily_stats" ADD CONSTRAINT "daily_stats_merchant_id_merchants_merchant_id_fk" FOREIGN KEY ("merchant_id") REFERENCES "public"."merchants"("merchant_id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "activity_logs_action_idx" ON "activity_logs" USING btree ("action" text_ops);--> statement-breakpoint
+CREATE INDEX "activity_logs_merchant_created_idx" ON "activity_logs" USING btree ("merchant_id" int4_ops,"created_at" int4_ops);--> statement-breakpoint
+CREATE INDEX "activity_logs_offer_idx" ON "activity_logs" USING btree ("offer_id" int4_ops);--> statement-breakpoint
+CREATE INDEX "suggestions_merchant_created_idx" ON "suggestions" USING btree ("merchant_id" int4_ops,"created_at" int4_ops);--> statement-breakpoint
+CREATE INDEX "suggestions_status_idx" ON "suggestions" USING btree ("status" enum_ops);--> statement-breakpoint
+CREATE INDEX "event_logs_merchant_date_idx" ON "event_logs" USING btree ("merchant_id" int4_ops,"event_date" int4_ops);
 */

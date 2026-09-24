@@ -2,6 +2,14 @@ import { merchants } from './entities/merchants';
 import { users } from './entities/users';
 import { eventLogs } from './entities/event-logs';
 import {
+  activityLogs,
+  offerStats,
+  dailyStats,
+  activityActorTypeEnum,
+  activitySeverityEnum,
+} from './entities/activity-logs';
+import { suggestions, suggestionStatusEnum } from './entities/suggestions';
+import {
   offers,
   offerTargets,
   offerRelatedProducts,
@@ -35,13 +43,23 @@ import {
   bundleOfferSettingsRelations,
   upgradeOfferSettingsRelations,
   recommendationOfferSettingsRelations,
+  activityLogsRelations,
+  offerStatsRelations,
+  dailyStatsRelations,
+  suggestionsRelations,
 } from './relations';
 
-// This is for Drizzle kit & Drizzle ORM to work with relational queries
 export {
   merchants,
   users,
   eventLogs,
+  activityLogs,
+  offerStats,
+  dailyStats,
+  activityActorTypeEnum,
+  activitySeverityEnum,
+  suggestions,
+  suggestionStatusEnum,
   offers,
   offerTargets,
   offerRelatedProducts,
@@ -73,12 +91,20 @@ export {
   bundleOfferSettingsRelations,
   upgradeOfferSettingsRelations,
   recommendationOfferSettingsRelations,
+  activityLogsRelations,
+  offerStatsRelations,
+  dailyStatsRelations,
+  suggestionsRelations,
 };
 
 export const schema = {
   merchants,
   users,
   eventLogs,
+  activityLogs,
+  offerStats,
+  dailyStats,
+  suggestions,
   offers,
   offerTargets,
   offerRelatedProducts,
@@ -101,6 +127,10 @@ export const schema = {
   bundleOfferSettingsRelations,
   upgradeOfferSettingsRelations,
   recommendationOfferSettingsRelations,
+  activityLogsRelations,
+  offerStatsRelations,
+  dailyStatsRelations,
+  suggestionsRelations,
 };
 
 export type Schema = typeof schema;

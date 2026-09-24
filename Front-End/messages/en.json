@@ -59,9 +59,13 @@
     "navProducts": "Products",
     "navTest": "Test",
     "navOffers": "Offers",
+    "navActivity": "Activity",
+    "navSuggestions": "Suggestions",
     "products-page": "Products",
     "test-page": "Test",
-    "offers-page": "Offers"
+    "offers-page": "Offers",
+    "activity-page": "Activity",
+    "suggestions-page": "Suggestions"
   },
   "ProductCard": {
     "selectProduct": "Select product",
@@ -133,8 +137,10 @@
       "kpis": {
         "active": "Active offers",
         "targeted": "Targets",
-        "revenue": "Upsell revenue",
-        "conversion": "Conversion rate",
+        "clicks": "Clicks",
+        "impression": "Impressions",
+        "conversion": "Conversions",
+        "addToCart": "Add to Cart",
         "na": "—"
       },
       "filters": {
@@ -458,6 +464,279 @@
         "cartHint": "Shown when the trigger product is in the cart",
         "viewAll": "View all"
       }
+    }
+  },
+  "Activity": {
+    "title": "Store status",
+    "subtitle": "Track installs, offer changes, and storefront performance.",
+    "error": "Could not load store status.",
+    "empty": "No activity yet.",
+    "connection": "Connection",
+    "active": "Active",
+    "inactive": "Inactive",
+    "never": "Never",
+    "lastWebhook": "Last webhook",
+    "kpis": {
+      "activeOffers": "Active offers",
+      "impressions": "Impressions",
+      "clicks": "Clicks",
+      "conversions": "Conversions",
+      "addToCart": "Add to Cart"
+    },
+    "token": {
+      "valid": "Token valid",
+      "expiring": "Token expiring",
+      "expired": "Token expired",
+      "missing": "Token missing"
+    },
+    "table": {
+      "time": "Time",
+      "action": "Action",
+      "severity": "Severity",
+      "message": "Details"
+    },
+    "ops": {
+      "title": "Recent changes"
+    },
+    "charts": {
+      "window": "Last 30 days",
+      "error": "Could not load chart data.",
+      "impressions": {
+        "title": "Impressions",
+        "empty": "Daily impressions start from today. Past days stay empty because they were not stored."
+      },
+      "clicks": {
+        "title": "Clicks",
+        "empty": "No clicks in the last 30 days."
+      },
+      "addToCart": {
+        "title": "Add to cart",
+        "empty": "No add-to-cart events in the last 30 days."
+      },
+      "conversions": {
+        "title": "Conversions",
+        "empty": "No conversions in the last 30 days."
+      }
+    },
+    "actions": {
+      "offer": {
+        "created": "Offer created",
+        "updated": "Offer updated",
+        "deleted": "Offer deleted",
+        "status_changed": "Offer status changed",
+        "salla_sync_failed": "Salla sync failed"
+      }
+    }
+  },
+  "Suggestions": {
+    "title": "Suggestions",
+    "subtitle": "Share feature ideas and improvements with us.",
+    "error": "Could not load suggestions.",
+    "empty": "No suggestions yet.",
+    "form": {
+      "title": "Title",
+      "titlePlaceholder": "Short summary",
+      "body": "Details",
+      "bodyPlaceholder": "Describe the idea or problem.",
+      "submit": "Send suggestion",
+      "submitting": "Sending..."
+    },
+    "status": {
+      "new": "New",
+      "reviewed": "Reviewed",
+      "planned": "Planned",
+      "done": "Done",
+      "rejected": "Rejected"
+    },
+    "table": {
+      "title": "Suggestion",
+      "status": "Status",
+      "created": "Created",
+      "adminNote": "Note"
+    },
+    "notify": {
+      "created": "Suggestion sent.",
+      "failed": "Could not send suggestion."
+    }
+  },
+  "Admin": {
+    "title": "Admin console",
+    "subtitle": "Merchant health, activity, and suggestions.",
+    "logout": "Log out",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "login": {
+      "title": "Admin login",
+      "subtitle": "Enter your admin email and password.",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "submitting": "Signing in...",
+      "success": "Signed in.",
+      "failed": "Invalid email or password."
+    },
+    "kpis": {
+      "revenue": "Attributed Revenue",
+      "merchants": "Merchants",
+      "activeMerchants": "Active Merchants",
+      "conversions": "Conversions",
+      "failedJobs": "Failed Jobs",
+      "zeroOffers": "Merchants w/o offers",
+      "offers": "Offers",
+      "webhooks": "Webhooks (24h)",
+      "redis": "Redis"
+    },
+    "health": {
+      "operational": "All Core Systems Operational",
+      "operationalSub": "All merchant queues and webhook events are processing smoothly.",
+      "degraded": "System Attention Needed",
+      "degradedSub": "{count} error logs recorded in the last 24 hours.",
+      "badgeHealthy": "Healthy",
+      "badgeDegraded": "Degraded"
+    },
+    "topMerchants": {
+      "title": "Top Merchants by Performance",
+      "empty": "No merchants with conversions recorded yet.",
+      "conversions": "Conversions",
+      "revenueAttributed": "Attributed Revenue"
+    },
+    "charts": {
+      "activityTrend": "Platform Activity Trend (Impressions vs Conversions)",
+      "offerTypes": "Active Offers by Type",
+      "emptyActivity": "No platform activity recorded yet.",
+      "emptyOffers": "No active offers found yet.",
+      "impressions": "Impressions",
+      "conversions": "Conversions"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "merchants": "Manage Merchants",
+      "suggestions": "Review Suggestions",
+      "activity": "System Event Logs"
+    },
+    "errors": {
+      "title": "Recent errors",
+      "empty": "No recent errors."
+    },
+    "activity": {
+      "title": "System Activity & Audit Log",
+      "subtitle": "Real-time audit log of system events, merchant actions, and error logs across the platform.",
+      "empty": "No activity logs match your filters.",
+      "filters": {
+        "searchPlaceholder": "Search action or message...",
+        "allSeverities": "All Severities",
+        "allActors": "All Actors",
+        "actor": "Actor",
+        "merchantId": "Merchant ID...",
+        "clear": "Reset Filters"
+      },
+      "severities": {
+        "info": "Info",
+        "warn": "Warning",
+        "error": "Error",
+        "critical": "Critical"
+      },
+      "actors": {
+        "merchant": "Merchant",
+        "admin": "Admin",
+        "system": "System Worker",
+        "storefront": "Storefront",
+        "salla": "Salla Platform"
+      },
+      "metadata": {
+        "title": "Activity Payload & Metadata",
+        "button": "JSON Data",
+        "noMetadata": "No extra metadata available for this event.",
+        "close": "Close",
+        "merchantId": "Merchant ID:",
+        "actorType": "Actor Type:",
+        "actorId": "Actor ID:",
+        "offerId": "Offer ID:",
+        "entity": "Entity:",
+        "payload": "JSON Metadata Payload:"
+      },
+      "charts": {
+        "severityDistribution": "Severity Distribution",
+        "actorBreakdown": "Actor Breakdown"
+      },
+      "stats": {
+        "totalEvents": "Total Logged Events",
+        "errorRate": "Error Events",
+        "systemEvents": "System Jobs",
+        "merchantActions": "Merchant Actions"
+      },
+      "pagination": {
+        "showing": "Showing {count} entries",
+        "prev": "Previous",
+        "next": "Next",
+        "page": "Page {page}"
+      }
+    },
+    "suggestions": {
+      "title": "Suggestions",
+      "empty": "No suggestions yet.",
+      "column": "Suggestion",
+      "note": "Admin note",
+      "notePlaceholder": "Optional note",
+      "saveNote": "Save",
+      "updated": "Suggestion updated.",
+      "updateFailed": "Could not update suggestion.",
+      "status": {
+        "new": "New",
+        "reviewed": "Reviewed",
+        "planned": "Planned",
+        "done": "Done",
+        "rejected": "Rejected"
+      }
+    },
+    "table": {
+      "time": "Time",
+      "merchant": "Merchant",
+      "action": "Action",
+      "severity": "Severity",
+      "message": "Details",
+      "details": "Details",
+      "status": "Status",
+      "offers": "Offers",
+      "created": "Created"
+    },
+    "nav": {
+      "overview": "Overview",
+      "merchants": "Merchants",
+      "activity": "Activity",
+      "suggestions": "Suggestions"
+    },
+    "merchants": {
+      "title": "Merchants",
+      "activeTitle": "Active Merchants",
+      "churnedTitle": "Churned / Uninstalled Merchants",
+      "empty": "No active merchants yet.",
+      "churnedEmpty": "No uninstalled merchants.",
+      "unnamed": "Unnamed Store",
+      "email": "Email",
+      "uninstalledAt": "Uninstalled At"
+    },
+    "modal": {
+      "title": "Merchant Details",
+      "subtitle": "Store profile, connection status, and performance analytics.",
+      "email": "Email",
+      "domain": "Domain",
+      "status": "Status",
+      "tokenStatus": "Token Status",
+      "lastWebhook": "Last Webhook",
+      "offers": "Offers",
+      "activeOffers": "active",
+      "totalOffers": "total",
+      "churned": "Uninstalled",
+      "statsTitle": "Analytics Stats",
+      "impressions": "Impressions",
+      "clicks": "Clicks",
+      "addToCart": "Add to Cart",
+      "conversions": "Conversions",
+      "attributed": "attributed",
+      "revenueGenerated": "Total Revenue Generated",
+      "revenueAttributed": "Widget Attributed Revenue",
+      "close": "Close"
     }
   }
 }

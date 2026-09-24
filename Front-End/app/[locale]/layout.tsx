@@ -4,6 +4,7 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { createFormats } from "@/i18n/formats";
 import { routing } from "@/i18n/routing";
+import { ThemeProvider } from "@/components/theme-provider";
 import "../globals.css";
 
 export const metadata: Metadata = {
@@ -34,15 +35,17 @@ export default async function LocaleLayout({
   const formats = createFormats(locale);
 
   return (
-    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} className="h-full antialiased">
+    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} className="h-full antialiased" suppressHydrationWarning>
       <body className="min-h-full flex flex-col">
-        <NextIntlClientProvider 
-          messages={messages}
-          locale={locale}
-          formats={formats}
-        >
-          {children}
-        </NextIntlClientProvider>
+        <ThemeProvider attribute={["class", "data-theme"]} defaultTheme="system" enableSystem disableTransitionOnChange>
+          <NextIntlClientProvider 
+            messages={messages}
+            locale={locale}
+            formats={formats}
+          >
+            {children}
+          </NextIntlClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

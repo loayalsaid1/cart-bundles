@@ -7,7 +7,7 @@ import {
   IsPositive,
   ValidateIf,
 } from 'class-validator';
-import type { DiscountType, PricingAction } from '../product.types';
+import type { ApplyPricingPayload, DiscountType, PricingAction } from '../product.types';
 
 export class ApplyPricingDto {
   @IsArray()
@@ -26,4 +26,17 @@ export class ApplyPricingDto {
   @IsNumber()
   @IsPositive()
   amount?: number;
+
+  /** Narrow the validated DTO into the discriminated service payload. */
+  toPayload(): ApplyPricingPayload {
+    if (this.action === 'remove_sale') {
+      return { productIds: this.productIds, action: 'remove_sale' };
+    }
+    return {
+      productIds: this.productIds,
+      action: 'set_sale',
+      discountType: this.discountType as DiscountType,
+      amount: this.amount as number,
+    };
+  }
 }

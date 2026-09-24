@@ -37,9 +37,6 @@ export default function EmbedProductsPage() {
             });
 
             if (!res.ok) {
-                if (res.status === 401) {
-                    SallaSDK.notify.error("Session expired. Please reload the dashboard.");
-                }
                 throw new Error("Failed to fetch products from backend API.");
             }
 

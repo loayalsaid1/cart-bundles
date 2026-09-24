@@ -27,7 +27,10 @@ describe('ProductsService.getCoupons', () => {
         }),
     });
 
-    const service = new ProductsService();
+    const service = new ProductsService({
+      getOrSet: async (_key: string, _ttl: number, factory: () => Promise<unknown>) =>
+        factory(),
+    } as never);
     const coupons = await service.getCoupons('token', 'UPG');
 
     expect(global.fetch).toHaveBeenCalledWith(
@@ -42,7 +45,7 @@ describe('ProductsService.getCoupons', () => {
         id: 55,
         code: 'UPGRADE10',
         type: 'percentage',
-        amount: 10,
+        amount: { amount: 10, currency: 'SAR' },
         status: 'active',
       },
     ]);
@@ -54,7 +57,10 @@ describe('ProductsService.getCoupons', () => {
       json: () => Promise.resolve({ data: [] }),
     });
 
-    const service = new ProductsService();
+    const service = new ProductsService({
+      getOrSet: async (_key: string, _ttl: number, factory: () => Promise<unknown>) =>
+        factory(),
+    } as never);
     await service.getCoupons('token');
 
     expect(global.fetch).toHaveBeenCalledWith(
@@ -70,7 +76,10 @@ describe('ProductsService.getCoupons', () => {
       statusText: 'Unauthorized',
     });
 
-    const service = new ProductsService();
+    const service = new ProductsService({
+      getOrSet: async (_key: string, _ttl: number, factory: () => Promise<unknown>) =>
+        factory(),
+    } as never);
     await expect(service.getCoupons('token')).rejects.toBeInstanceOf(
       BadRequestException,
     );

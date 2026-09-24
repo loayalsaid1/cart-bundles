@@ -8,9 +8,7 @@ const withNextIntl = createNextIntlPlugin({
 });
 
 const nextConfig: NextConfig = {
-  /* config options here */
-  // allowedDevOrigins: ['*.tunnelmole.net', '*.ngrok-free.app'],
-  allowedDevOrigins: ['sacred-resolved-gazelle.ngrok-free.app', '*.tunnelmole.net', "frontend-dev.cartbundles.com"],
+  allowedDevOrigins: ['sacred-resolved-gazelle.ngrok-free.app', '*.tunnelmole.net', "frontend-dev.cartbundles.com", '.monkeycode-ai.live'],
   async headers() {
     return [
       {

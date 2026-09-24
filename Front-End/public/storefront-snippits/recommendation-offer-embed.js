@@ -67,7 +67,7 @@ salla.onReady(async () => {
 
       if (!offer.relatedProducts?.length) continue;
 
-      // Fetch all related products in parallel (was sequential — fixed)
+      // Fetch all related products in parallel
       const productResults = await Promise.allSettled(
         offer.relatedProducts.map((item) =>
           salla.product.getDetails(item.sallaProductId, ["options"]).then((pRes) => ({ item, pRes }))
@@ -123,11 +123,11 @@ salla.onReady(async () => {
                 ${p.image ? `<img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;" />` : `<div style="display: flex; height: 100%; align-items: center; justify-content: center; font-size: 10px; color: #94a3b8;">...</div>`}
               </div>
               <div style="padding: 8px;">
-                <div style="font-size: 11px; font-weight: 600; color: ${colors.bodyText || "#0f172a"}; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHTML(p.name)}">${escapeHTML(p.name)}</div>
+                <div style="font-size: 11px; font-weight: 600; color: ${colors.bodyText || "#0f172a"}; margin-bottom: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHTML(p.name)}">${escapeHTML(p.name)}</div>
                 <div style="font-size: 11px; font-weight: 700; color: ${colors.savings || colors.bodyText || "#16a34a"}; margin-bottom: 8px;">${formatPrice(p.price)}</div>
+                <button type="button" class="salla-rec-add-btn" data-id="${p.id}" style="width: 100%; padding: 6px; border: none; border-radius: ${radius}px; background: ${colors.badgeBg || "#004b40"}; color: ${colors.badgeText || "#ffffff"}; font-size: 11px; font-weight: 600; cursor: pointer;">${btnText}</button>
               </div>
             </a>
-            <button type="button" class="salla-rec-add-btn" data-id="${p.id}" style="width: 100%; padding: 6px; border: none; border-radius: ${radius}px; background: ${colors.badgeBg || "#004b40"}; color: ${colors.badgeText || "#ffffff"}; font-size: 11px; font-weight: 600; cursor: pointer;">${btnText}</button>
           </div>
         `;
       });
@@ -143,6 +143,15 @@ salla.onReady(async () => {
           btn.disabled = true;
           btn.style.opacity = "0.7";
           try {
+            if (window.__CART_BUNDLES_TRACK__ && offer.id) {
+              window.__CART_BUNDLES_TRACK__({
+                merchantId: Number(merchantId),
+                offerId: Number(offer.id),
+                event: "offer.click",
+                productId: Number(btn.getAttribute("data-id")),
+                source: "recommendation",
+              });
+            }
             const product = productsByIdMap.get(btn.getAttribute("data-id"));
             if (!product) throw new Error("Product not found in map");
 
@@ -162,6 +171,15 @@ salla.onReady(async () => {
             else if (salla.cart.api?.addItem) await salla.cart.api.addItem(payload);
             else throw new Error("salla.cart.addItem unavailable");
 
+            if (window.__CART_BUNDLES_TRACK__ && offer.id) {
+              window.__CART_BUNDLES_TRACK__({
+                merchantId: Number(merchantId),
+                offerId: Number(offer.id),
+                event: "offer.add_to_cart",
+                productId: Number(btn.getAttribute("data-id")),
+                source: "recommendation",
+              });
+            }
             if (salla.notify) salla.notify.success(isAr ? "تمت الإضافة للسلة" : "Added to cart");
           } catch (err) {
             console.error("[CartRecs] Error adding item", err);
@@ -174,6 +192,14 @@ salla.onReady(async () => {
       });
 
       root.appendChild(widget);
+      if (window.__CART_BUNDLES_TRACK__ && offer.id) {
+        window.__CART_BUNDLES_TRACK__({
+          merchantId: Number(merchantId),
+          offerId: Number(offer.id),
+          event: "offer.impression",
+          source: "recommendation",
+        });
+      }
     }
 
     if (!root.hasChildNodes()) return;

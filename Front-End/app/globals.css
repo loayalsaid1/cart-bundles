@@ -118,7 +118,8 @@
   --sidebar-ring: #004d5b;
 }
 
-[data-theme="dark"] {
+[data-theme="dark"],
+.dark {
   --background: #1d1e20;       /* Salla dark bg-main */
   --foreground: #f1f5f9;       /* text-primary */
 

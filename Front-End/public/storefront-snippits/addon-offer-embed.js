@@ -35,15 +35,39 @@ salla.onReady(() => {
 
 // ─── Widget Builder ────────────────────────────────────────────────────────────
 async function renderAddonWidgets(addonOffers, core) {
-  const { isAr, escapeHTML, formatPrice, addItemWithDefaultOptions } = core;
+  const { isAr, escapeHTML, formatPrice, addItemWithDefaultOptions, merchantId, productId } = core;
 
   const root = document.createElement("div");
   root.id = "custom-addon-widgets-root";
 
+  // Map to hold references to all parsed products across widgets
+  const globalProductsMap = new Map();
+
   for (let i = 0; i < addonOffers.length; i++) {
     try {
-      const widgetEl = await buildAddonWidget(addonOffers[i], i, { isAr, escapeHTML, formatPrice, addItemWithDefaultOptions });
-      if (widgetEl) root.appendChild(widgetEl);
+      const { widgetEl, productsMap } = (await buildAddonWidget(
+        addonOffers[i],
+        i,
+        { isAr, escapeHTML, formatPrice, addItemWithDefaultOptions, merchantId, productId }
+      )) || {};
+
+      if (widgetEl) {
+        root.appendChild(widgetEl);
+
+        if (productsMap) {
+          productsMap.forEach((val, key) => globalProductsMap.set(key, val));
+        }
+
+        if (window.__CART_BUNDLES_TRACK__ && addonOffers[i]?.id) {
+          window.__CART_BUNDLES_TRACK__({
+            merchantId: Number(merchantId),
+            offerId: Number(addonOffers[i].id),
+            event: "offer.impression",
+            productId: Number(productId),
+            source: "addon",
+          });
+        }
+      }
     } catch (err) {
       console.warn("[AddonOffer] Failed to build widget for offer:", addonOffers[i]?.id, err);
     }
@@ -60,9 +84,42 @@ async function renderAddonWidgets(addonOffers, core) {
   } else {
     document.body.appendChild(root);
   }
+
+  // Bind listener to main Add to Cart form submit
+  const mainForm = document.querySelector("form#product-form") || document.querySelector(".product-form");
+  if (mainForm) {
+    mainForm.addEventListener("submit", async (e) => {
+      const checkedBoxes = root.querySelectorAll(".salla-addon-cb:checked");
+      if (!checkedBoxes.length) return;
+
+      // Add checked add-on products in parallel before submitting main form
+      const promises = Array.from(checkedBoxes).map(async (cb) => {
+        const prodId = cb.value;
+        const product = globalProductsMap.get(String(prodId));
+        if (product) {
+          try {
+            await addItemWithDefaultOptions(product, 1);
+            if (window.__CART_BUNDLES_TRACK__) {
+              window.__CART_BUNDLES_TRACK__({
+                merchantId: Number(merchantId),
+                offerId: Number(cb.dataset.offerId || 0),
+                event: "offer.add_to_cart",
+                productId: Number(prodId),
+                source: "addon_bundle_submit",
+              });
+            }
+          } catch (err) {
+            console.warn("[AddonOffer] Batch add failed for product:", prodId, err);
+          }
+        }
+      });
+
+      await Promise.allSettled(promises);
+    });
+  }
 }
 
-async function buildAddonWidget(addonOffer, index, { isAr, escapeHTML, formatPrice, addItemWithDefaultOptions }) {
+async function buildAddonWidget(addonOffer, index, { isAr, escapeHTML, formatPrice, addItemWithDefaultOptions, merchantId, productId }) {
   if (!addonOffer.relatedProducts?.length) return null;
 
   const title = addonOffer.title?.[isAr ? "ar" : "en"] || addonOffer.title?.ar || "";
@@ -137,7 +194,7 @@ async function buildAddonWidget(addonOffer, index, { isAr, escapeHTML, formatPri
 
     const isSale = p.origPrice > finalPrice && finalPrice >= 0;
     const actualPrice = Math.max(0, finalPrice);
-    const checkboxHtml = `<input type="checkbox" class="salla-addon-cb" value="${p.id}" data-url="${escapeHTML(p.url)}" ${p.isPreselected ? "checked" : ""} style="margin-top: 2px; width: 16px; height: 16px; flex-shrink: 0; accent-color: ${colors.badgeBg || "#004b40"};" />`;
+    const checkboxHtml = `<input type="checkbox" class="salla-addon-cb" value="${p.id}" data-offer-id="${addonOffer.id ?? index}" data-url="${escapeHTML(p.url)}" ${p.isPreselected ? "checked" : ""} style="margin-top: 2px; width: 16px; height: 16px; flex-shrink: 0; accent-color: ${colors.badgeBg || "#004b40"};" />`;
 
     if (displayOrientation === "vertical") {
       html += `
@@ -200,9 +257,27 @@ async function buildAddonWidget(addonOffer, index, { isAr, escapeHTML, formatPri
       btn.disabled = true;
       btn.style.opacity = "0.7";
       try {
+        if (window.__CART_BUNDLES_TRACK__ && addonOffer.id) {
+          window.__CART_BUNDLES_TRACK__({
+            merchantId: Number(merchantId),
+            offerId: Number(addonOffer.id),
+            event: "offer.click",
+            productId: Number(productId),
+            source: "addon",
+          });
+        }
         const product = productsByIdMap.get(btn.getAttribute("data-id"));
         if (!product) throw new Error("Product not found in map");
         await addItemWithDefaultOptions(product, 1);
+        if (window.__CART_BUNDLES_TRACK__ && addonOffer.id) {
+          window.__CART_BUNDLES_TRACK__({
+            merchantId: Number(merchantId),
+            offerId: Number(addonOffer.id),
+            event: "offer.add_to_cart",
+            productId: Number(btn.getAttribute("data-id")),
+            source: "addon",
+          });
+        }
         if (salla.notify) salla.notify.success(isAr ? "تمت الإضافة للسلة" : "Added to cart");
       } catch (err) {
         console.warn("[AddonOffer] addItem failed:", err);
@@ -214,5 +289,5 @@ async function buildAddonWidget(addonOffer, index, { isAr, escapeHTML, formatPri
     });
   });
 
-  return widget;
+  return { widgetEl: widget, productsMap: productsByIdMap };
 }

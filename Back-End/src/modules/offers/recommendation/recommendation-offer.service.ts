@@ -11,11 +11,15 @@ import {
   UpdateRecommendationOfferDto,
 } from './recommendation-offer.dto';
 import { toExpiryDate } from '../dto/common-offer.dto';
+import { OfferSideEffectsService } from '../offer-side-effects.service';
 import { RecommendationOfferFull, ServiceResult } from '../types/offers.types';
 
 @Injectable()
 export class RecommendationOfferService {
-  constructor(private readonly drizzleService: DrizzleService) {}
+  constructor(
+    private readonly drizzleService: DrizzleService,
+    private readonly sideEffects: OfferSideEffectsService,
+  ) {}
 
   private get db() {
     return this.drizzleService.db;
@@ -88,6 +92,7 @@ export class RecommendationOfferService {
       return offer;
     });
 
+    await this.sideEffects.afterWrite(merchantId, created.id, 'offer.created');
     return this.findOne(merchantId, created.id);
   }
 
@@ -136,6 +141,7 @@ export class RecommendationOfferService {
         .where(eq(recommendationOfferSettings.offerId, offerId));
     });
 
+    await this.sideEffects.afterWrite(merchantId, offerId, 'offer.updated');
     return this.findOne(merchantId, offerId);
   }
 
@@ -147,6 +153,7 @@ export class RecommendationOfferService {
     if (!existing.success) return existing;
 
     await this.db.delete(offers).where(eq(offers.id, offerId));
+    await this.sideEffects.afterWrite(merchantId, offerId, 'offer.deleted');
     return { success: true, data: undefined };
   }
 }

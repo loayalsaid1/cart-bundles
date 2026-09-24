@@ -9,6 +9,7 @@ import {
   bundleOfferSettings,
 } from '../../../database/schema';
 import { MerchantsService } from '../../merchants/merchants.service';
+import { OfferSideEffectsService } from '../offer-side-effects.service';
 import { CreateBundleOfferDto, UpdateBundleOfferDto } from './bundle-offer.dto';
 import {
   toExpiryDate,
@@ -26,6 +27,7 @@ export class BundleOfferService {
   constructor(
     private readonly drizzleService: DrizzleService,
     private readonly merchantsService: MerchantsService,
+    private readonly sideEffects: OfferSideEffectsService,
   ) {}
 
   private get db() {
@@ -131,6 +133,11 @@ export class BundleOfferService {
         `Bundle offer ${created.id} created locally, but Salla sync failed: ${syncRes.error}`,
       );
       await this.db.delete(offers).where(eq(offers.id, created.id));
+      await this.sideEffects.afterSallaSyncFailed(
+        merchantId,
+        created.id,
+        syncRes.error ?? 'Unknown Salla API error',
+      );
       return {
         success: false,
         reason: 'salla_sync_failed',
@@ -138,6 +145,7 @@ export class BundleOfferService {
       };
     }
 
+    await this.sideEffects.afterWrite(merchantId, created.id, 'offer.created');
     return this.findOne(merchantId, created.id);
   }
 
@@ -222,6 +230,7 @@ export class BundleOfferService {
       this.logger.error(
         `Failed to update bundle offer ${offerId} due to Salla sync error: ${errorMsg}`,
       );
+      await this.sideEffects.afterSallaSyncFailed(merchantId, offerId, errorMsg);
       return {
         success: false,
         reason: 'salla_sync_failed',
@@ -229,6 +238,7 @@ export class BundleOfferService {
       };
     }
 
+    await this.sideEffects.afterWrite(merchantId, offerId, 'offer.updated');
     return this.findOne(merchantId, offerId);
   }
 
@@ -245,6 +255,7 @@ export class BundleOfferService {
     }
 
     await this.db.delete(offers).where(eq(offers.id, offerId));
+    await this.sideEffects.afterWrite(merchantId, offerId, 'offer.deleted');
     return { success: true, data: undefined };
   }
 

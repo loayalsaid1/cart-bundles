@@ -111,15 +111,26 @@ function collectFormOptions(form) {
 
 // ─── Widget Builder ───────────────────────────────────────────────────────────
 async function initUpgradeWidgets(upgradeOffers, anchor, core) {
-  const { isAr, escapeHTML, formatPrice, resolveCartAdder } = core;
+  const { isAr, escapeHTML, formatPrice, resolveCartAdder, merchantId, productId } = core;
 
   const root = document.createElement("div");
   root.id = "custom-upgrade-widgets-root";
 
   for (let i = 0; i < upgradeOffers.length; i++) {
     try {
-      const widget = await buildUpgradeWidget(upgradeOffers[i], i, { isAr, escapeHTML, formatPrice, resolveCartAdder });
-      if (widget) root.appendChild(widget);
+      const widget = await buildUpgradeWidget(upgradeOffers[i], i, { isAr, escapeHTML, formatPrice, resolveCartAdder, merchantId, productId });
+      if (widget) {
+        root.appendChild(widget);
+        if (window.__CART_BUNDLES_TRACK__ && upgradeOffers[i]?.id) {
+          window.__CART_BUNDLES_TRACK__({
+            merchantId: Number(merchantId),
+            offerId: Number(upgradeOffers[i].id),
+            event: "offer.impression",
+            productId: Number(productId),
+            source: "upgrade",
+          });
+        }
+      }
     } catch (err) {
       console.warn("[UpgradeOffer] Failed to build widget:", upgradeOffers[i]?.id, err);
     }
@@ -130,7 +141,7 @@ async function initUpgradeWidgets(upgradeOffers, anchor, core) {
   }
 }
 
-async function buildUpgradeWidget(offer, index, { isAr, escapeHTML, formatPrice, resolveCartAdder }) {
+async function buildUpgradeWidget(offer, index, { isAr, escapeHTML, formatPrice, resolveCartAdder, merchantId, productId }) {
   const settings = offer.upgradeSettings || {};
   const upgradeId = settings.upgradeSallaProductId;
   if (!upgradeId) return null;
@@ -225,6 +236,15 @@ async function buildUpgradeWidget(offer, index, { isAr, escapeHTML, formatPrice,
     btn.disabled = true;
     btn.style.opacity = "0.7";
     try {
+      if (window.__CART_BUNDLES_TRACK__ && offer.id) {
+        window.__CART_BUNDLES_TRACK__({
+          merchantId: Number(merchantId),
+          offerId: Number(offer.id),
+          event: "offer.click",
+          productId: Number(productId),
+          source: "upgrade",
+        });
+      }
       const add = resolveCartAdder();
       if (!add) throw new Error("salla.cart.addItem unavailable");
 
@@ -255,6 +275,15 @@ async function buildUpgradeWidget(offer, index, { isAr, escapeHTML, formatPrice,
         }
       }
 
+      if (window.__CART_BUNDLES_TRACK__ && offer.id) {
+        window.__CART_BUNDLES_TRACK__({
+          merchantId: Number(merchantId),
+          offerId: Number(offer.id),
+          event: "offer.add_to_cart",
+          productId: Number(upgradeData.id),
+          source: "upgrade",
+        });
+      }
       if (salla.notify) salla.notify.success(isAr ? "تمت إضافة منتج الترقية للسلة" : "Upgrade product added to cart");
       if (redirectToCart) {
         window.location.href = (salla.url && salla.url.get("cart")) || "/cart";

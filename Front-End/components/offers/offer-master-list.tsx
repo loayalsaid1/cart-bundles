@@ -46,7 +46,11 @@ export function OfferMasterList() {
   });
 
   const activeCount = data?.filter((o) => o.status === "active").length ?? 0;
-  const targetsCount = data?.reduce((acc, o) => acc + o.targetsCount, 0) ?? 0;
+  const impressions = data?.reduce((acc, o) => acc + (o.impressions ?? 0), 0) ?? 0;
+  // const targetedCount = data?.reduce((acc, o) => acc + o.targetsCount, 0) ?? 0;
+  const clicks = data?.reduce((acc, o) => acc + o.clicks, 0) ?? 0;
+  const addToCart = data?.reduce((acc, o) => acc + (o.addToCart ?? 0), 0) ?? 0;
+  const conversions = data?.reduce((acc, o) => acc + (o.conversions ?? 0), 0) ?? 0;
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">
@@ -61,11 +65,13 @@ export function OfferMasterList() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
         <KpiCard label={t("masterList.kpis.active")} value={String(activeCount)} />
-        <KpiCard label={t("masterList.kpis.targeted")} value={String(targetsCount)} />
-        <KpiCard label={t("masterList.kpis.revenue")} value={t("masterList.kpis.na")} />
-        <KpiCard label={t("masterList.kpis.conversion")} value={t("masterList.kpis.na")} />
+        {/* <KpiCard label={t("masterList.kpis.targeted")} value={String(targetsCount)} /> */}
+        <KpiCard label={t("masterList.kpis.impression")} value={String(impressions)} />
+        <KpiCard label={t("masterList.kpis.clicks")} value={String(clicks)} />
+        <KpiCard label={t("masterList.kpis.addToCart")} value={String(addToCart)} />
+        <KpiCard label={t("masterList.kpis.conversion")} value={String(conversions)} />
       </div>
 
       <div className="flex flex-wrap items-center gap-3">

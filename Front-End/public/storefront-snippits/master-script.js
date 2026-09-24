@@ -4,29 +4,38 @@
  * Responsibilities:
  *  1. Expose window.__CBCore with shared utilities (language, currency, cart helpers)
  *  2. Fetch the storefront offers API ONCE for the product page
- *  3. Dispatch "cb:offers-ready" so each offer handler can react without their own fetch
+ *  3. Dispatch "cb:core-loaded" so each offer handler can react without their own fetch
  *  4. Register the addon cart::item-added sync listener ONCE (not per-offer-script)
  *  5. Load each offer embed script via fetchSnippit()
- * 
+ *
  * This script was slightly remodularized with AI after rapid dev and testing for scripts per individual offer type
  */
 
 // ─── Script Loader (dev helper — cache-busted for easy iteration) ──────────────
 function fetchSnippit(scriptUrl) {
   if (!scriptUrl) {
-    console.warn("[CartBundles] fetchSnippit called without a scriptURL");
-    return;
+    console.warn("Fetch script called without a scriptURL");
+    return Promise.resolve();
   }
-  const existing = document.getElementById(scriptUrl);
-  if (existing) existing.remove();
+  const SCRIPT_URL = scriptUrl;
+  const SCRIPT_ID = "cart-bundles-" + SCRIPT_URL.split("/").pop().split("?")[0];
 
-  const script = document.createElement("script");
-  script.id = scriptUrl;
-  script.src = `${scriptUrl}?t=${Date.now()}`;
-  script.defer = true;
-  script.onload = () => console.log(`[CartBundles] ✅ Loaded: ${scriptUrl}`);
-  script.onerror = () => console.error(`[CartBundles] ❌ Failed to load: ${scriptUrl}`);
-  document.body.appendChild(script);
+  const existingScript = document.getElementById(SCRIPT_ID);
+  if (existingScript) {
+    existingScript.remove();
+  }
+
+  return new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.id = SCRIPT_ID;
+    script.src = `${SCRIPT_URL}?t=${new Date().getTime()}`;
+    script.onload = () => resolve();
+    script.onerror = () => {
+      console.error("[Dev Loader] Failed to load script: " + SCRIPT_URL);
+      resolve();
+    };
+    document.body.appendChild(script);
+  });
 }
 
 // ─── Bootstrap ────────────────────────────────────────────────────────────────
@@ -40,7 +49,7 @@ salla.onReady(async () => {
   const currency = salla.config.get("store.currency") || (isAr ? "ر.س" : "SAR");
   const merchantId = salla.config.get("store.id");
   const productId = salla.config.get("page.id");
-  const API_BASE = "https://backend-dev.cartbundles.com/api/v1";
+  const API_BASE = "https://cart-bundles-demo-backend.vercel.app/api/v1";
 
   // ── 2. Shared utilities ─────────────────────────────────────────────────────
   const escapeHTML = (str) =>
@@ -184,7 +193,23 @@ salla.onReady(async () => {
         if (Object.keys(selectedOptions).length) payload.options = selectedOptions;
 
         const add = resolveCartAdder();
-        if (add) await add(payload);
+        if (!add) continue;
+        await add(payload);
+
+        const widget = cb.closest(".custom-addon-widget");
+        const offerId = widget && widget.dataset.offerId;
+        const trackMerchantId =
+          (window.__CBCore && window.__CBCore.merchantId) ||
+          salla.config.get("store.id");
+        if (window.__CART_BUNDLES_TRACK__ && offerId && trackMerchantId) {
+          window.__CART_BUNDLES_TRACK__({
+            merchantId: Number(trackMerchantId),
+            offerId: Number(offerId),
+            event: "offer.add_to_cart",
+            productId: Number(cb.value),
+            source: "addon",
+          });
+        }
       } catch (e) {
         console.warn("[CartBundles] Failed to auto-add checked addon:", cb.value, e);
       }
@@ -193,7 +218,7 @@ salla.onReady(async () => {
 });
 
 // ─── Load offer scripts ────────────────────────────────────────────────────────
-const BASE_URL = "https://frontend-dev.cartbundles.com/storefront-snippits/";
+const BASE_URL = "https://cartbundles.com/storefront-snippits/";
 const SCRIPTS = [
   "addon-offer-embed.js",
   "quantity-offer-embed.js",
@@ -202,4 +227,8 @@ const SCRIPTS = [
   "recommendation-offer-embed.js",
 ];
 
-SCRIPTS.forEach((name) => fetchSnippit(BASE_URL + name));
+fetchSnippit(BASE_URL + "event-tracker.js").then(() => {
+  SCRIPTS_NAMES.forEach((script) => {
+    fetchSnippit(BASE_URL + script);
+  });
+});

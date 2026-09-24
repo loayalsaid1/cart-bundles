@@ -62,11 +62,22 @@ export function TierEditor({
             onChange={(e) => form.setValue(`settings.tiers.${index}.quantity`, Number(e.target.value))}
           />
         </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
-          <Label>{t("quantity.tiers.badgeText")}</Label>
+          <Label>{t("quantity.tiers.badgeText")} — {tCommon("ar")}</Label>
           <Input
-            value={tier.badgeText ?? ""}
-            onChange={(e) => form.setValue(`settings.tiers.${index}.badgeText`, e.target.value)}
+            dir="rtl"
+            value={tier.badgeText?.ar ?? ""}
+            onChange={(e) => form.setValue(`settings.tiers.${index}.badgeText.ar`, e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>{t("quantity.tiers.badgeText")} — {tCommon("en")}</Label>
+          <Input
+            value={tier.badgeText?.en ?? ""}
+            onChange={(e) => form.setValue(`settings.tiers.${index}.badgeText.en`, e.target.value)}
           />
         </div>
       </div>

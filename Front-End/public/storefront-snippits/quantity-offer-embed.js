@@ -27,7 +27,18 @@ salla.onReady(() => {
     }
 
     const cardEl = renderQuantityOfferCard(quantityOffer, core);
-    if (cardEl) anchor.insertAdjacentElement("beforebegin", cardEl);
+    if (cardEl) {
+      anchor.insertAdjacentElement("beforebegin", cardEl);
+      if (window.__CART_BUNDLES_TRACK__ && quantityOffer.id) {
+        window.__CART_BUNDLES_TRACK__({
+          merchantId: Number(core.merchantId),
+          offerId: Number(quantityOffer.id),
+          event: "offer.impression",
+          productId: Number(core.productId),
+          source: "quantity",
+        });
+      }
+    }
   }
 
   if (window.__CBCore?.isLoaded) {
@@ -38,7 +49,7 @@ salla.onReady(() => {
   }
 });
 
-// ─── Unit Price Detection (runtime DOM scraping  ─────────────
+// ─── Unit Price Detection (runtime DOM scraping — must stay local) ─────────────
 function getUnitPrice() {
   if (typeof salla !== "undefined" && salla.product && salla.product.price) {
     const price = parseFloat(salla.product.price);
@@ -93,7 +104,7 @@ function calculateTierTotal(unitPrice, quantity, pricingType, discountAmount, ro
 
 // ─── Widget Renderer ──────────────────────────────────────────────────────────
 function renderQuantityOfferCard(offer, core) {
-  const { isAr, escapeHTML } = core;
+  const { isAr, escapeHTML, merchantId, productId } = core;
   const lang = isAr ? "ar" : "en";
   const unitPrice = getUnitPrice();
 
@@ -108,6 +119,7 @@ function renderQuantityOfferCard(offer, core) {
 
   const cardContainer = document.createElement("div");
   cardContainer.className = "salla-quantity-offer-card";
+  if (offer.id) cardContainer.dataset.offerId = String(offer.id);
   cardContainer.setAttribute("dir", isAr ? "rtl" : "ltr");
   cardContainer.style.cssText = `
     margin: 16px 0;
@@ -136,7 +148,10 @@ function renderQuantityOfferCard(offer, core) {
     const originalTotal = unitPrice * tier.quantity;
     const savings = Math.max(0, originalTotal - total);
     const tierTitle = tier.mainTitle?.[lang] || tier.mainTitle?.ar || `${tier.quantity} x`;
-    const badgeText = tier.badgeText || "";
+    const badgeText =
+      (typeof tier.badgeText === "string"
+        ? tier.badgeText
+        : tier.badgeText?.[lang] || tier.badgeText?.ar) || "";
     const pricePerPiece = settings.showPricePerPiece ? (total / tier.quantity).toFixed(2) : null;
 
     const tierItem = document.createElement("div");
@@ -168,6 +183,15 @@ function renderQuantityOfferCard(offer, core) {
     `;
 
     tierItem.addEventListener("click", () => {
+      if (window.__CART_BUNDLES_TRACK__ && offer.id) {
+        window.__CART_BUNDLES_TRACK__({
+          merchantId: Number(merchantId),
+          offerId: Number(offer.id),
+          event: "offer.click",
+          productId: Number(productId),
+          source: "quantity",
+        });
+      }
       cardContainer.querySelectorAll(".tier-item").forEach((el, idx) => {
         const radio = el.querySelector('input[type="radio"]');
         if (idx === index) {
@@ -190,6 +214,33 @@ function renderQuantityOfferCard(offer, core) {
 
   // Apply default selected tier quantity on load
   if (tiers[selectedIndex]) setSallaQuantity(tiers[selectedIndex].quantity);
+
+  // Track add_to_cart only when the added quantity actually qualifies for a tier.
+  // Adding a single unit from the product page must NOT count as a bundle purchase.
+  if (typeof salla !== "undefined" && salla.event && offer.id) {
+    const minTierQuantity = tiers.reduce((min, tier) => {
+      const qty = Number(tier.quantity);
+      if (!Number.isFinite(qty) || qty <= 0) return min;
+      return min === null || qty < min ? qty : min;
+    }, null);
+
+    salla.event.on("cart::item-added", (res) => {
+      const addedId = res?.data?.product_id;
+      if (!addedId || String(addedId) !== String(productId)) return;
+      if (minTierQuantity === null) return;
+      const addedQuantity = Number(res?.data?.quantity ?? 0);
+      if (!Number.isFinite(addedQuantity) || addedQuantity < minTierQuantity) return;
+      if (window.__CART_BUNDLES_TRACK__) {
+        window.__CART_BUNDLES_TRACK__({
+          merchantId: Number(merchantId),
+          offerId: Number(offer.id),
+          event: "offer.add_to_cart",
+          productId: Number(productId),
+          source: "quantity",
+        });
+      }
+    });
+  }
 
   return cardContainer;
 }

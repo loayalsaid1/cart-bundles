@@ -1,10 +1,29 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { eq, and, ilike, sql, exists, or, inArray, SQL } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
-import { offers, offerTargets, schema } from '../../database/schema';
-import { DashboardOfferShort, FullOffer, Offer, OfferKind, OfferStatus, ServiceResult } from './types/offers.types';
+import { offerStats } from '../../database/entities/activity-logs';
+import {
+  offers,
+  offerTargets,
+  upgradeOfferSettings,
+  recommendationOfferSettings,
+} from '../../database/schema';
+import {
+  CACHE_TTL_SECONDS,
+  dashboardOffersCacheKey,
+  storefrontOffersCacheKey,
+} from '../../redis/redis.constants';
+import { RedisService } from '../../redis/redis.service';
+import { OfferSideEffectsService } from './offer-side-effects.service';
 import { MerchantsService } from '../merchants/merchants.service';
-
+import {
+  DashboardOfferShort,
+  FullOffer,
+  Offer,
+  OfferKind,
+  OfferStatus,
+  ServiceResult,
+} from './types/offers.types';
 
 @Injectable()
 export class OffersService {
@@ -13,7 +32,9 @@ export class OffersService {
   constructor(
     private readonly drizzleService: DrizzleService,
     private readonly merchantsService: MerchantsService,
-  ) { }
+    private readonly redis: RedisService,
+    private readonly sideEffects: OfferSideEffectsService,
+  ) {}
 
   private get db() {
     return this.drizzleService.db;
@@ -46,8 +67,12 @@ export class OffersService {
     const [offer] = await this.db
       .update(offers)
       .set({ status })
-      .where(and(eq(offers.id, offerId), eq(offers.merchantId, merchantId))) 
-      .returning({id: offers.id, status: offers.status, sallaOfferId: offers.sallaOfferId});
+      .where(and(eq(offers.id, offerId), eq(offers.merchantId, merchantId)))
+      .returning({
+        id: offers.id,
+        status: offers.status,
+        sallaOfferId: offers.sallaOfferId,
+      });
 
     if (!offer) {
       return { success: false, reason: 'not_found' };
@@ -55,32 +80,63 @@ export class OffersService {
 
     if (offer.sallaOfferId) {
       try {
-        const tokenRes = await this.merchantsService.getValidAccessToken(merchantId);
+        const tokenRes =
+          await this.merchantsService.getValidAccessToken(merchantId);
         if (tokenRes.success) {
-          await fetch(`https://api.salla.dev/admin/v2/specialoffers/${offer.sallaOfferId}/status`, {
-            method: 'PUT',
-            headers: {
-              Authorization: `Bearer ${tokenRes.accessToken}`,
-              'Content-Type': 'application/json',
+          await fetch(
+            `https://api.salla.dev/admin/v2/specialoffers/${offer.sallaOfferId}/status`,
+            {
+              method: 'PUT',
+              headers: {
+                Authorization: `Bearer ${tokenRes.accessToken}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                status: status === 'active' ? 'active' : 'inactive',
+              }),
             },
-            body: JSON.stringify({ status: status === 'active' ? 'active' : 'inactive' }),
-          });
+          );
         }
       } catch (err) {
-        this.logger.error(`Failed to toggle Salla offer ${offer.sallaOfferId} status`, err);
+        this.logger.error(
+          `Failed to toggle Salla offer ${offer.sallaOfferId} status`,
+          err,
+        );
+        await this.sideEffects.afterSallaSyncFailed(
+          merchantId,
+          offerId,
+          'Failed to sync offer status to Salla',
+        );
       }
     }
 
+    await this.sideEffects.afterWrite(merchantId, offerId, 'offer.status_changed', { status });
+
     return { success: true, data: { id: offer.id, status: offer.status } };
   }
-
 
   async getActiveStorefrontOffers(
     merchantId: number,
     sallaProductId?: number,
     categoryIds?: number[],
   ): Promise<FullOffer[]> {
+    return this.redis.getOrSet(
+      storefrontOffersCacheKey(merchantId, sallaProductId, categoryIds),
+      CACHE_TTL_SECONDS.STOREFRONT_OFFERS,
+      () =>
+        this.loadActiveStorefrontOffers(
+          merchantId,
+          sallaProductId,
+          categoryIds,
+        ),
+    );
+  }
 
+  private async loadActiveStorefrontOffers(
+    merchantId: number,
+    sallaProductId?: number,
+    categoryIds?: number[],
+  ): Promise<FullOffer[]> {
     // 1. Base conditions: Match merchant and active status
     const conditions: (SQL | undefined)[] = [
       eq(offers.merchantId, merchantId),
@@ -144,6 +200,22 @@ export class OffersService {
       status?: OfferStatus;
     },
   ): Promise<DashboardOfferShort[]> {
+    return this.redis.getOrSet(
+      dashboardOffersCacheKey(merchantId, { ...(filters ?? {}) }),
+      CACHE_TTL_SECONDS.DASHBOARD,
+      () => this.loadDashboardOffers(merchantId, filters),
+    );
+  }
+
+  private async loadDashboardOffers(
+    merchantId: number,
+    filters?: {
+      search?: string;
+      productId?: number;
+      type?: OfferKind;
+      status?: OfferStatus;
+    },
+  ): Promise<DashboardOfferShort[]> {
     // 1. Build dynamic WHERE conditions
     const conditions = [eq(offers.merchantId, merchantId)];
 
@@ -184,11 +256,28 @@ export class OffersService {
         expiryDate: offers.expiryDate,
         // Aggregating targets count directly in PostgreSQL
         targetsCount: sql<number>`(
-        SELECT count(*) 
-        FROM ${offerTargets} 
-        WHERE ${offerTargets.offerId} = ${offers.id}
-      )::int`,
-        // Aggregate stats should be here next, but after I build the stats seprate module
+          SELECT (
+            (SELECT count(*) FROM ${offerTargets} WHERE ${offerTargets.offerId} = ${offers.id}) +
+            (SELECT count(*) FROM ${upgradeOfferSettings} WHERE ${upgradeOfferSettings.offerId} = ${offers.id}) +
+            (SELECT count(*) FROM ${recommendationOfferSettings} WHERE ${recommendationOfferSettings.offerId} = ${offers.id} AND ${recommendationOfferSettings.triggerSallaProductId} IS NOT NULL)
+          )
+        )::int`,
+        impressions: sql<number>`coalesce((
+          SELECT ${offerStats.impressions} FROM ${offerStats}
+          WHERE ${offerStats.offerId} = ${offers.id}
+        ), 0)::int`,
+        clicks: sql<number>`coalesce((
+          SELECT ${offerStats.clicks} FROM ${offerStats}
+          WHERE ${offerStats.offerId} = ${offers.id}
+        ), 0)::int`,
+        addToCart: sql<number>`coalesce((
+          SELECT ${offerStats.addToCart} FROM ${offerStats}
+          WHERE ${offerStats.offerId} = ${offers.id}
+        ), 0)::int`,
+        conversions: sql<number>`coalesce((
+          SELECT ${offerStats.conversions} FROM ${offerStats}
+          WHERE ${offerStats.offerId} = ${offers.id}
+        ), 0)::int`,
       })
       .from(offers)
       .where(and(...conditions))

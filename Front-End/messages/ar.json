@@ -59,9 +59,13 @@
     "navProducts": "المنتجات",
     "navTest": "الاختبار",
     "navOffers": "العروض",
+    "navActivity": "النشاط",
+    "navSuggestions": "الاقتراحات",
     "products-page": "المنتجات",
     "test-page": "الاختبار",
-    "offers-page": "العروض"
+    "offers-page": "العروض",
+    "activity-page": "النشاط",
+    "suggestions-page": "الاقتراحات"
   },
   "ProductCard": {
     "selectProduct": "تحديد المنتج",
@@ -133,8 +137,10 @@
       "kpis": {
         "active": "العروض النشطة",
         "targeted": "المنتجات المستهدفة",
-        "revenue": "إيرادات البيع الإضافي",
-        "conversion": "معدل التحويل",
+        "impression": "الظهور",
+        "clicks": "النقرات",
+        "conversion": "التحويلات",
+        "addToCart": "الإضافة للسلة",
         "na": "—"
       },
       "filters": {
@@ -458,6 +464,279 @@
         "cartHint": "يظهر عند وجود المنتج المُحفِّز في السلة",
         "viewAll": "عرض الكل"
       }
+    }
+  },
+  "Activity": {
+    "title": "حالة المتجر",
+    "subtitle": "تتبع التثبيت، تغييرات العروض، وأداء الواجهة.",
+    "error": "تعذر تحميل حالة المتجر.",
+    "empty": "لا يوجد نشاط بعد.",
+    "connection": "الاتصال",
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "never": "أبداً",
+    "lastWebhook": "آخر إشعار",
+    "kpis": {
+      "activeOffers": "العروض النشطة",
+      "impressions": "الظهور",
+      "clicks": "النقرات",
+      "conversions": "التحويلات",
+      "addToCart": "الإضافة للسلة"
+    },
+    "token": {
+      "valid": "الرمز صالح",
+      "expiring": "الرمز على وشك الانتهاء",
+      "expired": "انتهى الرمز",
+      "missing": "الرمز غير موجود"
+    },
+    "table": {
+      "time": "الوقت",
+      "action": "الإجراء",
+      "severity": "الشدة",
+      "message": "التفاصيل"
+    },
+    "ops": {
+      "title": "التغييرات الأخيرة"
+    },
+    "charts": {
+      "window": "آخر 30 يوماً",
+      "error": "تعذر تحميل بيانات الرسم البياني.",
+      "impressions": {
+        "title": "الظهور",
+        "empty": "يبدأ تتبع الظهور اليومي من اليوم. الأيام السابقة تبقى فارغة لأنها لم تُحفظ."
+      },
+      "clicks": {
+        "title": "النقرات",
+        "empty": "لا توجد نقرات خلال آخر 30 يوماً."
+      },
+      "addToCart": {
+        "title": "الإضافة للسلة",
+        "empty": "لا توجد إضافات للسلة خلال آخر 30 يوماً."
+      },
+      "conversions": {
+        "title": "التحويلات",
+        "empty": "لا توجد تحويلات خلال آخر 30 يوماً."
+      }
+    },
+    "actions": {
+      "offer": {
+        "created": "تم إنشاء العرض",
+        "updated": "تم تحديث العرض",
+        "deleted": "تم حذف العرض",
+        "status_changed": "تغيرت حالة العرض",
+        "salla_sync_failed": "فشل المزامنة مع سلة"
+      }
+    }
+  },
+  "Suggestions": {
+    "title": "الاقتراحات",
+    "subtitle": "شاركنا أفكارك ومقترحات التحسين.",
+    "error": "تعذر تحميل الاقتراحات.",
+    "empty": "لا توجد اقتراحات بعد.",
+    "form": {
+      "title": "العنوان",
+      "titlePlaceholder": "ملخص مختصر",
+      "body": "التفاصيل",
+      "bodyPlaceholder": "صف الفكرة أو المشكلة.",
+      "submit": "إرسال الاقتراح",
+      "submitting": "جاري الإرسال..."
+    },
+    "status": {
+      "new": "جديد",
+      "reviewed": "تمت المراجعة",
+      "planned": "مخطط",
+      "done": "منجز",
+      "rejected": "مرفوض"
+    },
+    "table": {
+      "title": "الاقتراح",
+      "status": "الحالة",
+      "created": "تاريخ الإنشاء",
+      "adminNote": "ملاحظة"
+    },
+    "notify": {
+      "created": "تم إرسال الاقتراح.",
+      "failed": "تعذر إرسال الاقتراح."
+    }
+  },
+  "Admin": {
+    "title": "لوحة الإدارة",
+    "subtitle": "صحة المتاجر والنشاط والاقتراحات.",
+    "logout": "تسجيل الخروج",
+    "connected": "متصل",
+    "disconnected": "غير متصل",
+    "login": {
+      "title": "دخول الإدارة",
+      "subtitle": "أدخل بريد الإدارة الإلكتروني وكلمة المرور.",
+      "email": "البريد الإلكتروني",
+      "password": "كلمة المرور",
+      "submit": "تسجيل الدخول",
+      "submitting": "جاري الدخول...",
+      "success": "تم تسجيل الدخول.",
+      "failed": "البريد الإلكتروني أو كلمة المرور غير صحيحة."
+    },
+    "kpis": {
+      "revenue": "الإيرادات المحققة",
+      "merchants": "التجار",
+      "activeMerchants": "التجار النشطون",
+      "conversions": "التحويلات",
+      "failedJobs": "المهام الفاشلة",
+      "zeroOffers": "تجار بدون عروض",
+      "offers": "العروض",
+      "webhooks": "الإشعارات (24س)",
+      "redis": "ريديس"
+    },
+    "health": {
+      "operational": "جميع الأنظمة الأساسية تعمل بكفاءة",
+      "operationalSub": "جميع الأحداث ومعالجة البيانات تعمل بسلاسة.",
+      "degraded": "تنبيه: يتطلب النظام المتابعة",
+      "degradedSub": "تم تسجيل {count} أخطاء خلال الـ 24 ساعة الماضية.",
+      "badgeHealthy": "سليم",
+      "badgeDegraded": "منخفض"
+    },
+    "topMerchants": {
+      "title": "أفضل التجار حسب الأداء",
+      "empty": "لم يتم تسجيل تحويلات لأي متجر بعد.",
+      "conversions": "التحويلات",
+      "revenueAttributed": "الإيرادات المنسوبة"
+    },
+    "charts": {
+      "activityTrend": "اتجاه نشاط المنصة (الظهور مقابل التحويلات)",
+      "offerTypes": "العروض النشطة حسب النوع",
+      "emptyActivity": "لم يتم تسجيل أي نشاط للمنصة بعد.",
+      "emptyOffers": "لا توجد عروض نشطة بعد.",
+      "impressions": "الظهور",
+      "conversions": "التحويلات"
+    },
+    "quickActions": {
+      "title": "إجراءات سريعة",
+      "merchants": "إدارة التجار",
+      "suggestions": "مراجعة الاقتراحات",
+      "activity": "سجلات الأحداث"
+    },
+    "errors": {
+      "title": "الأخطاء الأخيرة",
+      "empty": "لا توجد أخطاء حديثة."
+    },
+    "activity": {
+      "title": "نشاط النظام وسجل التدقيق",
+      "subtitle": "سجل تدقيق مباشر لأحداث النظام، إحصائيات الأخطاء، وإجراءات التجار في المنصة.",
+      "empty": "لا توجد سجلات تطابق الفلاتر المحددة.",
+      "filters": {
+        "searchPlaceholder": "البحث في الإجراءات أو الرسائل...",
+        "allSeverities": "جميع المستويات",
+        "allActors": "جميع الأطراف",
+        "actor": "الطرف",
+        "merchantId": "معرف التاجر...",
+        "clear": "إعادة ضبط"
+      },
+      "severities": {
+        "info": "معلومات",
+        "warn": "تحذير",
+        "error": "خطأ",
+        "critical": "حرج"
+      },
+      "actors": {
+        "merchant": "التاجر",
+        "admin": "المسؤول",
+        "system": "نظام خلفي",
+        "storefront": "واجهة المتجر",
+        "salla": "منصة سلة"
+      },
+      "metadata": {
+        "title": "بيانات وتفاصيل الحدث",
+        "button": "بيانات JSON",
+        "noMetadata": "لا تتوفر بيانات تفصيلية إضافية لهذا الحدث.",
+        "close": "إغلاق",
+        "merchantId": "معرف التاجر:",
+        "actorType": "نوع الطرف:",
+        "actorId": "معرف الطرف:",
+        "offerId": "معرف العرض:",
+        "entity": "الكيان:",
+        "payload": "بيانات JSON التفصيلية:"
+      },
+      "charts": {
+        "severityDistribution": "توزيع مستويات الشدة",
+        "actorBreakdown": "تصنيف الأطراف"
+      },
+      "stats": {
+        "totalEvents": "إجمالي الأحداث المسجلة",
+        "errorRate": "أحداث الأخطاء",
+        "systemEvents": "مهام النظام",
+        "merchantActions": "إجراءات التجار"
+      },
+      "pagination": {
+        "showing": "عرض {count} سجل",
+        "prev": "السابق",
+        "next": "التالي",
+        "page": "الصفحة {page}"
+      }
+    },
+    "suggestions": {
+      "title": "الاقتراحات",
+      "empty": "لا توجد اقتراحات بعد.",
+      "column": "الاقتراح",
+      "note": "ملاحظة الإدارة",
+      "notePlaceholder": "ملاحظة اختيارية",
+      "saveNote": "حفظ",
+      "updated": "تم تحديث الاقتراح.",
+      "updateFailed": "تعذر تحديث الاقتراح.",
+      "status": {
+        "new": "جديد",
+        "reviewed": "تمت المراجعة",
+        "planned": "مخطط",
+        "done": "منجز",
+        "rejected": "مرفوض"
+      }
+    },
+    "table": {
+      "time": "الوقت",
+      "merchant": "التاجر",
+      "action": "الإجراء",
+      "severity": "الشدة",
+      "message": "التفاصيل",
+      "details": "التفاصيل",
+      "status": "الحالة",
+      "offers": "العروض",
+      "created": "تاريخ الإنشاء"
+    },
+    "nav": {
+      "overview": "نظرة عامة",
+      "merchants": "التجار",
+      "activity": "النشاط",
+      "suggestions": "الاقتراحات"
+    },
+    "merchants": {
+      "title": "التجار",
+      "activeTitle": "التجار النشطون",
+      "churnedTitle": "التجار غير المفعّلين / المحذوفون",
+      "empty": "لا يوجد تجار نشطون بعد.",
+      "churnedEmpty": "لا يوجد تجار محذوفون.",
+      "unnamed": "متجر بدون اسم",
+      "email": "البريد الإلكتروني",
+      "uninstalledAt": "تاريخ إلغاء التثبيت"
+    },
+    "modal": {
+      "title": "تفاصيل المتجر",
+      "subtitle": "الملف التعريفي، حالة الاتصال، وإحصائيات الأداء.",
+      "email": "البريد الإلكتروني",
+      "domain": "النطاق",
+      "status": "الحالة",
+      "tokenStatus": "حالة الرمز",
+      "lastWebhook": "آخر إشعار",
+      "offers": "العروض",
+      "activeOffers": "نشط",
+      "totalOffers": "الإجمالي",
+      "churned": "ملغى التثبيت",
+      "statsTitle": "إحصائيات الأداء",
+      "impressions": "الظهور",
+      "clicks": "النقر",
+      "addToCart": "إضافة للسلة",
+      "conversions": "التحويلات",
+      "attributed": "منسوبة",
+      "revenueGenerated": "إجمالي الإيرادات المولّدة",
+      "revenueAttributed": "الإيرادات المنسوبة للأداة",
+      "close": "إغلاق"
     }
   }
 }

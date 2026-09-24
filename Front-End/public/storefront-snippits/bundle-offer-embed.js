@@ -57,15 +57,26 @@ function calculateBundlePricing(mainProduct, items, discountType, discountAmount
 
 // ─── Widget Builder ───────────────────────────────────────────────────────────
 async function initBundleWidgets(bundleOffers, anchor, core) {
-  const { isAr, escapeHTML, formatPrice, addItemWithDefaultOptions, productId, currency } = core;
+  const { isAr, escapeHTML, formatPrice, addItemWithDefaultOptions, productId, currency, merchantId } = core;
 
   const rootContainer = document.createElement("div");
   rootContainer.id = "custom-bundle-widgets-root";
 
   for (let i = 0; i < bundleOffers.length; i++) {
     try {
-      const widget = await buildBundleWidget(bundleOffers[i], i, { isAr, escapeHTML, formatPrice, addItemWithDefaultOptions, productId, currency });
-      if (widget) rootContainer.appendChild(widget);
+      const widget = await buildBundleWidget(bundleOffers[i], i, { isAr, escapeHTML, formatPrice, addItemWithDefaultOptions, productId, currency, merchantId });
+      if (widget) {
+        rootContainer.appendChild(widget);
+        if (window.__CART_BUNDLES_TRACK__ && bundleOffers[i]?.id) {
+          window.__CART_BUNDLES_TRACK__({
+            merchantId: Number(merchantId),
+            offerId: Number(bundleOffers[i].id),
+            event: "offer.impression",
+            productId: Number(productId),
+            source: "bundle",
+          });
+        }
+      }
     } catch (err) {
       console.error("[BundleOffer] Error initializing bundle offers:", err);
     }
@@ -76,7 +87,7 @@ async function initBundleWidgets(bundleOffers, anchor, core) {
   }
 }
 
-async function buildBundleWidget(bundleOffer, index, { isAr, escapeHTML, formatPrice, addItemWithDefaultOptions, productId, currency }) {
+async function buildBundleWidget(bundleOffer, index, { isAr, escapeHTML, formatPrice, addItemWithDefaultOptions, productId, currency, merchantId }) {
   const relatedProducts = bundleOffer.relatedProducts || [];
   if (!relatedProducts.length) return null;
 
@@ -241,6 +252,15 @@ async function buildBundleWidget(bundleOffer, index, { isAr, escapeHTML, formatP
     addAllBtn.disabled = true;
     addAllBtn.style.opacity = "0.7";
     try {
+      if (window.__CART_BUNDLES_TRACK__ && bundleOffer.id) {
+        window.__CART_BUNDLES_TRACK__({
+          merchantId: Number(merchantId),
+          offerId: Number(bundleOffer.id),
+          event: "offer.click",
+          productId: Number(productId),
+          source: "bundle",
+        });
+      }
       await addItemWithDefaultOptions(mainProductData, 1);
       const selectedItems = bundleItemsData.filter((i) => i.selected);
       for (const item of selectedItems) {
@@ -249,6 +269,15 @@ async function buildBundleWidget(bundleOffer, index, { isAr, escapeHTML, formatP
         } catch (err) {
           console.warn(`[BundleOffer] Failed to add item ${item.id}:`, err);
         }
+      }
+      if (window.__CART_BUNDLES_TRACK__ && bundleOffer.id) {
+        window.__CART_BUNDLES_TRACK__({
+          merchantId: Number(merchantId),
+          offerId: Number(bundleOffer.id),
+          event: "offer.add_to_cart",
+          productId: Number(productId),
+          source: "bundle",
+        });
       }
       if (salla.notify) salla.notify.success(isAr ? "تمت إضافة المجموعة إلى السلة بنجاح!" : "Bundle added to cart successfully!");
       if (redirectToCart) {

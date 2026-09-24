@@ -1,6 +1,8 @@
-import { pgTable, foreignKey, integer, boolean, numeric, varchar, serial, bigint, jsonb, timestamp, text, unique, pgEnum } from "drizzle-orm/pg-core"
+import { pgTable, index, foreignKey, bigserial, integer, varchar, text, jsonb, timestamp, bigint, serial, boolean, numeric, unique, primaryKey, date, pgEnum } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
+export const activityActorType = pgEnum("activity_actor_type", ['merchant', 'admin', 'system', 'storefront', 'salla'])
+export const activitySeverity = pgEnum("activity_severity", ['info', 'warn', 'error'])
 export const addonDiscountType = pgEnum("addon_discount_type", ['percentage', 'free-product'])
 export const bundleDiscountType = pgEnum("bundle_discount_type", ['percentage', 'free-product'])
 export const displayOrientation = pgEnum("display_orientation", ['vertical', 'horizontal'])
@@ -9,8 +11,83 @@ export const offerStatus = pgEnum("offer_status", ['draft', 'active', 'paused', 
 export const offerTargetEntity = pgEnum("offer_target_entity", ['product', 'category'])
 export const pricingType = pgEnum("pricing_type", ['percentage', 'fixed'])
 export const recommendationMode = pgEnum("recommendation_mode", ['cart_related', 'general'])
+export const suggestionStatus = pgEnum("suggestion_status", ['new', 'reviewed', 'planned', 'done', 'rejected'])
 export const targetType = pgEnum("target_type", ['all_products', 'selected_products', 'selected_categories'])
 
+
+export const activityLogs = pgTable("activity_logs", {
+	id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
+	merchantId: integer("merchant_id"),
+	actorType: activityActorType("actor_type").notNull(),
+	actorId: varchar("actor_id", { length: 64 }),
+	action: varchar({ length: 100 }).notNull(),
+	entityType: varchar("entity_type", { length: 64 }),
+	entityId: varchar("entity_id", { length: 64 }),
+	offerId: integer("offer_id"),
+	severity: activitySeverity().default('info').notNull(),
+	message: text(),
+	metadata: jsonb().default({}).notNull(),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("activity_logs_action_idx").using("btree", table.action.asc().nullsLast().op("text_ops")),
+	index("activity_logs_merchant_created_idx").using("btree", table.merchantId.asc().nullsLast().op("int4_ops"), table.createdAt.asc().nullsLast().op("int4_ops")),
+	index("activity_logs_offer_idx").using("btree", table.offerId.asc().nullsLast().op("int4_ops")),
+	foreignKey({
+			columns: [table.merchantId],
+			foreignColumns: [merchants.merchantId],
+			name: "activity_logs_merchant_id_merchants_merchant_id_fk"
+		}).onDelete("cascade"),
+	foreignKey({
+			columns: [table.offerId],
+			foreignColumns: [offers.id],
+			name: "activity_logs_offer_id_offers_id_fk"
+		}).onDelete("set null"),
+]);
+
+export const offerStats = pgTable("offer_stats", {
+	offerId: integer("offer_id").primaryKey().notNull(),
+	merchantId: integer("merchant_id").notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	impressions: bigint({ mode: "number" }).default(0).notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	clicks: bigint({ mode: "number" }).default(0).notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	addToCart: bigint("add_to_cart", { mode: "number" }).default(0).notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	conversions: bigint({ mode: "number" }).default(0).notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.offerId],
+			foreignColumns: [offers.id],
+			name: "offer_stats_offer_id_offers_id_fk"
+		}).onDelete("cascade"),
+	foreignKey({
+			columns: [table.merchantId],
+			foreignColumns: [merchants.merchantId],
+			name: "offer_stats_merchant_id_merchants_merchant_id_fk"
+		}).onDelete("cascade"),
+]);
+
+export const suggestions = pgTable("suggestions", {
+	id: serial().primaryKey().notNull(),
+	merchantId: integer("merchant_id").notNull(),
+	userId: integer("user_id"),
+	title: varchar({ length: 160 }).notNull(),
+	body: text().notNull(),
+	status: suggestionStatus().default('new').notNull(),
+	adminNote: text("admin_note"),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("suggestions_merchant_created_idx").using("btree", table.merchantId.asc().nullsLast().op("int4_ops"), table.createdAt.asc().nullsLast().op("int4_ops")),
+	index("suggestions_status_idx").using("btree", table.status.asc().nullsLast().op("enum_ops")),
+	foreignKey({
+			columns: [table.merchantId],
+			foreignColumns: [merchants.merchantId],
+			name: "suggestions_merchant_id_merchants_merchant_id_fk"
+		}).onDelete("cascade"),
+]);
 
 export const addonOfferSettings = pgTable("addon_offer_settings", {
 	offerId: integer("offer_id").primaryKey().notNull(),
@@ -173,13 +250,6 @@ export const recommendationOfferSettings = pgTable("recommendation_offer_setting
 		}).onDelete("cascade"),
 ]);
 
-export const eventLogs = pgTable("event_logs", {
-	id: serial().primaryKey().notNull(),
-	eventName: text("event_name").notNull(),
-	eventData: jsonb("event_data").notNull(),
-	eventDate: timestamp("event_date", { mode: 'string' }).defaultNow().notNull(),
-});
-
 export const users = pgTable("users", {
 	id: serial().primaryKey().notNull(),
 	name: varchar({ length: 255 }).notNull(),
@@ -200,4 +270,35 @@ export const merchants = pgTable("merchants", {
 	updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow().notNull(),
 }, (table) => [
 	unique("merchants_merchant_id_unique").on(table.merchantId),
+]);
+
+export const eventLogs = pgTable("event_logs", {
+	id: serial().primaryKey().notNull(),
+	eventName: text("event_name").notNull(),
+	eventData: jsonb("event_data").notNull(),
+	eventDate: timestamp("event_date", { mode: 'string' }).defaultNow().notNull(),
+	merchantId: integer("merchant_id").notNull(),
+}, (table) => [
+	index("event_logs_merchant_date_idx").using("btree", table.merchantId.asc().nullsLast().op("int4_ops"), table.eventDate.asc().nullsLast().op("int4_ops")),
+]);
+
+export const dailyStats = pgTable("daily_stats", {
+	merchantId: integer("merchant_id").notNull(),
+	date: date().notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	impressions: bigint({ mode: "number" }).default(0).notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	clicks: bigint({ mode: "number" }).default(0).notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	addToCart: bigint("add_to_cart", { mode: "number" }).default(0).notNull(),
+	// You can use { mode: "bigint" } if numbers are exceeding js number limitations
+	conversions: bigint({ mode: "number" }).default(0).notNull(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	foreignKey({
+			columns: [table.merchantId],
+			foreignColumns: [merchants.merchantId],
+			name: "daily_stats_merchant_id_merchants_merchant_id_fk"
+		}).onDelete("cascade"),
+	primaryKey({ columns: [table.merchantId, table.date], name: "daily_stats_pk"}),
 ]);
