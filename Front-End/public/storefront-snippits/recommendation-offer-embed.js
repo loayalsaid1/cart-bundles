@@ -123,11 +123,11 @@ salla.onReady(async () => {
                 ${p.image ? `<img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;" />` : `<div style="display: flex; height: 100%; align-items: center; justify-content: center; font-size: 10px; color: #94a3b8;">...</div>`}
               </div>
               <div style="padding: 8px;">
-                <div style="font-size: 11px; font-weight: 600; color: ${colors.bodyText || "#0f172a"}; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHTML(p.name)}">${escapeHTML(p.name)}</div>
+                <div style="font-size: 11px; font-weight: 600; color: ${colors.bodyText || "#0f172a"}; margin-bottom: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHTML(p.name)}">${escapeHTML(p.name)}</div>
                 <div style="font-size: 11px; font-weight: 700; color: ${colors.savings || colors.bodyText || "#16a34a"}; margin-bottom: 8px;">${formatPrice(p.price)}</div>
+                <button type="button" class="salla-rec-add-btn" data-id="${p.id}" style="width: 100%; padding: 6px; border: none; border-radius: ${radius}px; background: ${colors.badgeBg || "#004b40"}; color: ${colors.badgeText || "#ffffff"}; font-size: 11px; font-weight: 600; cursor: pointer;">${btnText}</button>
               </div>
             </a>
-            <button type="button" class="salla-rec-add-btn" data-id="${p.id}" style="width: 100%; padding: 6px; border: none; border-radius: ${radius}px; background: ${colors.badgeBg || "#004b40"}; color: ${colors.badgeText || "#ffffff"}; font-size: 11px; font-weight: 600; cursor: pointer;">${btnText}</button>
           </div>
         `;
       });
