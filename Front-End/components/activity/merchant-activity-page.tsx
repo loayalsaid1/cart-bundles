@@ -130,7 +130,7 @@ export function MerchantActivityPage() {
                 <Skeleton key={i} className="h-10 w-full" />
               ))}
             </div>
-          ) : logs.isError || !logs.data || logs.data.length === 0 ? (
+          ) : logs.isError || !logs.data || logs.data.items.length === 0 ? (
             <p className="p-10 text-center text-sm text-muted-foreground">{t("empty")}</p>
           ) : (
             <Table>
@@ -143,7 +143,7 @@ export function MerchantActivityPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {logs.data.map((row) => (
+                {logs.data.items.map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="text-xs text-muted-foreground">
                       {new Date(row.createdAt).toLocaleString()}

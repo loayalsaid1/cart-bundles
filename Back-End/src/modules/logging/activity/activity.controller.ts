@@ -9,7 +9,14 @@ import { CurrentUser } from '../../../common/decorators';
 import { ActivityService } from './activity.service';
 import { DailyStatsService } from '../stats/daily-stats.service';
 import { MerchantHealthService } from '../stats/merchant-health.service';
-import type { ActivitySeverity } from '../types/activity.types';
+import type {
+  ActivityListResponse,
+  ActivitySeverity,
+} from '../types/activity.types';
+import type {
+  DailyStatPoint,
+  MerchantHealthSnapshot,
+} from '../types/stats.types';
 
 @Controller('activity')
 export class ActivityController {
@@ -27,7 +34,7 @@ export class ActivityController {
     @Query('offerId', new ParseIntPipe({ optional: true })) offerId?: number,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
     @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
-  ) {
+  ): Promise<ActivityListResponse> {
     return this.activityService.list({
       merchantId,
       action,
@@ -40,12 +47,16 @@ export class ActivityController {
   }
 
   @Get('stats/daily')
-  async dailyStats(@CurrentUser('merchantId') merchantId: number) {
+  async dailyStats(
+    @CurrentUser('merchantId') merchantId: number,
+  ): Promise<DailyStatPoint[]> {
     return this.dailyStatsService.getLast30Days(merchantId);
   }
 
   @Get('status')
-  async status(@CurrentUser('merchantId') merchantId: number) {
+  async status(
+    @CurrentUser('merchantId') merchantId: number,
+  ): Promise<MerchantHealthSnapshot> {
     const snapshot =
       await this.merchantHealthService.getMerchantHealth(merchantId);
     if (!snapshot) {

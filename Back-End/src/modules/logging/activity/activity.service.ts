@@ -8,6 +8,7 @@ import { redactJson } from '../../../common/utils/redact';
 import { QUEUES } from '../../../queue/queue.constants';
 import type {
   ActivityListQuery,
+  ActivityListResponse,
   RecordActivityInput,
 } from '../types/activity.types';
 
@@ -53,7 +54,7 @@ export class ActivityService {
     }
   }
 
-  async list(query: ActivityListQuery) {
+  async list(query: ActivityListQuery): Promise<ActivityListResponse> {
     const conditions: SQL[] = [];
     if (query.merchantId) {
       conditions.push(eq(activityLogs.merchantId, query.merchantId));

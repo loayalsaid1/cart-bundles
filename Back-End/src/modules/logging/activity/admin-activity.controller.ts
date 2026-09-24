@@ -12,8 +12,14 @@ import { ActivityService } from './activity.service';
 import { AdminStatsService } from '../stats/admin-stats.service';
 import type {
   ActivityActorType,
+  ActivityListResponse,
   ActivitySeverity,
 } from '../types/activity.types';
+import type {
+  AdminMerchantDetail,
+  AdminMerchantRow,
+  AdminOverview,
+} from '../types/stats.types';
 
 @Roles([Role.Admin])
 @Controller('admin')
@@ -24,17 +30,19 @@ export class AdminActivityController {
   ) {}
 
   @Get('overview')
-  async overview() {
+  async overview(): Promise<AdminOverview> {
     return this.adminStatsService.getAdminOverview();
   }
 
   @Get('merchants')
-  async merchants() {
+  async merchants(): Promise<AdminMerchantRow[]> {
     return this.adminStatsService.listMerchants();
   }
 
   @Get('merchants/:merchantId')
-  async merchantDetail(@Param('merchantId', ParseIntPipe) merchantId: number) {
+  async merchantDetail(
+    @Param('merchantId', ParseIntPipe) merchantId: number,
+  ): Promise<AdminMerchantDetail> {
     const detail = await this.adminStatsService.getMerchantDetail(merchantId);
     if (!detail) {
       throw new NotFoundException(`Merchant ${merchantId} not found`);
@@ -52,7 +60,7 @@ export class AdminActivityController {
     @Query('search') search?: string,
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
     @Query('offset', new ParseIntPipe({ optional: true })) offset?: number,
-  ) {
+  ): Promise<ActivityListResponse> {
     return this.activityService.list({
       merchantId,
       actorType,
