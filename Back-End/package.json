@@ -27,7 +27,7 @@
     "db:backfill-uninstalled-at": "ts-node --transpile-only scripts/backfill-uninstalled-at.ts"
   },
   "dependencies": {
-    "@nestjs/bullmq": "^12.0.0",
+    "@nestjs/bullmq": "^11.0.5",
     "@nestjs/cache-manager": "^3.1.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.3",
