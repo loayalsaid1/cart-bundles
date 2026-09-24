@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import { http } from '@/lib/http';
 import {
-  activityLogSchema,
+  activityListResponseSchema,
   dailyStatPointSchema,
   merchantHealthSchema,
-  type ActivityLog,
+  type ActivityListResponse,
   type DailyStatPoint,
   type MerchantHealth,
 } from '@/lib/schemas/activity';
@@ -19,7 +19,7 @@ export async function getActivityLogs(filters: {
   severity?: string;
   limit?: number;
   offset?: number;
-} = {}): Promise<ActivityLog[]> {
+} = {}): Promise<ActivityListResponse> {
   const params = new URLSearchParams();
   if (filters.action) params.set('action', filters.action);
   if (filters.severity) params.set('severity', filters.severity);
@@ -27,7 +27,7 @@ export async function getActivityLogs(filters: {
   if (filters.offset !== undefined) params.set('offset', String(filters.offset));
   const qs = params.toString();
   const data = await http<unknown>(`/activity${qs ? `?${qs}` : ''}`);
-  return z.array(activityLogSchema).parse(data);
+  return activityListResponseSchema.parse(data);
 }
 
 export async function getDailyStats(): Promise<DailyStatPoint[]> {
