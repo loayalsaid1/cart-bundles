@@ -137,6 +137,7 @@
       "kpis": {
         "active": "Active offers",
         "targeted": "Targets",
+        "clicks": "Clicks",
         "impression": "Impressions",
         "conversion": "Conversions",
         "addToCart": "Add to Cart",
