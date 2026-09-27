@@ -29,6 +29,11 @@ export class AdminActivityController {
     private readonly adminStatsService: AdminStatsService,
   ) {}
 
+  @Get('session')
+  session(): { authenticated: true } {
+    return { authenticated: true };
+  }
+
   @Get('overview')
   async overview(): Promise<AdminOverview> {
     return this.adminStatsService.getAdminOverview();

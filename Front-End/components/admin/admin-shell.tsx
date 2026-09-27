@@ -1,14 +1,13 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Link, usePathname } from "@/i18n/routing";
+import { Link, usePathname, useRouter } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { useAdminLogout, useAdminOverview } from "@/hooks/use-admin";
-import { ApiError } from "@/lib/http";
+import { useAdminLogout } from "@/hooks/use-admin";
+import { useAdminSessionRedirect } from "@/hooks/use-admin-session-redirect";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeSwitcher } from "@/components/theme-switcher";
-import { AdminLoginForm } from "./admin-login-form";
 
 const NAV_ITEMS = [
   { href: "/admin", key: "overview" as const, exact: true },
@@ -20,23 +19,18 @@ const NAV_ITEMS = [
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("Admin");
   const pathname = usePathname();
-  const overview = useAdminOverview();
   const logout = useAdminLogout();
+  const router = useRouter();
+  useAdminSessionRedirect();
 
-  if (
-    overview.isError &&
-    overview.error instanceof ApiError &&
-    overview.error.status === 401
-  ) {
-    return (
-      <div className="relative min-h-dvh">
-        <div className="absolute top-4 end-4 z-50 flex items-center gap-2">
-          <LanguageSwitcher />
-          <ThemeSwitcher />
-        </div>
-        <AdminLoginForm />
-      </div>
-    );
+  async function handleLogout() {
+    try {
+      await logout.mutateAsync();
+      router.replace("/admin/login");
+      router.refresh();
+    } catch {
+      // Keep the dashboard visible if the server could not clear the session.
+    }
   }
 
   return (
@@ -75,7 +69,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => logout.mutate()}
+            onClick={handleLogout}
             disabled={logout.isPending}
           >
             {t("logout")}

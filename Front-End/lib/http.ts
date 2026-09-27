@@ -1,9 +1,7 @@
-import { redirect } from '@/i18n/routing';
 import {
   extractApiErrorMessage,
   isTokenExpiredError,
 } from '@/lib/http-error';
-import { getLocale } from 'next-intl/server';
 
 export class ApiError extends Error {
   status: number;
@@ -21,17 +19,8 @@ const API_BASE =
   (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_API_BASE_URL) ||
   '/api/v1';
 
-let expiryHandled = false;
-
-async function handleTokenExpiry(): Promise<void> {
-  if (typeof window === 'undefined' || expiryHandled) return;
-  expiryHandled = true;
-  if (window.location.pathname.includes('/admin')) {
-    // redirect to admin login
-    const locale = await getLocale();
-    redirect({ href: "/login", locale: locale })
-    return;
-  }
+async function handleEmbeddedTokenExpiry(): Promise<void> {
+  if (typeof window === 'undefined' || window.location.pathname.includes('/admin')) return;
   const { embedded } = await import('@salla.sa/embedded-sdk');
   embedded.destroy();
 }
@@ -50,8 +39,8 @@ export async function http<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    if (isTokenExpiredError(body, res.status)) {
-      await handleTokenExpiry();
+    if (isTokenExpiredError(body, res.status) && typeof window !== 'undefined') {
+      await handleEmbeddedTokenExpiry();
     }
     const message =
       extractApiErrorMessage(body) ?? `Request failed (${res.status})`;
