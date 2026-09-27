@@ -144,24 +144,20 @@ async function buildBundleWidget(bundleOffer, index, { isAr, escapeHTML, formatP
 
   const colors = bundleOffer.appearance?.colors || {};
   const radius = bundleOffer.appearance?.borderRadiusPx ?? 12;
+  const core = window.__CBCore;
+  const align = (core && core.headingAlign && core.headingAlign(bundleOffer.appearance)) || "start";
+  const cardCss =
+    (core && core.appearanceCardCss && core.appearanceCardCss(bundleOffer.appearance, "margin: 2rem 0; padding: 18px;")) ||
+    `margin: 2rem 0; padding: 18px; border-radius: ${radius}px; background-color: ${colors.cardBg || "#ffffff"}; border: 1px solid ${colors.cardBorder || "#e2e8f0"}; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); font-family: inherit;`;
 
   const cardContainer = document.createElement("div");
   cardContainer.className = "custom-bundle-widget";
   cardContainer.dataset.offerId = bundleOffer.id ?? index;
   cardContainer.setAttribute("dir", isAr ? "rtl" : "ltr");
-  cardContainer.style.cssText = `
-    margin: 2rem 0;
-    padding: 18px;
-    border-radius: ${radius}px;
-    background-color: ${colors.cardBg || "#ffffff"};
-    border: 1px solid ${colors.cardBorder || "#e2e8f0"};
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    font-family: inherit;
-    text-align: start;
-  `;
+  cardContainer.style.cssText = cardCss;
 
   let html = `
-    <div style="margin-bottom: 14px;">
+    <div style="margin-bottom: 14px; text-align: ${align};">
       <h3 style="font-size: 1.15rem; font-weight: 700; color: ${colors.titleColor || "#1e293b"}; margin: 0 0 4px 0;">
         ${escapeHTML(title || (isAr ? "اشتري المجموعة ووفر" : "Buy Bundle & Save"))}
       </h3>

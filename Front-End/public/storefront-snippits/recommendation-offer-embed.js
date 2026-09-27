@@ -100,15 +100,20 @@ salla.onReady(async () => {
       const subtitle = offer.subtitle?.[isAr ? "ar" : "en"] || offer.subtitle?.ar || "";
       const colors = offer.appearance?.colors || {};
       const radius = offer.appearance?.borderRadiusPx ?? 12;
+      const core = window.__CBCore;
+      const align = (core && core.headingAlign && core.headingAlign(offer.appearance)) || "start";
+      const cardCss =
+        (core && core.appearanceCardCss && core.appearanceCardCss(offer.appearance, "margin: 2.5rem 0; padding: 18px;")) ||
+        `margin: 2.5rem 0; padding: 18px; border-radius: ${radius}px; background-color: ${escapeHTML(colors.cardBg || "transparent")}; border: 1px solid ${escapeHTML(colors.cardBorder || "transparent")}; font-family: inherit;`;
 
       const widget = document.createElement("div");
       widget.className = "cart-recommendation-widget";
-      widget.style.cssText = `margin: 2.5rem 0; padding: 18px; border-radius: ${radius}px; background-color: ${escapeHTML(colors.cardBg || "transparent")}; border: 1px solid ${escapeHTML(colors.cardBorder || "transparent")}; text-align: start; font-family: inherit;`;
+      widget.style.cssText = cardCss;
 
       const btnText = isAr ? "إضافة للسلة" : "Add to Cart";
 
       let html = `
-        <div style="margin-bottom: 16px;">
+        <div style="margin-bottom: 16px; text-align: ${align};">
           ${title ? `<h3 style="font-size: 1.15rem; font-weight: bold; color: var(--color-text, #1f2937); margin: 0 0 4px 0;">${escapeHTML(title)}</h3>` : ""}
           ${subtitle ? `<p style="font-size: 0.9rem; color: var(--color-grey-500, #6b7280); margin: 0;">${escapeHTML(subtitle)}</p>` : ""}
         </div>

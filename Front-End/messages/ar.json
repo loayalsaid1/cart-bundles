@@ -346,7 +346,38 @@
     },
     "appearance": {
       "borderRadius": "نصف قطر الزوايا",
+      "titleAlign": "محاذاة العنوان",
+      "align": {
+        "start": "البداية",
+        "center": "الوسط",
+        "end": "النهاية"
+      },
+      "showBorder": "حدود البطاقة",
+      "showBorderHint": "إطار البطاقة الخارجية فقط",
+      "shadow": "ظل البطاقة",
+      "shadowLevels": {
+        "none": "بدون",
+        "sm": "خفيف",
+        "md": "متوسط",
+        "lg": "قوي"
+      },
       "presetsLabel": "أنماط جاهزة",
+      "savedPresets": "أشكال محفوظة",
+      "noSavedPresets": "لا توجد أشكال محفوظة بعد.",
+      "savePreset": "حفظ الحالي",
+      "savePresetTitle": "حفظ المظهر",
+      "savePresetHint": "أعد استخدام هذه الألوان، أو المظهر الكامل، في عروض أخرى.",
+      "presetName": "الاسم",
+      "presetKindLabel": "ماذا يُحفظ",
+      "presetKind": {
+        "colors": "ألوان",
+        "full": "مظهر كامل"
+      },
+      "deletePreset": "حذف الشكل",
+      "presetsSaved": "تم حفظ الشكل",
+      "presetsSaveFailed": "تعذر حفظ الشكل",
+      "presetsDeleted": "تم حذف الشكل",
+      "presetsDeleteFailed": "تعذر حذف الشكل",
       "presets": {
         "minimal": "بسيط",
         "solid": "صريح",

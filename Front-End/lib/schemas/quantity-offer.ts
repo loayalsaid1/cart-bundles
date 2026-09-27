@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import {
+  appearanceFullSchema,
   localeTextSchema,
   offerAppearanceSchema,
   offerInfoSchema,
@@ -106,13 +107,7 @@ export const quantityOfferFullSchema = z.object({
     })
     .nullable(),
   quantityTiers: z.array(quantityTierFullSchema),
-  appearance: z
-    .object({
-      offerId: z.number(),
-      borderRadiusPx: z.number(),
-      colors: z.record(z.string(), z.string()),
-    })
-    .nullable(),
+  appearance: appearanceFullSchema,
 });
 
 export type QuantityOfferDraft = z.infer<typeof quantityOfferDraftSchema>;

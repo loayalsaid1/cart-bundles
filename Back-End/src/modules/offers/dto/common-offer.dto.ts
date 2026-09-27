@@ -1,5 +1,6 @@
 import {
   IsArray,
+  IsBoolean,
   IsEnum,
   IsISO8601,
   IsNumber,
@@ -74,6 +75,18 @@ export class OfferAppearanceDto {
   @IsObject()
   @IsOptional()
   colors?: Record<string, string>;
+
+  @IsEnum(['start', 'center', 'end'])
+  @IsOptional()
+  titleAlign?: 'start' | 'center' | 'end';
+
+  @IsBoolean()
+  @IsOptional()
+  showBorder?: boolean;
+
+  @IsEnum(['none', 'sm', 'md', 'lg'])
+  @IsOptional()
+  shadow?: 'none' | 'sm' | 'md' | 'lg';
 }
 
 export class GetStorefrontOffersQueryDto {

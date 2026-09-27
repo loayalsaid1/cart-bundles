@@ -346,7 +346,38 @@
     },
     "appearance": {
       "borderRadius": "Corner radius",
+      "titleAlign": "Title alignment",
+      "align": {
+        "start": "Start",
+        "center": "Center",
+        "end": "End"
+      },
+      "showBorder": "Card border",
+      "showBorderHint": "Outer card outline only",
+      "shadow": "Card shadow",
+      "shadowLevels": {
+        "none": "None",
+        "sm": "Subtle",
+        "md": "Medium",
+        "lg": "Strong"
+      },
       "presetsLabel": "Quick presets",
+      "savedPresets": "Saved looks",
+      "noSavedPresets": "No saved looks yet.",
+      "savePreset": "Save current",
+      "savePresetTitle": "Save appearance",
+      "savePresetHint": "Reuse these colors, or the full layout, on other offers.",
+      "presetName": "Name",
+      "presetKindLabel": "What to save",
+      "presetKind": {
+        "colors": "Colors",
+        "full": "Full look"
+      },
+      "deletePreset": "Delete look",
+      "presetsSaved": "Look saved",
+      "presetsSaveFailed": "Could not save look",
+      "presetsDeleted": "Look deleted",
+      "presetsDeleteFailed": "Could not delete look",
       "presets": {
         "minimal": "Minimal",
         "solid": "Solid",

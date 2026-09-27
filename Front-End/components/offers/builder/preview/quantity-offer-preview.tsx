@@ -8,7 +8,7 @@ import { SmartPhone01Icon, MonitorDotIcon, Globe02Icon } from "@hugeicons/core-f
 import { cn } from "@/lib/utils";
 import { tierUnitPrice } from "@/lib/utils/amount";
 import type { QuantityOfferDraft } from "@/lib/schemas/quantity-offer";
-import { resolvePreviewColors } from "@/lib/utils/preview-appearance";
+import { resolvePreviewColors, shadowCss, titleAlignCss } from "@/lib/utils/preview-appearance";
 import { useProductSearch } from "@/hooks/use-product-search";
 
 type Device = "mobile" | "desktop";
@@ -48,10 +48,14 @@ export function QuantityOfferPreview({
   const widgetStyle = {
     borderRadius: `${radius}px`,
     backgroundColor: colors.cardBg,
-    border: `1px solid ${colors.cardBorder}`,
+    border: (draft.appearance?.showBorder ?? true)
+      ? `1px solid ${colors.cardBorder}`
+      : "1px solid transparent",
+    boxShadow: shadowCss(draft.appearance?.shadow),
     color: colors.bodyText,
     padding: "16px",
   } as React.CSSProperties;
+  const headingAlign = titleAlignCss(draft.appearance?.titleAlign);
 
   return (
     <div className="space-y-3">
@@ -116,11 +120,11 @@ export function QuantityOfferPreview({
         </div>
         {title && (
           <div className="mt-4 text-start" style={widgetStyle} dir={isRtl ? "rtl" : "ltr"}>
-            <p className="mb-0.5 text-[15px] font-bold" style={{ color: colors.titleColor }}>
+            <p className="mb-0.5 text-[15px] font-bold" style={{ color: colors.titleColor, textAlign: headingAlign }}>
               {title}
             </p>
             {subtitle && (
-              <p className="mb-3 text-[13px]" style={{ color: colors.mutedText }}>
+              <p className="mb-3 text-[13px]" style={{ color: colors.mutedText, textAlign: headingAlign }}>
                 {subtitle}
               </p>
             )}

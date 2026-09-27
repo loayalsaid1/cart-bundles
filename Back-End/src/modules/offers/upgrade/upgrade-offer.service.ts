@@ -12,6 +12,7 @@ import {
   UpdateUpgradeOfferDto,
 } from './upgrade-offer.dto';
 import { toExpiryDate } from '../dto/common-offer.dto';
+import { appearanceValues } from '../appearance.mapper';
 import { OfferSideEffectsService } from '../offer-side-effects.service';
 import { ServiceResult, UpgradeOfferFull } from '../types/offers.types';
 
@@ -97,8 +98,7 @@ export class UpgradeOfferService {
 
       await tx.insert(offerAppearance).values({
         offerId: offer.id,
-        borderRadiusPx: dto.appearance?.borderRadiusPx ?? 0,
-        colors: dto.appearance?.colors ?? {},
+        ...appearanceValues(dto.appearance),
       });
 
       return offer;
@@ -161,15 +161,11 @@ export class UpgradeOfferService {
           .insert(offerAppearance)
           .values({
             offerId,
-            borderRadiusPx: dto.appearance.borderRadiusPx ?? 0,
-            colors: dto.appearance.colors ?? {},
+            ...appearanceValues(dto.appearance),
           })
           .onConflictDoUpdate({
             target: offerAppearance.offerId,
-            set: {
-              borderRadiusPx: dto.appearance.borderRadiusPx ?? 0,
-              colors: dto.appearance.colors ?? {},
-            },
+            set: appearanceValues(dto.appearance),
           });
       }
     });

@@ -4,7 +4,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { OfferPreviewFrame } from "@/components/offers/builder/preview/offer-preview-frame";
 import type { BundleOfferDraft } from "@/lib/schemas/bundle-offer";
-import { previewCardStyle, resolvePreviewColors } from "@/lib/utils/preview-appearance";
+import { previewCardStyle, resolvePreviewColors, titleAlignCss } from "@/lib/utils/preview-appearance";
 import { useProductSearch } from "@/hooks/use-product-search";
 
 export function BundleOfferPreview({
@@ -21,7 +21,11 @@ export function BundleOfferPreview({
   const items = draft.settings.relatedProducts;
   const discountType = draft.settings.discountType;
   const discountAmount = draft.settings.discountAmount ?? 0;
-  const cardStyle = previewCardStyle(draft.appearance?.colors, radius);
+  const cardStyle = previewCardStyle(draft.appearance?.colors, radius, {
+    showBorder: draft.appearance?.showBorder,
+    shadow: draft.appearance?.shadow,
+  });
+  const headingAlign = titleAlignCss(draft.appearance?.titleAlign);
 
   const { data: allProducts = [] } = useProductSearch("", true);
   const targetId = draft.targeting?.ids?.[0];
@@ -65,12 +69,12 @@ export function BundleOfferPreview({
         return (
           <div style={cardStyle} className="p-[18px]">
             {title && (
-              <p className="text-[15px] font-bold" style={{ color: colors.titleColor }}>
+              <p className="text-[15px] font-bold" style={{ color: colors.titleColor, textAlign: headingAlign }}>
                 {title}
               </p>
             )}
             {subtitle && (
-              <p className="mt-0.5 text-[13px]" style={{ color: colors.mutedText }}>
+              <p className="mt-0.5 text-[13px]" style={{ color: colors.mutedText, textAlign: headingAlign }}>
                 {subtitle}
               </p>
             )}

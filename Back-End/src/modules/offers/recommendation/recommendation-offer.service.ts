@@ -4,6 +4,7 @@ import { DrizzleService } from '../../../database/drizzle.service';
 import {
   offers,
   offerRelatedProducts,
+  offerAppearance,
   recommendationOfferSettings,
 } from '../../../database/schema';
 import {
@@ -11,6 +12,7 @@ import {
   UpdateRecommendationOfferDto,
 } from './recommendation-offer.dto';
 import { toExpiryDate } from '../dto/common-offer.dto';
+import { appearanceValues } from '../appearance.mapper';
 import { OfferSideEffectsService } from '../offer-side-effects.service';
 import { RecommendationOfferFull, ServiceResult } from '../types/offers.types';
 
@@ -31,7 +33,11 @@ export class RecommendationOfferService {
         eq(offers.merchantId, merchantId),
         eq(offers.kind, 'cart_recommendation'),
       ),
-      with: { relatedProducts: true, recommendationSettings: true },
+      with: {
+        relatedProducts: true,
+        recommendationSettings: true,
+        appearance: true,
+      },
     });
     return results;
   }
@@ -42,7 +48,11 @@ export class RecommendationOfferService {
   ): Promise<ServiceResult<RecommendationOfferFull>> {
     const offer = await this.db.query.offers.findFirst({
       where: and(eq(offers.id, offerId), eq(offers.merchantId, merchantId)),
-      with: { relatedProducts: true, recommendationSettings: true },
+      with: {
+        relatedProducts: true,
+        recommendationSettings: true,
+        appearance: true,
+      },
     });
     if (!offer) {
       return { success: false, reason: 'not_found' };
@@ -87,6 +97,11 @@ export class RecommendationOfferService {
           dto.settings.mode === 'cart_related'
             ? dto.settings.triggerSallaProductId
             : null,
+      });
+
+      await tx.insert(offerAppearance).values({
+        offerId: offer.id,
+        ...appearanceValues(dto.appearance),
       });
 
       return offer;
@@ -139,6 +154,19 @@ export class RecommendationOfferService {
               : null,
         })
         .where(eq(recommendationOfferSettings.offerId, offerId));
+
+      if (dto.appearance) {
+        await tx
+          .insert(offerAppearance)
+          .values({
+            offerId,
+            ...appearanceValues(dto.appearance),
+          })
+          .onConflictDoUpdate({
+            target: offerAppearance.offerId,
+            set: appearanceValues(dto.appearance),
+          });
+      }
     });
 
     await this.sideEffects.afterWrite(merchantId, offerId, 'offer.updated');

@@ -7,6 +7,7 @@ import { AddonOfferModule } from './addon/addon-offer.module';
 import { BundleOfferModule } from './bundle/bundle-offer.module';
 import { UpgradeOfferModule } from './upgrade/upgrade-offer.module';
 import { RecommendationOfferModule } from './recommendation/recommendation-offer.module';
+import { AppearancePresetsModule } from './appearance-presets/appearance-presets.module';
 import { MerchantsModule } from '../merchants/merchants.module';
 import { LoggingModule } from '../logging/logging.module';
 import { OfferSideEffectsModule } from './offer-side-effects.module';
@@ -22,6 +23,7 @@ import { OfferSideEffectsModule } from './offer-side-effects.module';
     BundleOfferModule,
     UpgradeOfferModule,
     RecommendationOfferModule,
+    AppearancePresetsModule,
   ],
   controllers: [OffersController],
   providers: [OffersService],
