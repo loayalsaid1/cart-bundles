@@ -7,7 +7,7 @@ import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 
 import { OfferPreviewFrame } from "@/components/offers/builder/preview/offer-preview-frame";
 import type { UpgradeOfferDraft } from "@/lib/schemas/upgrade-offer";
-import { previewCardStyle, resolvePreviewColors } from "@/lib/utils/preview-appearance";
+import { previewCardStyle, resolvePreviewColors, titleAlignCss } from "@/lib/utils/preview-appearance";
 import { useProductSearch } from "@/hooks/use-product-search";
 
 export function UpgradeOfferPreview({
@@ -22,7 +22,11 @@ export function UpgradeOfferPreview({
   const couponCode = draft.settings.couponCode?.trim();
   const radius = draft.appearance?.borderRadiusPx ?? 12;
   const colors = resolvePreviewColors(draft.appearance?.colors);
-  const cardStyle = previewCardStyle(draft.appearance?.colors, radius);
+  const cardStyle = previewCardStyle(draft.appearance?.colors, radius, {
+    showBorder: draft.appearance?.showBorder,
+    shadow: draft.appearance?.shadow,
+  });
+  const headingAlign = titleAlignCss(draft.appearance?.titleAlign);
 
   const { data: allProducts = [] } = useProductSearch("", true);
   const targetId = draft.settings.baseSallaProductId || draft.targeting?.ids?.[0];
@@ -91,12 +95,12 @@ export function UpgradeOfferPreview({
             {/* Upgrade Offer Widget Card */}
             <div style={cardStyle} className="p-4">
               {title && (
-                <p className="text-[15px] font-bold" style={{ color: colors.titleColor }}>
+                <p className="text-[15px] font-bold" style={{ color: colors.titleColor, textAlign: headingAlign }}>
                   {title}
                 </p>
               )}
               {subtitle && (
-                <p className="mt-0.5 mb-3 text-[13px]" style={{ color: colors.mutedText }}>
+                <p className="mt-0.5 mb-3 text-[13px]" style={{ color: colors.mutedText, textAlign: headingAlign }}>
                   {subtitle}
                 </p>
               )}

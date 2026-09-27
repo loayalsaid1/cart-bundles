@@ -9,6 +9,7 @@ import {
   boolean,
   timestamp,
   jsonb,
+  index,
 } from 'drizzle-orm/pg-core';
 import { merchants } from './merchants';
 
@@ -61,6 +62,24 @@ export const bundleDiscountTypeEnum = pgEnum('bundle_discount_type', [
 export const recommendationModeEnum = pgEnum('recommendation_mode', [
   'cart_related',
   'general',
+]);
+
+export const titleAlignEnum = pgEnum('title_align', [
+  'start',
+  'center',
+  'end',
+]);
+
+export const appearanceShadowEnum = pgEnum('appearance_shadow', [
+  'none',
+  'sm',
+  'md',
+  'lg',
+]);
+
+export const appearancePresetKindEnum = pgEnum('appearance_preset_kind', [
+  'colors',
+  'full',
 ]);
 
 /* ────────────────────────────────────────────────────────────────
@@ -139,7 +158,35 @@ export const offerAppearance = pgTable('offer_appearance', {
     .references(() => offers.id, { onDelete: 'cascade' }),
   borderRadiusPx: integer('border_radius_px').notNull().default(0),
   colors: jsonb('colors').$type<Record<string, string>>().notNull().default({}),
+  titleAlign: titleAlignEnum('title_align').notNull().default('start'),
+  showBorder: boolean('show_border').notNull().default(true),
+  shadow: appearanceShadowEnum('shadow').notNull().default('sm'),
 });
+
+export const appearancePresets = pgTable(
+  'appearance_presets',
+  {
+    id: serial('id').primaryKey(),
+    merchantId: integer('merchant_id')
+      .notNull()
+      .references(() => merchants.merchantId, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 80 }).notNull(),
+    kind: appearancePresetKindEnum('kind').notNull(),
+    colors: jsonb('colors').$type<Record<string, string>>().notNull().default({}),
+    borderRadiusPx: integer('border_radius_px'),
+    titleAlign: titleAlignEnum('title_align'),
+    showBorder: boolean('show_border'),
+    shadow: appearanceShadowEnum('shadow'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at')
+      .defaultNow()
+      .notNull()
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    index('appearance_presets_merchant_idx').on(table.merchantId),
+  ],
+);
 
 /* ────────────────────────────────────────────────────────────────
    QUANTITY OFFER SETTINGS & TIERS

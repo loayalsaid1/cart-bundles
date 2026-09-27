@@ -1,3 +1,5 @@
+import type { AppearanceShadow, TitleAlign } from "@/lib/schemas/common-offer";
+
 export type PreviewColors = {
   cardBg?: string;
   cardBorder?: string;
@@ -17,6 +19,21 @@ const FALLBACK: Required<PreviewColors> = {
   savings: "#15803d",
   titleColor: "#0f172a",
 };
+
+const SHADOW_CSS: Record<AppearanceShadow, string> = {
+  none: "none",
+  sm: "0 2px 8px rgba(0, 0, 0, 0.06)",
+  md: "0 8px 24px rgba(0, 0, 0, 0.10)",
+  lg: "0 16px 40px rgba(0, 0, 0, 0.16)",
+};
+
+export function shadowCss(shadow?: AppearanceShadow | null): string {
+  return SHADOW_CSS[shadow ?? "sm"];
+}
+
+export function titleAlignCss(align?: TitleAlign | null): string {
+  return align ?? "start";
+}
 
 function hexLuminance(hex: string): number | null {
   const clean = hex.replace("#", "").trim();
@@ -61,17 +78,37 @@ export function resolvePreviewColors(colors?: PreviewColors | null) {
 export function previewCardStyle(
   colors?: PreviewColors | null,
   radius = 12,
+  options?: {
+    showBorder?: boolean | null;
+    shadow?: AppearanceShadow | null;
+  },
 ): {
   borderRadius: string;
   backgroundColor: string;
   border: string;
+  boxShadow: string;
   color: string;
 } {
   const resolved = resolvePreviewColors(colors);
+  const showBorder = options?.showBorder ?? true;
   return {
     borderRadius: `${radius}px`,
     backgroundColor: resolved.cardBg,
-    border: `1px solid ${resolved.cardBorder}`,
+    border: showBorder ? `1px solid ${resolved.cardBorder}` : "1px solid transparent",
+    boxShadow: shadowCss(options?.shadow),
     color: resolved.bodyText,
   };
+}
+
+export function normalizeHex(raw: string): string | null {
+  const value = raw.trim();
+  const withHash = value.startsWith("#") ? value : `#${value}`;
+  if (/^#[0-9a-fA-F]{6}$/.test(withHash)) return withHash.toLowerCase();
+  if (/^#[0-9a-fA-F]{3}$/.test(withHash)) {
+    const r = withHash[1];
+    const g = withHash[2];
+    const b = withHash[3];
+    return `#${r}${r}${g}${g}${b}${b}`.toLowerCase();
+  }
+  return null;
 }

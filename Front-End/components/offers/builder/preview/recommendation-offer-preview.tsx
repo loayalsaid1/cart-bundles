@@ -4,7 +4,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { OfferPreviewFrame } from "@/components/offers/builder/preview/offer-preview-frame";
 import type { RecommendationOfferDraft } from "@/lib/schemas/recommendation-offer";
-import { previewCardStyle, resolvePreviewColors } from "@/lib/utils/preview-appearance";
+import { previewCardStyle, resolvePreviewColors, titleAlignCss } from "@/lib/utils/preview-appearance";
 import { useProductSearch } from "@/hooks/use-product-search";
 
 export function RecommendationOfferPreview({
@@ -20,7 +20,11 @@ export function RecommendationOfferPreview({
   const colors = resolvePreviewColors(draft.appearance?.colors);
   const items = draft.settings.relatedProducts;
   const mode = draft.settings.mode;
-  const cardStyle = previewCardStyle(draft.appearance?.colors, radius);
+  const cardStyle = previewCardStyle(draft.appearance?.colors, radius, {
+    showBorder: draft.appearance?.showBorder,
+    shadow: draft.appearance?.shadow,
+  });
+  const headingAlign = titleAlignCss(draft.appearance?.titleAlign);
 
   const { data: allProducts = [] } = useProductSearch("", true);
   const targetId = draft.settings.triggerSallaProductId;
@@ -57,13 +61,13 @@ export function RecommendationOfferPreview({
                 {title && (
                   <p
                     className="text-sm font-semibold"
-                    style={{ color: colors.titleColor }}
+                    style={{ color: colors.titleColor, textAlign: headingAlign }}
                   >
                     {title}
                   </p>
                 )}
                 {subtitle && (
-                  <p className="mt-0.5 text-xs" style={{ color: colors.mutedText }}>
+                  <p className="mt-0.5 text-xs" style={{ color: colors.mutedText, textAlign: headingAlign }}>
                     {subtitle}
                   </p>
                 )}

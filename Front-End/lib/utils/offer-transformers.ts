@@ -23,12 +23,21 @@ function toOptionalLocaleText(
 }
 
 function toAppearance(
-  appearance?: { borderRadiusPx?: number | null; colors?: Record<string, string> | null } | null,
+  appearance?: {
+    borderRadiusPx?: number | null;
+    colors?: Record<string, string> | null;
+    titleAlign?: 'start' | 'center' | 'end' | null;
+    showBorder?: boolean | null;
+    shadow?: 'none' | 'sm' | 'md' | 'lg' | null;
+  } | null,
 ): OfferAppearance | undefined {
   if (!appearance) return undefined;
   return {
     borderRadiusPx: appearance.borderRadiusPx ?? undefined,
     colors: appearance.colors ?? undefined,
+    titleAlign: appearance.titleAlign ?? 'start',
+    showBorder: appearance.showBorder ?? true,
+    shadow: appearance.shadow ?? 'sm',
   };
 }
 
@@ -103,6 +112,9 @@ export const defaultQuantityDraft: QuantityOfferDraft = {
   },
   appearance: {
     borderRadiusPx: 12,
+    titleAlign: 'start',
+    showBorder: true,
+    shadow: 'sm',
     colors: {
       cardBg: '#ffffff',
       cardBorder: '#e5e7eb',
@@ -152,6 +164,9 @@ export const APPEARANCE_PRESETS = [
 
 const DEFAULT_APPEARANCE: OfferAppearance = {
   borderRadiusPx: 12,
+  titleAlign: 'start',
+  showBorder: true,
+  shadow: 'sm',
   colors: {
     cardBg: '#ffffff',
     cardBorder: '#e5e7eb',

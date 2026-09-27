@@ -182,25 +182,20 @@ async function buildUpgradeWidget(offer, index, { isAr, escapeHTML, formatPrice,
   const titleColor = colors.titleColor || contrastTextOn(cardBg);
   const bodyText = contrastTextOn(cardBg);
   const mutedText = mutedTextOn(cardBg);
+  const core = window.__CBCore;
+  const align = (core && core.headingAlign && core.headingAlign(offer.appearance)) || "start";
+  const cardCss =
+    (core && core.appearanceCardCss && core.appearanceCardCss(offer.appearance, `margin: 2rem 0; padding: 18px; color: ${bodyText};`)) ||
+    `margin: 2rem 0; padding: 18px; border-radius: ${radius}px; background-color: ${cardBg}; border: 1px solid ${cardBorder}; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); font-family: inherit; color: ${bodyText};`;
 
   const card = document.createElement("div");
   card.className = "custom-upgrade-widget";
   card.dataset.offerId = offer.id ?? index;
   card.setAttribute("dir", isAr ? "rtl" : "ltr");
-  card.style.cssText = `
-    margin: 2rem 0;
-    padding: 18px;
-    border-radius: ${radius}px;
-    background-color: ${cardBg};
-    border: 1px solid ${cardBorder};
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    font-family: inherit;
-    text-align: start;
-    color: ${bodyText};
-  `;
+  card.style.cssText = cardCss;
 
   card.innerHTML = `
-    <div style="margin-bottom: 14px;">
+    <div style="margin-bottom: 14px; text-align: ${align};">
       <h3 style="font-size: 1.15rem; font-weight: 700; color: ${titleColor}; margin: 0 0 4px 0;">
         ${escapeHTML(title || (isAr ? "عرض ترقية مميز ✨" : "Special Upgrade Offer ✨"))}
       </h3>

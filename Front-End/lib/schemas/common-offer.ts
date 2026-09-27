@@ -50,10 +50,17 @@ export const offerTargetingSchema = z
     path: ['ids'],
   });
 
+export const titleAlignSchema = z.enum(['start', 'center', 'end']);
+export const appearanceShadowSchema = z.enum(['none', 'sm', 'md', 'lg']);
+export const appearancePresetKindSchema = z.enum(['colors', 'full']);
+
 export const offerAppearanceSchema = z
   .object({
     borderRadiusPx: z.number().optional(),
     colors: z.record(z.string(), z.string()).optional(),
+    titleAlign: titleAlignSchema.optional(),
+    showBorder: z.boolean().optional(),
+    shadow: appearanceShadowSchema.optional(),
   })
   .optional();
 
@@ -96,8 +103,25 @@ export const appearanceFullSchema = z
     offerId: z.number(),
     borderRadiusPx: z.number(),
     colors: z.record(z.string(), z.string()),
+    titleAlign: titleAlignSchema.optional().default('start'),
+    showBorder: z.boolean().optional().default(true),
+    shadow: appearanceShadowSchema.optional().default('sm'),
   })
   .nullable();
+
+export const appearancePresetSchema = z.object({
+  id: z.number(),
+  merchantId: z.number(),
+  name: z.string(),
+  kind: appearancePresetKindSchema,
+  colors: z.record(z.string(), z.string()),
+  borderRadiusPx: z.number().nullable().optional(),
+  titleAlign: titleAlignSchema.nullable().optional(),
+  showBorder: z.boolean().nullable().optional(),
+  shadow: appearanceShadowSchema.nullable().optional(),
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
+});
 
 export const displayOrientationSchema = z.enum(["vertical", "horizontal"]);
 
@@ -107,6 +131,10 @@ export type TargetType = z.infer<typeof targetTypeSchema>;
 export type OfferInfo = z.infer<typeof offerInfoSchema>;
 export type OfferTargeting = z.infer<typeof offerTargetingSchema>;
 export type OfferAppearance = z.infer<typeof offerAppearanceSchema>;
+export type TitleAlign = z.infer<typeof titleAlignSchema>;
+export type AppearanceShadow = z.infer<typeof appearanceShadowSchema>;
+export type AppearancePresetKind = z.infer<typeof appearancePresetKindSchema>;
+export type AppearancePreset = z.infer<typeof appearancePresetSchema>;
 export type DashboardOffer = z.infer<typeof dashboardOfferSchema>;
 export type RelatedProductDraft = z.infer<typeof relatedProductDraftSchema>;
 export type OfferTarget = z.infer<typeof offerTargetSchema>;

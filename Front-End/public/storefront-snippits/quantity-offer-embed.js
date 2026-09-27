@@ -116,24 +116,20 @@ function renderQuantityOfferCard(offer, core) {
   const colors = offer.appearance?.colors || {};
   const radius = offer.appearance?.borderRadiusPx ?? 12;
   const settings = offer.quantitySettings || {};
+  const align = (core.headingAlign && core.headingAlign(offer.appearance)) || "start";
+  const cardCss =
+    (core.appearanceCardCss && core.appearanceCardCss(offer.appearance, "margin: 16px 0; padding: 16px;")) ||
+    `margin: 16px 0; padding: 16px; border-radius: ${radius}px; background-color: ${colors.cardBg || "#ffffff"}; border: 1px solid ${colors.cardBorder || "#e2e8f0"}; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); font-family: inherit;`;
 
   const cardContainer = document.createElement("div");
   cardContainer.className = "salla-quantity-offer-card";
   if (offer.id) cardContainer.dataset.offerId = String(offer.id);
   cardContainer.setAttribute("dir", isAr ? "rtl" : "ltr");
-  cardContainer.style.cssText = `
-    margin: 16px 0;
-    padding: 16px;
-    border-radius: ${radius}px;
-    background-color: ${colors.cardBg || "#ffffff"};
-    border: 1px solid ${colors.cardBorder || "#e2e8f0"};
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    font-family: inherit;
-  `;
+  cardContainer.style.cssText = cardCss;
 
   let html = "";
-  if (title) html += `<div style="font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 2px;">${escapeHTML(title)}</div>`;
-  if (subtitle) html += `<div style="font-size: 13px; color: #64748b; margin-bottom: 12px;">${escapeHTML(subtitle)}</div>`;
+  if (title) html += `<div style="font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 2px; text-align: ${align};">${escapeHTML(title)}</div>`;
+  if (subtitle) html += `<div style="font-size: 13px; color: #64748b; margin-bottom: 12px; text-align: ${align};">${escapeHTML(subtitle)}</div>`;
   html += `<div class="offer-tiers-list" style="display: flex; flex-direction: column; gap: 8px;"></div>`;
   cardContainer.innerHTML = html;
 

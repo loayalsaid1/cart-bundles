@@ -15,6 +15,13 @@
       "when": 1790100364621,
       "tag": "0001_superb_sauron",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790524800000,
+      "tag": "0002_widget_appearance",
+      "breakpoints": true
     }
   ]
 }

@@ -134,6 +134,11 @@ async function buildAddonWidget(addonOffer, index, { isAr, escapeHTML, formatPri
 
   const colors = addonOffer.appearance?.colors || {};
   const radius = addonOffer.appearance?.borderRadiusPx ?? 12;
+  const core = window.__CBCore;
+  const align = (core && core.headingAlign && core.headingAlign(addonOffer.appearance)) || "start";
+  const cardCss =
+    (core && core.appearanceCardCss && core.appearanceCardCss(addonOffer.appearance, "margin: 2.5rem 0; padding: 18px;")) ||
+    `margin: 2.5rem 0; padding: 18px; border-radius: ${radius}px; background-color: ${colors.cardBg || "#ffffff"}; border: 1px solid ${colors.cardBorder || "#e2e8f0"}; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); font-family: inherit;`;
 
   // Fetch all related products in parallel
   const productResults = await Promise.allSettled(
@@ -169,7 +174,7 @@ async function buildAddonWidget(addonOffer, index, { isAr, escapeHTML, formatPri
   const widget = document.createElement("div");
   widget.className = "custom-addon-widget";
   widget.dataset.offerId = addonOffer.id ?? index;
-  widget.style.cssText = "margin: 2.5rem 0; text-align: start; font-family: inherit;";
+  widget.style.cssText = cardCss;
 
   const containerStyle =
     displayOrientation === "vertical"
@@ -179,8 +184,8 @@ async function buildAddonWidget(addonOffer, index, { isAr, escapeHTML, formatPri
   const btnText = isAr ? "إضافة للسلة" : "Add to Cart";
 
   let html = `
-    <h3 style="font-size: 1.15rem; font-weight: bold; color: var(--color-text, #1f2937); margin-bottom: 0.25rem;">${escapeHTML(title)}</h3>
-    ${subtitle ? `<p style="font-size: 0.9rem; color: var(--color-grey-500, #6b7280); margin-bottom: 1.25rem;">${escapeHTML(subtitle)}</p>` : ""}
+    <h3 style="font-size: 1.15rem; font-weight: bold; color: var(--color-text, #1f2937); margin-bottom: 0.25rem; text-align: ${align};">${escapeHTML(title)}</h3>
+    ${subtitle ? `<p style="font-size: 0.9rem; color: var(--color-grey-500, #6b7280); margin-bottom: 1.25rem; text-align: ${align};">${escapeHTML(subtitle)}</p>` : ""}
     <div style="${containerStyle}">
   `;
 

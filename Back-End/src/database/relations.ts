@@ -8,6 +8,7 @@ import {
   offerTargets,
   offerRelatedProducts,
   offerAppearance,
+  appearancePresets,
   quantityOfferSettings,
   quantityOfferTiers,
   addonOfferSettings,
@@ -24,6 +25,7 @@ export const merchantsRelations = relations(merchants, ({ many }) => ({
   offerStats: many(offerStats),
   dailyStats: many(dailyStats),
   suggestions: many(suggestions),
+  appearancePresets: many(appearancePresets),
 }));
 
 export const suggestionsRelations = relations(suggestions, ({ one }) => ({
@@ -124,6 +126,16 @@ export const offerAppearanceRelations = relations(
     offer: one(offers, {
       fields: [offerAppearance.offerId],
       references: [offers.id],
+    }),
+  }),
+);
+
+export const appearancePresetsRelations = relations(
+  appearancePresets,
+  ({ one }) => ({
+    merchant: one(merchants, {
+      fields: [appearancePresets.merchantId],
+      references: [merchants.merchantId],
     }),
   }),
 );

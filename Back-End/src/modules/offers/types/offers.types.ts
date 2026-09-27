@@ -4,6 +4,7 @@ import {
   offerTargets,
   offerRelatedProducts,
   offerAppearance,
+  appearancePresets,
   quantityOfferSettings,
   quantityOfferTiers,
   addonOfferSettings,
@@ -27,6 +28,8 @@ export type NewOffer = InferInsertModel<typeof offers>;
 export type OfferTarget = InferSelectModel<typeof offerTargets>;
 export type OfferRelatedProduct = InferSelectModel<typeof offerRelatedProducts>;
 export type OfferAppearance = InferSelectModel<typeof offerAppearance>;
+export type AppearancePreset = InferSelectModel<typeof appearancePresets>;
+export type NewAppearancePreset = InferInsertModel<typeof appearancePresets>;
 
 export type QuantityOfferSettings = InferSelectModel<
   typeof quantityOfferSettings
@@ -86,6 +89,7 @@ export interface UpgradeOfferFull extends Offer {
 export interface RecommendationOfferFull extends Offer {
   relatedProducts: OfferRelatedProduct[];
   recommendationSettings: RecommendationOfferSettings | null;
+  appearance: OfferAppearance | null;
 }
 
 export interface FullOffer extends Offer {

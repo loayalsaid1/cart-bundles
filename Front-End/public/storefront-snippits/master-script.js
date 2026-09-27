@@ -63,6 +63,31 @@ salla.onReady(async () => {
   const formatPrice = (price) =>
     `<bdi>${(parseFloat(price) || 0).toFixed(2)} ${currency}</bdi>`;
 
+  const appearanceShadowCss = (shadow) =>
+    ({
+      none: "none",
+      sm: "0 2px 8px rgba(0, 0, 0, 0.06)",
+      md: "0 8px 24px rgba(0, 0, 0, 0.10)",
+      lg: "0 16px 40px rgba(0, 0, 0, 0.16)",
+    }[shadow] || "0 2px 8px rgba(0, 0, 0, 0.06)");
+
+  const appearanceCardCss = (appearance, extra = "") => {
+    const colors = appearance?.colors || {};
+    const radius = appearance?.borderRadiusPx ?? 12;
+    const showBorder = appearance?.showBorder !== false;
+    const borderColor = colors.cardBorder || "#e2e8f0";
+    return `
+      border-radius: ${radius}px;
+      background-color: ${colors.cardBg || "#ffffff"};
+      border: ${showBorder ? `1px solid ${borderColor}` : "1px solid transparent"};
+      box-shadow: ${appearanceShadowCss(appearance?.shadow)};
+      font-family: inherit;
+      ${extra}
+    `;
+  };
+
+  const headingAlign = (appearance) => appearance?.titleAlign || "start";
+
   function getTargetAnchor() {
     return (
       document.querySelector("form#product-form") ||
@@ -119,6 +144,9 @@ salla.onReady(async () => {
     getTargetAnchor,
     resolveCartAdder,
     addItemWithDefaultOptions,
+    appearanceShadowCss,
+    appearanceCardCss,
+    headingAlign,
     offers: null, // will be populated below
     isLoaded: false,
   };
