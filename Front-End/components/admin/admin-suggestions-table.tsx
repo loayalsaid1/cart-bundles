@@ -78,7 +78,9 @@ export function AdminSuggestionsTable() {
                   }
                 >
                   <SelectTrigger className="w-36">
-                    <SelectValue />
+                    <SelectValue>
+                      {t(`suggestions.status.${row.status}`)}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {STATUSES.map((status) => (
