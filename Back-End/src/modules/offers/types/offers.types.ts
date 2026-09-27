@@ -20,6 +20,9 @@ import {
   recommendationModeEnum,
   addonDiscountTypeEnum,
   bundleDiscountTypeEnum,
+  titleAlignEnum,
+  appearanceShadowEnum,
+  appearancePresetKindEnum,
 } from '../../../database/schema';
 
 export type Offer = InferSelectModel<typeof offers>;
@@ -58,6 +61,11 @@ export type DisplayOrientation =
 export type OfferTargetType = (typeof offerTargetTypeEnum.enumValues)[number];
 export type RecommendationMode =
   (typeof recommendationModeEnum.enumValues)[number];
+export type TitleAlign = (typeof titleAlignEnum.enumValues)[number];
+export type AppearanceShadow =
+  (typeof appearanceShadowEnum.enumValues)[number];
+export type AppearancePresetKind =
+  (typeof appearancePresetKindEnum.enumValues)[number];
 
 export interface QuantityOfferFull extends Offer {
   targets: OfferTarget[];

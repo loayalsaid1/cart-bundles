@@ -9,6 +9,16 @@ import {
   MinLength,
   ValidateIf,
 } from 'class-validator';
+import {
+  appearancePresetKindEnum,
+  appearanceShadowEnum,
+  titleAlignEnum,
+} from '../../../database/schema';
+import type {
+  AppearancePresetKind,
+  AppearanceShadow,
+  TitleAlign,
+} from '../types/offers.types';
 
 export class CreateAppearancePresetDto {
   @IsString()
@@ -16,8 +26,8 @@ export class CreateAppearancePresetDto {
   @MaxLength(80)
   name: string;
 
-  @IsEnum(['colors', 'full'])
-  kind: 'colors' | 'full';
+  @IsEnum(appearancePresetKindEnum.enumValues)
+  kind: AppearancePresetKind;
 
   @IsObject()
   colors: Record<string, string>;
@@ -27,16 +37,16 @@ export class CreateAppearancePresetDto {
   borderRadiusPx?: number;
 
   @ValidateIf((o: CreateAppearancePresetDto) => o.kind === 'full')
-  @IsEnum(['start', 'center', 'end'])
-  titleAlign?: 'start' | 'center' | 'end';
+  @IsEnum(titleAlignEnum.enumValues)
+  titleAlign?: TitleAlign;
 
   @ValidateIf((o: CreateAppearancePresetDto) => o.kind === 'full')
   @IsBoolean()
   showBorder?: boolean;
 
   @ValidateIf((o: CreateAppearancePresetDto) => o.kind === 'full')
-  @IsEnum(['none', 'sm', 'md', 'lg'])
-  shadow?: 'none' | 'sm' | 'md' | 'lg';
+  @IsEnum(appearanceShadowEnum.enumValues)
+  shadow?: AppearanceShadow;
 }
 
 export class UpdateAppearancePresetDto {

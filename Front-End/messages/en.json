@@ -374,7 +374,11 @@
         "full": "Full look"
       },
       "deletePreset": "Delete look",
+      "renamePreset": "Rename",
+      "renamePresetTitle": "Rename saved look",
       "presetsSaved": "Look saved",
+      "presetsRenamed": "Look renamed",
+      "presetsRenameFailed": "Could not rename look",
       "presetsSaveFailed": "Could not save look",
       "presetsDeleted": "Look deleted",
       "presetsDeleteFailed": "Could not delete look",

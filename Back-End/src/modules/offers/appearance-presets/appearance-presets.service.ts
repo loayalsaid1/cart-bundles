@@ -3,7 +3,10 @@ import { and, desc, eq } from 'drizzle-orm';
 import { DrizzleService } from '../../../database/drizzle.service';
 import { appearancePresets } from '../../../database/schema';
 import type { AppearancePreset, ServiceResult } from '../types/offers.types';
-import type { CreateAppearancePresetDto } from './appearance-preset.dto';
+import type {
+  CreateAppearancePresetDto,
+  UpdateAppearancePresetDto,
+} from './appearance-preset.dto';
 
 @Injectable()
 export class AppearancePresetsService {
@@ -60,5 +63,27 @@ export class AppearancePresetsService {
       return { success: false, reason: 'not_found' };
     }
     return { success: true, data: undefined };
+  }
+
+  async update(
+    merchantId: number,
+    id: number,
+    dto: UpdateAppearancePresetDto,
+  ): Promise<ServiceResult<AppearancePreset>> {
+    const [row] = await this.db
+      .update(appearancePresets)
+      .set({ name: dto.name?.trim() })
+      .where(
+        and(
+          eq(appearancePresets.id, id),
+          eq(appearancePresets.merchantId, merchantId),
+        ),
+      )
+      .returning();
+
+    if (!row) {
+      return { success: false, reason: 'not_found' };
+    }
+    return { success: true, data: row };
   }
 }
