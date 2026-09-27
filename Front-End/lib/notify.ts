@@ -1,16 +1,26 @@
 "use client";
 
 import { SallaSDK } from "@/lib/salla-sdk";
+import { toast } from "sonner";
+
+function showToast(type: "success" | "error" | "warning", message: string) {
+  if (typeof window !== "undefined" && window.location.pathname.includes("/admin")) {
+    toast[type](message);
+    return;
+  }
+
+  SallaSDK.notify[type](message);
+}
 
 export const notify = {
   success(message: string) {
-    SallaSDK.notify.success(message);
+    showToast("success", message);
   },
   error(message: string) {
-    SallaSDK.notify.error(message);
+    showToast("error", message);
   },
   warning(message: string) {
-    SallaSDK.notify.warning(message);
+    showToast("warning", message);
   },
 };
 
