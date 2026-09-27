@@ -65,6 +65,27 @@ export const adminLoginSchema = z.object({
   success: z.boolean(),
 });
 
+export interface AdminLoginValidationMessages {
+  emailRequired: string;
+  emailInvalid: string;
+  passwordRequired: string;
+}
+
+export function createAdminLoginInputSchema(
+  messages?: AdminLoginValidationMessages,
+) {
+  return z.object({
+    email: z
+      .email(messages?.emailInvalid)
+      .trim()
+      .min(1, messages?.emailRequired)
+      .max(255),
+    password: z.string().min(1, messages?.passwordRequired),
+  });
+}
+
+export const adminLoginInputSchema = createAdminLoginInputSchema();
+
 export const adminMerchantSchema = z.object({
   merchantId: z.coerce.number(),
   storeName: z.string().nullable().optional(),

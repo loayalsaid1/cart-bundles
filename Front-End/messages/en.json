@@ -604,7 +604,10 @@
       "submit": "Sign in",
       "submitting": "Signing in...",
       "success": "Signed in.",
-      "failed": "Invalid email or password."
+      "failed": "Invalid email or password.",
+      "emailRequired": "Email is required.",
+      "emailInvalid": "Enter a valid email address.",
+      "passwordRequired": "Password is required."
     },
     "kpis": {
       "revenue": "Attributed Revenue",
