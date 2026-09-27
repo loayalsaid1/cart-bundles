@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/routing";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAdminLogin } from "@/hooks/use-admin";
 
 export function AdminLoginForm() {
-  const t = useTranslations("Admin") as any;
+  const t = useTranslations("Admin");
   const login = useAdminLogin();
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -17,9 +19,15 @@ export function AdminLoginForm() {
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-6 dark:bg-black">
       <form
         className="w-full max-w-md space-y-6 rounded-2xl border bg-card p-8 shadow-sm"
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
-          login.mutate({ email, password });
+          try {
+            await login.mutateAsync({ email, password });
+            router.replace("/admin");
+            router.refresh();
+          } catch {
+            // The mutation displays the localized login error notification.
+          }
         }}
       >
         <div className="space-y-2 text-center">

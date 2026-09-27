@@ -1,7 +1,5 @@
-"use client";
-
+import React from "react";
 import ReactQueryProvider from "@/app/react-query-providers";
-import { AdminShell } from "@/components/admin/admin-shell";
 import { Toaster } from "@/components/ui/sonner";
 
 export default function AdminLayout({
@@ -11,7 +9,7 @@ export default function AdminLayout({
 }) {
   return (
     <ReactQueryProvider>
-      <AdminShell>{children}</AdminShell>
+      {children}
       <Toaster position="bottom-right" />
     </ReactQueryProvider>
   );
