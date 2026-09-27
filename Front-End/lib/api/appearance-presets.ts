@@ -32,3 +32,14 @@ export async function createAppearancePreset(input: {
 export async function deleteAppearancePreset(id: number): Promise<void> {
   await http(`/appearance-presets/${id}`, { method: "DELETE" });
 }
+
+export async function renameAppearancePreset(input: {
+  id: number;
+  name: string;
+}): Promise<AppearancePreset> {
+  const data = await http<unknown>(`/appearance-presets/${input.id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ name: input.name }),
+  });
+  return appearancePresetSchema.parse(data);
+}

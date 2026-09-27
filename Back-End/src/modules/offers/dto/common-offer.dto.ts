@@ -10,6 +10,11 @@ import {
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { Offer } from '../types/offers.types';
+import type { AppearanceShadow, TitleAlign } from '../types/offers.types';
+import {
+  appearanceShadowEnum,
+  titleAlignEnum,
+} from '../../../database/schema';
 
 export class OfferInfoDto {
   @IsString()
@@ -76,17 +81,17 @@ export class OfferAppearanceDto {
   @IsOptional()
   colors?: Record<string, string>;
 
-  @IsEnum(['start', 'center', 'end'])
+  @IsEnum(titleAlignEnum.enumValues)
   @IsOptional()
-  titleAlign?: 'start' | 'center' | 'end';
+  titleAlign?: TitleAlign;
 
   @IsBoolean()
   @IsOptional()
   showBorder?: boolean;
 
-  @IsEnum(['none', 'sm', 'md', 'lg'])
+  @IsEnum(appearanceShadowEnum.enumValues)
   @IsOptional()
-  shadow?: 'none' | 'sm' | 'md' | 'lg';
+  shadow?: AppearanceShadow;
 }
 
 export class GetStorefrontOffersQueryDto {

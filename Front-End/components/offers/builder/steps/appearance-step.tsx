@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useFormContext } from "react-hook-form";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
@@ -28,6 +28,7 @@ import {
   useAppearancePresets,
   useCreateAppearancePreset,
   useDeleteAppearancePreset,
+  useRenameAppearancePreset,
 } from "@/hooks/use-appearance-presets";
 
 interface AppearanceDraftShape {
@@ -98,10 +99,12 @@ function ColorField({
   label,
   value,
   onChange,
+  dir,
 }: {
   label: string;
   value: string;
   onChange: (hex: string) => void;
+  dir: "rtl" | "ltr";
 }) {
   const display = value || "#ffffff";
   const [draft, setDraft] = useState(display);
@@ -125,7 +128,7 @@ function ColorField({
           aria-label={label}
         />
         <Input
-          dir="ltr"
+          dir={dir}
           value={draft}
           onChange={(e) => {
             const next = e.target.value;
@@ -152,6 +155,7 @@ function ColorField({
 }
 
 export function AppearanceStep() {
+  const locale = useLocale();
   const t = useTranslations("Offers");
   const form = useFormContext<AppearanceDraftShape>();
   const radius = form.watch("appearance.borderRadiusPx") ?? 12;
@@ -163,10 +167,13 @@ export function AppearanceStep() {
   const { data: savedPresets = [] } = useAppearancePresets();
   const createPreset = useCreateAppearancePreset();
   const deletePreset = useDeleteAppearancePreset();
+  const renamePreset = useRenameAppearancePreset();
 
   const [saveOpen, setSaveOpen] = useState(false);
   const [presetName, setPresetName] = useState("");
   const [presetKind, setPresetKind] = useState<AppearancePresetKind>("full");
+  const [renamingPresetId, setRenamingPresetId] = useState<number | null>(null);
+  const [renamingName, setRenamingName] = useState("");
 
   const applyBuiltin = (preset: (typeof BUILTIN_PRESETS)[number]) => {
     form.setValue("appearance.borderRadiusPx", preset.radius);
@@ -205,6 +212,15 @@ export function AppearanceStep() {
           setPresetKind("full");
         },
       },
+    );
+  };
+
+  const renameSavedPreset = () => {
+    const name = renamingName.trim();
+    if (!renamingPresetId || !name) return;
+    renamePreset.mutate(
+      { id: renamingPresetId, name },
+      { onSuccess: () => setRenamingPresetId(null) },
     );
   };
 
@@ -339,6 +355,18 @@ export function AppearanceStep() {
                 >
                   x
                 </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-1 text-muted-foreground"
+                  onClick={() => {
+                    setRenamingPresetId(preset.id);
+                    setRenamingName(preset.name);
+                  }}
+                >
+                  {t("appearance.renamePreset")}
+                </Button>
               </div>
             ))}
           </div>
@@ -352,6 +380,7 @@ export function AppearanceStep() {
             label={t(`appearance.colors.${key}`)}
             value={colors[key] ?? "#ffffff"}
             onChange={(hex) => form.setValue(`appearance.colors.${key}`, hex)}
+            dir={locale === "ar" ? "rtl" : "ltr"}
           />
         ))}
       </div>
@@ -404,6 +433,35 @@ export function AppearanceStep() {
               disabled={!presetName.trim() || createPreset.isPending}
             >
               {t("appearance.savePreset")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={renamingPresetId !== null}
+        onOpenChange={(open) => !open && setRenamingPresetId(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("appearance.renamePresetTitle")}</DialogTitle>
+          </DialogHeader>
+          <Input
+            value={renamingName}
+            onChange={(e) => setRenamingName(e.target.value)}
+            maxLength={80}
+            autoFocus
+          />
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setRenamingPresetId(null)}>
+              {t("builder.cancel")}
+            </Button>
+            <Button
+              type="button"
+              onClick={renameSavedPreset}
+              disabled={!renamingName.trim() || renamePreset.isPending}
+            >
+              {t("appearance.renamePreset")}
             </Button>
           </DialogFooter>
         </DialogContent>

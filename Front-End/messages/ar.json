@@ -374,7 +374,11 @@
         "full": "مظهر كامل"
       },
       "deletePreset": "حذف الشكل",
+      "renamePreset": "إعادة تسمية",
+      "renamePresetTitle": "إعادة تسمية الشكل المحفوظ",
       "presetsSaved": "تم حفظ الشكل",
+      "presetsRenamed": "تمت إعادة تسمية الشكل",
+      "presetsRenameFailed": "تعذرت إعادة تسمية الشكل",
       "presetsSaveFailed": "تعذر حفظ الشكل",
       "presetsDeleted": "تم حذف الشكل",
       "presetsDeleteFailed": "تعذر حذف الشكل",

@@ -31,7 +31,7 @@ export function shadowCss(shadow?: AppearanceShadow | null): string {
   return SHADOW_CSS[shadow ?? "sm"];
 }
 
-export function titleAlignCss(align?: TitleAlign | null): string {
+export function titleAlignCss(align?: TitleAlign | null): TitleAlign {
   return align ?? "start";
 }
 
