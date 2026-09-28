@@ -233,15 +233,15 @@ async function buildAddonWidget(addonOffer, index, { isAr, escapeHTML, formatPri
               ${isSale ? `<span style="position: absolute; top: 6px; inset-inline-start: 6px; z-index: 2; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; color: #fff; background: #ef4444;">${isAr ? "خصم" : "Sale"}</span>` : ""}
               ${p.image ? `<img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;" />` : `<div style="display: flex; height: 100%; align-items: center; justify-content: center; font-size: 10px; color: #94a3b8;">...</div>`}
             </div>
-            <div style="padding: 8px;">
-              <label style="display: flex; align-items: flex-start; gap: 6px; cursor: pointer; margin-bottom: 4px;">
-                ${checkboxHtml}
-                <div style="font-size: 11px; font-weight: 600; color: ${colors.bodyText || "#0f172a"}; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;" title="${escapeHTML(p.name)}">${escapeHTML(p.name)}</div>
-              </label>
-              <div style="font-size: 11px; font-weight: 700; color: ${colors.savings || colors.bodyText || "#16a34a"}; margin-bottom: 2px;">${formatPrice(actualPrice)}</div>
-              ${isSale ? `<div style="font-size: 9px; text-decoration: line-through; color: #94a3b8; margin-bottom: 6px;">${formatPrice(p.origPrice)}</div>` : '<div style="height: 13.5px; margin-bottom: 6px;"></div>'}
-            </div>
           </a>
+          <div style="padding: 8px;">
+            <label style="display: flex; align-items: flex-start; gap: 6px; cursor: pointer; margin-bottom: 4px;">
+              ${checkboxHtml}
+              <div style="font-size: 11px; font-weight: 600; color: ${colors.bodyText || "#0f172a"}; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;" title="${escapeHTML(p.name)}">${escapeHTML(p.name)}</div>
+            </label>
+            <div style="font-size: 11px; font-weight: 700; color: ${colors.savings || colors.bodyText || "#16a34a"}; margin-bottom: 2px;">${formatPrice(actualPrice)}</div>
+            ${isSale ? `<div style="font-size: 9px; text-decoration: line-through; color: #94a3b8; margin-bottom: 6px;">${formatPrice(p.origPrice)}</div>` : '<div style="height: 13.5px; margin-bottom: 6px;"></div>'}
+          </div>
           <div style="padding: 0 8px 8px 8px;">
             <button type="button" class="salla-addon-add-btn" data-id="${p.id}" style="width: 100%; padding: 6px; border: none; border-radius: ${Math.max(4, radius - 4)}px; background: ${colors.badgeBg || "#004b40"}; color: ${colors.badgeText || "#ffffff"}; font-size: 11px; font-weight: 600; cursor: pointer; min-height: 32px;">${btnText}</button>
           </div>
