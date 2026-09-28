@@ -13,7 +13,11 @@ import { ProductsModule } from './modules/products/products.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { OAuthModule } from './modules/oauth/oauth.module';
 import { OffersModule } from './modules/offers/offers.module';
-import { LoggingModule } from './modules/logging/logging.module';
+import { ActivityLogModule } from './modules/activity-log/activity-log.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { ConversionAttributionModule } from './modules/conversion-attribution/conversion-attribution.module';
+import { StorefrontEventsModule } from './modules/storefront-events/storefront-events.module';
+import { RetentionModule } from './modules/retention/retention.module';
 import { SuggestionsModule } from './modules/suggestions/suggestions.module';
 import { SallaAuthGuard } from './common/guards/salla-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
@@ -39,7 +43,11 @@ import { RolesGuard } from './common/guards/roles.guard';
     WebhooksModule,
     OAuthModule,
     OffersModule,
-    LoggingModule,
+    ActivityLogModule,
+    AnalyticsModule,
+    ConversionAttributionModule,
+    StorefrontEventsModule,
+    RetentionModule,
     SuggestionsModule,
   ],
   controllers: [AppController],

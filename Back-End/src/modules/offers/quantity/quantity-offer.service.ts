@@ -15,7 +15,6 @@ import {
   UpdateQuantityOfferDto,
 } from './quantity-offer.dto';
 import { toExpiryDate, formatSallaDate, formatSallaStartDate } from '../dto/common-offer.dto';
-import { appearanceValues } from '../appearance.mapper';
 import { QuantityOfferFull, ServiceResult } from '../types/offers.types';
 const SALLA_SPECIAL_OFFERS_URL = 'https://api.salla.dev/admin/v2/specialoffers';
 @Injectable()
@@ -123,7 +122,8 @@ export class QuantityOfferService {
       }
       await tx.insert(offerAppearance).values({
         offerId: offer.id,
-        ...appearanceValues(dto.appearance),
+        borderRadiusPx: dto.appearance?.borderRadiusPx ?? 0,
+        colors: dto.appearance?.colors ?? {},
       });
       return offer;
     });
@@ -217,7 +217,10 @@ export class QuantityOfferService {
       if (dto.appearance) {
         await tx
           .update(offerAppearance)
-          .set(appearanceValues(dto.appearance))
+          .set({
+            borderRadiusPx: dto.appearance.borderRadiusPx ?? 0,
+            colors: dto.appearance.colors ?? {},
+          })
           .where(eq(offerAppearance.offerId, offerId));
       }
     });

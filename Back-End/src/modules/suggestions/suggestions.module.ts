@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { DrizzleModule } from '../../database/drizzle.module';
-import { LoggingModule } from '../logging/logging.module';
+import { ActivityLogModule } from '../activity-log/activity-log.module';
 import { AdminSuggestionsController } from './admin-suggestions.controller';
 import { SuggestionsController } from './suggestions.controller';
 import { SuggestionsService } from './suggestions.service';
 
 @Module({
-  imports: [DrizzleModule, LoggingModule],
+  imports: [DrizzleModule, ActivityLogModule],
   controllers: [SuggestionsController, AdminSuggestionsController],
   providers: [SuggestionsService],
 })
