@@ -16,7 +16,9 @@ export class WebhookQueueService {
     // Dedupe only when we have Salla's own timestamp. A Date.now() fallback
     // would mint a unique id on every retry and silently defeat the dedupe.
     const jobId = payload.created_at
-      ? `${payload.event}:${payload.merchant}:${payload.created_at}`
+      ? encodeURIComponent(
+          `${payload.event}:${payload.merchant}:${payload.created_at}`,
+        )
       : undefined;
 
     await this.queue.add(
