@@ -104,8 +104,9 @@ function calculateTierTotal(unitPrice, quantity, pricingType, discountAmount, ro
 
 // ─── Widget Renderer ──────────────────────────────────────────────────────────
 function renderQuantityOfferCard(offer, core) {
-  const { isAr, escapeHTML, merchantId, productId } = core;
+  const { isAr, escapeHTML, merchantId, productId, currency } = core;
   const lang = isAr ? "ar" : "en";
+  const currencyLabel = currency  || (isAr ? "ر.س" : "SAR");
   const unitPrice = getUnitPrice();
 
   const title = offer.title?.[lang] || offer.title?.ar || "";
@@ -169,12 +170,12 @@ function renderQuantityOfferCard(offer, core) {
         <input type="radio" name="quantity_offer_tier" ${isSelected ? "checked" : ""} style="accent-color: ${colors.badgeBg || "#004b40"}; cursor: pointer;" />
         <div>
           <span style="font-size: 13px; font-weight: 600; color: #0f172a;">${escapeHTML(tierTitle)}</span>
-          ${pricePerPiece ? `<div style="font-size: 11px; color: #64748b;">${pricePerPiece} SAR / pc</div>` : ""}
+          ${pricePerPiece ? `<div style="font-size: 11px; color: #64748b;">${pricePerPiece} ${currencyLabel} / ${isAr ? "قطعة" : "pc"}</div>` : ""}
         </div>
       </div>
       <div style="display: flex; align-items: center; gap: 8px;">
         ${badgeText ? `<span style="font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 9999px; background-color: ${colors.badgeBg || "#004b40"}; color: ${colors.badgeText || "#ffffff"};">${escapeHTML(badgeText)}</span>` : ""}
-        ${savings > 0 ? `<span style="font-size: 12px; font-weight: 700; color: ${colors.savings || "#16a34a"};">${isAr ? "وفر" : "Save"} ${savings.toFixed(2)} SAR</span>` : ""}
+        ${savings > 0 ? `<span style="font-size: 12px; font-weight: 700; color: ${colors.savings || "#16a34a"};">${isAr ? "وفر" : "Save"} ${savings.toFixed(2)} ${currencyLabel}</span>` : ""}
       </div>
     `;
 
