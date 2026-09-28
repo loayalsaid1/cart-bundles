@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ActivityService } from '../logging/activity/activity.service';
-import { CatalogCacheService } from '../logging/conversion/catalog-cache.service';
-import { OrderConversionService } from '../logging/conversion/order-conversion.service';
+import { ActivityService } from '../activity-log/activity/activity.service';
+import { CatalogCacheService } from '../conversion-attribution/conversion/catalog-cache.service';
+import { OrderConversionService } from '../conversion-attribution/conversion/order-conversion.service';
 import { MerchantProfileService } from '../merchants/merchant-profile.service';
 import { MerchantsService } from '../merchants/merchants.service';
 import {
