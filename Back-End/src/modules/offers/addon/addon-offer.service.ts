@@ -12,6 +12,7 @@ import { MerchantsService } from '../../merchants/merchants.service';
 import { OfferSideEffectsService } from '../offer-side-effects.service';
 import { CreateAddonOfferDto, UpdateAddonOfferDto } from './addon-offer.dto';
 import { toExpiryDate, formatSallaDate, formatSallaStartDate } from '../dto/common-offer.dto';
+import { appearanceValues } from '../appearance.mapper';
 import { AddonOfferFull, ServiceResult } from '../types/offers.types';
 
 const SALLA_SPECIAL_OFFERS_URL = 'https://api.salla.dev/admin/v2/specialoffers';
@@ -128,8 +129,7 @@ export class AddonOfferService {
 
       await tx.insert(offerAppearance).values({
         offerId: offer.id,
-        borderRadiusPx: dto.appearance?.borderRadiusPx ?? 0,
-        colors: dto.appearance?.colors ?? {},
+        ...appearanceValues(dto.appearance),
       });
 
       return offer;
@@ -228,10 +228,7 @@ export class AddonOfferService {
       if (dto.appearance) {
         await tx
           .update(offerAppearance)
-          .set({
-            borderRadiusPx: dto.appearance.borderRadiusPx ?? 0,
-            colors: dto.appearance.colors ?? {},
-          })
+          .set(appearanceValues(dto.appearance))
           .where(eq(offerAppearance.offerId, offerId));
       }
     });
