@@ -14,15 +14,16 @@ export class OfferSideEffectsService {
   async afterWrite(
     merchantId: number,
     offerId: number,
-    action: 'offer.created' | 'offer.updated' | 'offer.deleted' | 'offer.status_changed',
+    action:
+      | 'offer.created'
+      | 'offer.updated'
+      | 'offer.deleted'
+      | 'offer.status_changed',
     extra?: Record<string, unknown>,
   ): Promise<void> {
     // Invalidate the storefront offer cache and the order-matching index in parallel.
     // The index is rebuilt lazily on the next order event.
-    await Promise.all([
-      this.merchantsService.invalidateStorefrontCache(merchantId),
-      this.offerIndexCache.invalidate(merchantId),
-    ]);
+    this.invalidateCaches(merchantId)
 
     await this.activityService.enqueue({
       merchantId,
@@ -50,5 +51,12 @@ export class OfferSideEffectsService {
       severity: 'error',
       message: error,
     });
+  }
+
+  async invalidateCaches(merchantId: number): Promise<void> {
+    await Promise.all([
+      this.merchantsService.invalidateStorefrontCache(merchantId),
+      this.offerIndexCache.invalidate(merchantId),
+    ]);
   }
 }
