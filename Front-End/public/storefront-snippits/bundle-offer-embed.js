@@ -166,26 +166,30 @@ async function buildBundleWidget(bundleOffer, index, { isAr, escapeHTML, formatP
 
     <div class="bundle-products-grid" style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px;">
       <!-- Main Product -->
-      <div class="bundle-item-card" style="flex: 1; min-width: 130px; max-width: 160px; border: 1.5px solid ${colors.badgeBg || "#004d5b"}; border-radius: ${radius}px; padding: 10px; background: #f8fafc; text-align: center;">
+      <a href="${escapeHTML(mainProductData.url || "#")}" class="bundle-item-card" style="flex: 1; min-width: 130px; max-width: 160px; border: 1.5px solid ${colors.badgeBg || "#004d5b"}; border-radius: ${radius}px; padding: 10px; background: #f8fafc; text-align: center; text-decoration: none; color: inherit; display: block;">
         <div style="position: relative; aspect-ratio: 1; border-radius: ${radius}px; overflow: hidden; margin-bottom: 8px; background: #f1f5f9;">
           <span style="position: absolute; top: 4px; inset-inline-start: 4px; background: ${colors.badgeBg || "#004d5b"}; color: ${colors.badgeText || "#ffffff"}; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: ${radius}px; z-index: 2;">${isAr ? "الأساسي" : "Main"}</span>
           <img src="${escapeHTML(mainProductData.image)}" alt="${escapeHTML(mainProductData.name)}" style="width: 100%; height: 100%; object-fit: cover;" />
         </div>
         <div style="font-size: 0.8rem; font-weight: 600; color: #1e293b; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 2.4em; line-height: 1.2; margin-bottom: 4px;">${escapeHTML(mainProductData.name)}</div>
         <div style="font-size: 0.85rem; font-weight: 700; color: #0f172a;">${formatPrice(mainProductData.price)}</div>
-      </div>
+      </a>
   `;
 
   bundleItemsData.forEach((item, idx) => {
     html += `
       <div style="font-size: 1.2rem; font-weight: 700; color: #94a3b8; align-self: center;">+</div>
-      <div class="bundle-item-card" data-idx="${idx}" style="flex: 1; min-width: 130px; max-width: 160px; border: 1px solid ${colors.cardBorder || "#e2e8f0"}; border-radius: ${radius}px; padding: 10px; background: #ffffff; text-align: center; transition: all 0.2s ease;">
+      <div class="bundle-item-card" data-idx="${idx}" style="flex: 1; min-width: 130px; max-width: 160px; border: 1px solid ${colors.cardBorder || "#e2e8f0"}; border-radius: ${radius}px; padding: 10px; background: #ffffff; text-align: center; transition: all 0.2s ease; position: relative;">
         <div style="position: relative; aspect-ratio: 1; border-radius: ${radius}px; overflow: hidden; margin-bottom: 8px; background: #f1f5f9;">
           <input type="checkbox" class="bundle-item-cb" data-idx="${idx}" ${item.selected ? "checked" : ""} style="position: absolute; top: 6px; inset-inline-start: 6px; width: 18px; height: 18px; accent-color: ${colors.badgeBg || "#004d5b"}; cursor: pointer; z-index: 3;" />
-          <img src="${escapeHTML(item.image)}" alt="${escapeHTML(item.name)}" style="width: 100%; height: 100%; object-fit: cover;" />
+          <a href="${escapeHTML(item.url || "#")}" class="bundle-item-link" data-product-id="${item.id}" style="text-decoration: none; color: inherit; display: block; width: 100%; height: 100%;">
+            <img src="${escapeHTML(item.image)}" alt="${escapeHTML(item.name)}" style="width: 100%; height: 100%; object-fit: cover;" />
+          </a>
         </div>
-        <div style="font-size: 0.8rem; font-weight: 600; color: #1e293b; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 2.4em; line-height: 1.2; margin-bottom: 4px;">${escapeHTML(item.name)}</div>
-        <div style="font-size: 0.85rem; font-weight: 700; color: #0f172a;">${formatPrice(item.price)}</div>
+        <a href="${escapeHTML(item.url || "#")}" class="bundle-item-link" data-product-id="${item.id}" style="text-decoration: none; color: inherit; display: block;">
+          <div style="font-size: 0.8rem; font-weight: 600; color: #1e293b; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 2.4em; line-height: 1.2; margin-bottom: 4px;">${escapeHTML(item.name)}</div>
+          <div style="font-size: 0.85rem; font-weight: 700; color: #0f172a;">${formatPrice(item.price)}</div>
+        </a>
       </div>
     `;
   });
@@ -239,6 +243,22 @@ async function buildBundleWidget(bundleOffer, index, { isAr, escapeHTML, formatP
       if (!isNaN(idx) && bundleItemsData[idx]) {
         bundleItemsData[idx].selected = e.target.checked;
         updatePricingUI();
+      }
+    });
+  });
+
+  // Track clicks on product card navigation links
+  cardContainer.querySelectorAll("a[href]").forEach((link) => {
+    link.addEventListener("click", () => {
+      if (window.__CART_BUNDLES_TRACK__ && bundleOffer.id) {
+        const prodId = link.getAttribute("data-product-id") || productId;
+        window.__CART_BUNDLES_TRACK__({
+          merchantId: Number(merchantId),
+          offerId: Number(bundleOffer.id),
+          event: "offer.click",
+          productId: Number(prodId),
+          source: "bundle",
+        });
       }
     });
   });

@@ -256,6 +256,21 @@ async function buildAddonWidget(addonOffer, index, { isAr, escapeHTML, formatPri
   // Build id→product map for click handlers
   const productsByIdMap = new Map(productsData.map((p) => [String(p.id), p]));
 
+  // Track clicks on product card navigation links
+  widget.querySelectorAll("a[href]").forEach((link) => {
+    link.addEventListener("click", () => {
+      if (window.__CART_BUNDLES_TRACK__ && addonOffer.id) {
+        window.__CART_BUNDLES_TRACK__({
+          merchantId: Number(merchantId),
+          offerId: Number(addonOffer.id),
+          event: "offer.click",
+          productId: Number(productId),
+          source: "addon",
+        });
+      }
+    });
+  });
+
   widget.querySelectorAll(".salla-addon-add-btn").forEach((btn) => {
     btn.addEventListener("click", async (e) => {
       e.preventDefault();

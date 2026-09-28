@@ -202,28 +202,46 @@ async function buildUpgradeWidget(offer, index, { isAr, escapeHTML, formatPrice,
       ${subtitle ? `<p style="font-size: 0.85rem; color: ${mutedText}; margin: 0;">${escapeHTML(subtitle)}</p>` : ""}
     </div>
 
-    <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 12px; border: 1.5px solid ${badgeBg}; border-radius: ${radius}px; padding: 10px; background: ${colors.selectedTier || "#f0fdf4"}; overflow: hidden; position: relative;">
-      <div style="position: relative; height: 80px; aspect-ratio: 3/4; flex-shrink: 0; overflow: hidden; border-radius: ${radius}px; background: #f1f5f9; border: 1px solid ${cardBorder};">
-        ${upgradeData.image ? `<img src="${escapeHTML(upgradeData.image)}" alt="${escapeHTML(upgradeData.name)}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;" />` : `<div style="display: flex; height: 100%; align-items: center; justify-content: center; font-size: 8px; color: ${mutedText};">...</div>`}
-      </div>
-      <div style="min-width: 0; flex: 1;">
-        <span style="display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: 700; background: ${badgeBg}; color: ${badgeText}; margin-bottom: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
-          ${isAr ? "✨ ترقية" : "✨ Upgrade"}
-        </span>
-        <div style="font-size: 0.85rem; font-weight: 700; color: ${bodyText}; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.2;" title="${escapeHTML(upgradeData.name)}">
-          ${escapeHTML(upgradeData.name)}
+    <a href="${escapeHTML(upgradeData.url || "#")}" class="upgrade-product-link" style="text-decoration: none; color: inherit; display: block; margin-bottom: 12px;">
+      <div style="display: flex; align-items: center; gap: 12px; border: 1.5px solid ${badgeBg}; border-radius: ${radius}px; padding: 10px; background: ${colors.selectedTier || "#f0fdf4"}; overflow: hidden; position: relative;">
+        <div style="position: relative; height: 80px; aspect-ratio: 3/4; flex-shrink: 0; overflow: hidden; border-radius: ${radius}px; background: #f1f5f9; border: 1px solid ${cardBorder};">
+          ${upgradeData.image ? `<img src="${escapeHTML(upgradeData.image)}" alt="${escapeHTML(upgradeData.name)}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;" />` : `<div style="display: flex; height: 100%; align-items: center; justify-content: center; font-size: 8px; color: ${mutedText};">...</div>`}
         </div>
-        <div style="font-size: 0.95rem; font-weight: 800; color: ${titleColor};">
-          ${formatPrice(upgradeData.price)}
+        <div style="min-width: 0; flex: 1;">
+          <span style="display: inline-block; padding: 2px 8px; border-radius: 9999px; font-size: 10px; font-weight: 700; background: ${badgeBg}; color: ${badgeText}; margin-bottom: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+            ${isAr ? "✨ ترقية" : "✨ Upgrade"}
+          </span>
+          <div style="font-size: 0.85rem; font-weight: 700; color: ${bodyText}; margin-bottom: 2px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.2;" title="${escapeHTML(upgradeData.name)}">
+            ${escapeHTML(upgradeData.name)}
+          </div>
+          <div style="font-size: 0.95rem; font-weight: 800; color: ${titleColor};">
+            ${formatPrice(upgradeData.price)}
+          </div>
         </div>
       </div>
-    </div>
+    </a>
 
     ${couponCode ? `<p style="margin: 0 0 12px 0; padding: 8px 12px; border-radius: ${radius}px; background: ${colors.selectedTier || "#f0fdf4"}; font-size: 0.8rem; font-weight: 500; text-align: center; color: ${bodyText};">${isAr ? "استخدم الكود" : "Use code"} <strong>${escapeHTML(couponCode)}</strong></p>` : ""}
     <button type="button" class="upgrade-add-btn" style="width: 100%; padding: 10px 20px; border: none; border-radius: ${radius}px; background: ${badgeBg}; color: ${badgeText}; font-size: 0.9rem; font-weight: 700; cursor: pointer;">
       ${isAr ? "الترقية الآن" : "Upgrade now"}
     </button>
   `;
+
+  // Track clicks on upgrade product card link
+  const productLink = card.querySelector(".upgrade-product-link");
+  if (productLink) {
+    productLink.addEventListener("click", () => {
+      if (window.__CART_BUNDLES_TRACK__ && offer.id) {
+        window.__CART_BUNDLES_TRACK__({
+          merchantId: Number(merchantId),
+          offerId: Number(offer.id),
+          event: "offer.click",
+          productId: Number(upgradeData.id || productId),
+          source: "upgrade",
+        });
+      }
+    });
+  }
 
   const btn = card.querySelector(".upgrade-add-btn");
   btn.addEventListener("click", async (e) => {

@@ -122,17 +122,19 @@ salla.onReady(async () => {
 
       productsData.forEach((p) => {
         html += `
-          <div style="border-radius: ${radius}px; border: 1px solid ${colors.cardBorder || "#e2e8f0"}; overflow: hidden; background: #ffffff;">
-            <a href="${escapeHTML(p.url)}" style="text-decoration: none; color: inherit; display: block;">
+          <div style="border-radius: ${radius}px; border: 1px solid ${colors.cardBorder || "#e2e8f0"}; overflow: hidden; background: #ffffff; display: flex; flex-direction: column;">
+            <a href="${escapeHTML(p.url)}" data-product-id="${p.id}" class="salla-rec-product-link" style="text-decoration: none; color: inherit; display: block; flex-grow: 1;">
               <div style="position: relative; aspect-ratio: 3/4; border-bottom: 1px solid ${colors.cardBorder || "#e2e8f0"}; background: #f1f5f9; border-top-left-radius: ${radius}px; border-top-right-radius: ${radius}px; overflow: hidden;">
                 ${p.image ? `<img src="${escapeHTML(p.image)}" alt="${escapeHTML(p.name)}" style="width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;" />` : `<div style="display: flex; height: 100%; align-items: center; justify-content: center; font-size: 10px; color: #94a3b8;">...</div>`}
               </div>
               <div style="padding: 8px;">
                 <div style="font-size: 11px; font-weight: 600; color: ${colors.bodyText || "#0f172a"}; margin-bottom: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${escapeHTML(p.name)}">${escapeHTML(p.name)}</div>
                 <div style="font-size: 11px; font-weight: 700; color: ${colors.savings || colors.bodyText || "#16a34a"}; margin-bottom: 8px;">${formatPrice(p.price)}</div>
-                <button type="button" class="salla-rec-add-btn" data-id="${p.id}" style="width: 100%; padding: 6px; border: none; border-radius: ${radius}px; background: ${colors.badgeBg || "#004b40"}; color: ${colors.badgeText || "#ffffff"}; font-size: 11px; font-weight: 600; cursor: pointer;">${btnText}</button>
               </div>
             </a>
+            <div style="padding: 0 8px 8px 8px;">
+              <button type="button" class="salla-rec-add-btn" data-id="${p.id}" style="width: 100%; padding: 6px; border: none; border-radius: ${radius}px; background: ${colors.badgeBg || "#004b40"}; color: ${colors.badgeText || "#ffffff"}; font-size: 11px; font-weight: 600; cursor: pointer;">${btnText}</button>
+            </div>
           </div>
         `;
       });
@@ -141,6 +143,21 @@ salla.onReady(async () => {
 
       // Build id→product map for click handlers
       const productsByIdMap = new Map(productsData.map((p) => [String(p.id), p]));
+
+      // Track clicks on product card navigation links
+      widget.querySelectorAll(".salla-rec-product-link").forEach((link) => {
+        link.addEventListener("click", () => {
+          if (window.__CART_BUNDLES_TRACK__ && offer.id) {
+            window.__CART_BUNDLES_TRACK__({
+              merchantId: Number(merchantId),
+              offerId: Number(offer.id),
+              event: "offer.click",
+              productId: Number(link.getAttribute("data-product-id")),
+              source: "recommendation",
+            });
+          }
+        });
+      });
 
       widget.querySelectorAll(".salla-rec-add-btn").forEach((btn) => {
         btn.addEventListener("click", async (e) => {
