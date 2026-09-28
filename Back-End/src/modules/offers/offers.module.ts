@@ -10,6 +10,7 @@ import { RecommendationOfferModule } from './recommendation/recommendation-offer
 import { MerchantsModule } from '../merchants/merchants.module';
 import { OfferSideEffectsModule } from './offer-side-effects.module';
 import { AppearancePresetsModule } from './appearance-presets/appearance-presets.module';
+import { OfferExpirationService } from './offer-expiration.service';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { AppearancePresetsModule } from './appearance-presets/appearance-presets
     AppearancePresetsModule,
   ],
   controllers: [OffersController],
-  providers: [OffersService],
+  providers: [OffersService, OfferExpirationService],
   exports: [OffersService],
 })
 export class OffersModule {}
