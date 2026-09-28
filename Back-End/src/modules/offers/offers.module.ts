@@ -9,6 +9,7 @@ import { UpgradeOfferModule } from './upgrade/upgrade-offer.module';
 import { RecommendationOfferModule } from './recommendation/recommendation-offer.module';
 import { MerchantsModule } from '../merchants/merchants.module';
 import { OfferSideEffectsModule } from './offer-side-effects.module';
+import { AppearancePresetsModule } from './appearance-presets/appearance-presets.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { OfferSideEffectsModule } from './offer-side-effects.module';
     BundleOfferModule,
     UpgradeOfferModule,
     RecommendationOfferModule,
+    AppearancePresetsModule,
   ],
   controllers: [OffersController],
   providers: [OffersService],
