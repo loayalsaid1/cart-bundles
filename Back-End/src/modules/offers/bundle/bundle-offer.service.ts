@@ -11,11 +11,8 @@ import {
 import { MerchantsService } from '../../merchants/merchants.service';
 import { OfferSideEffectsService } from '../offer-side-effects.service';
 import { CreateBundleOfferDto, UpdateBundleOfferDto } from './bundle-offer.dto';
-import {
-  toExpiryDate,
-  formatSallaDate,
-  formatSallaStartDate,
-} from '../dto/common-offer.dto';
+import { formatSallaDate, formatSallaStartDate } from '../dto/common-offer.dto';
+import { offerScheduleFields } from '../resolve-start-date';
 import { appearanceValues } from '../appearance.mapper';
 import { BundleOfferFull, ServiceResult } from '../types/offers.types';
 
@@ -71,6 +68,10 @@ export class BundleOfferService {
     merchantId: number,
     dto: CreateBundleOfferDto,
   ): Promise<ServiceResult<BundleOfferFull>> {
+    const schedule = offerScheduleFields(dto.info);
+    if (!schedule.ok) {
+      return { success: false, reason: 'validation_error', error: schedule.error };
+    }
     const created = await this.db.transaction(async (tx) => {
       const [offer] = await tx
         .insert(offers)
@@ -81,7 +82,8 @@ export class BundleOfferService {
           title: dto.info.title,
           subtitle: dto.info.subtitle,
           targetType: dto.targeting.type,
-          expiryDate: toExpiryDate(dto.info.expiryDate),
+          startDate: schedule.startDate,
+          expiryDate: schedule.expiryDate,
           status: 'draft',
           redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
           hideSallaPopup: dto.settings.hideSallaPopup ?? true,
@@ -156,6 +158,10 @@ export class BundleOfferService {
   ): Promise<ServiceResult<BundleOfferFull>> {
     const existing = await this.findOne(merchantId, offerId);
     if (!existing.success) return existing;
+    const schedule = offerScheduleFields(dto.info, existing.data.startDate);
+    if (!schedule.ok) {
+      return { success: false, reason: 'validation_error', error: schedule.error };
+    }
 
     try {
       await this.db.transaction(async (tx) => {
@@ -166,7 +172,8 @@ export class BundleOfferService {
             title: dto.info.title,
             subtitle: dto.info.subtitle,
             targetType: dto.targeting.type,
-            expiryDate: toExpiryDate(dto.info.expiryDate),
+            startDate: schedule.startDate,
+            expiryDate: schedule.expiryDate,
             redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
             hideSallaPopup: dto.settings.hideSallaPopup ?? true,
           })

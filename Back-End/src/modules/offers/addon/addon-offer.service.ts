@@ -11,7 +11,8 @@ import {
 import { MerchantsService } from '../../merchants/merchants.service';
 import { OfferSideEffectsService } from '../offer-side-effects.service';
 import { CreateAddonOfferDto, UpdateAddonOfferDto } from './addon-offer.dto';
-import { toExpiryDate, formatSallaDate, formatSallaStartDate } from '../dto/common-offer.dto';
+import { formatSallaDate, formatSallaStartDate } from '../dto/common-offer.dto';
+import { offerScheduleFields } from '../resolve-start-date';
 import { appearanceValues } from '../appearance.mapper';
 import { AddonOfferFull, ServiceResult } from '../types/offers.types';
 
@@ -70,6 +71,10 @@ export class AddonOfferService {
     merchantId: number,
     dto: CreateAddonOfferDto,
   ): Promise<ServiceResult<AddonOfferFull>> {
+    const schedule = offerScheduleFields(dto.info);
+    if (!schedule.ok) {
+      return { success: false, reason: 'validation_error', error: schedule.error };
+    }
     const created = await this.db.transaction(async (tx) => {
       const [offer] = await tx
         .insert(offers)
@@ -80,7 +85,8 @@ export class AddonOfferService {
           title: dto.info.title,
           subtitle: dto.info.subtitle,
           targetType: dto.targeting.type,
-          expiryDate: toExpiryDate(dto.info.expiryDate),
+          startDate: schedule.startDate,
+          expiryDate: schedule.expiryDate,
           status: 'draft',
           redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
           hideSallaPopup: dto.settings.hideSallaPopup ?? true,
@@ -164,6 +170,10 @@ export class AddonOfferService {
   ): Promise<ServiceResult<AddonOfferFull>> {
     const existing = await this.findOne(merchantId, offerId);
     if (!existing.success) return existing;
+    const schedule = offerScheduleFields(dto.info, existing.data.startDate);
+    if (!schedule.ok) {
+      return { success: false, reason: 'validation_error', error: schedule.error };
+    }
 
     await this.db.transaction(async (tx) => {
       await tx
@@ -173,7 +183,8 @@ export class AddonOfferService {
           title: dto.info.title,
           subtitle: dto.info.subtitle,
           targetType: dto.targeting.type,
-          expiryDate: toExpiryDate(dto.info.expiryDate),
+          startDate: schedule.startDate,
+          expiryDate: schedule.expiryDate,
           redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
           hideSallaPopup: dto.settings.hideSallaPopup ?? true,
         })
