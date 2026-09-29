@@ -1,4 +1,5 @@
 import { http } from '@/lib/http';
+import { toOfferPayload } from '@/lib/utils/offer-payload';
 import {
   quantityOfferDraftSchema,
   quantityOfferFullSchema,
@@ -17,7 +18,7 @@ export async function getQuantityOffer(id: number): Promise<QuantityOfferFull> {
 }
 
 export async function createQuantityOffer(draft: QuantityOfferDraft): Promise<QuantityOfferFull> {
-  const payload = quantityOfferDraftSchema.parse(draft);
+  const payload = toOfferPayload(quantityOfferDraftSchema.parse(draft));
   const data = await http<unknown>('/offers/quantity', {
     method: 'POST',
     body: JSON.stringify(payload),
@@ -29,7 +30,7 @@ export async function updateQuantityOffer(
   id: number,
   draft: QuantityOfferDraft,
 ): Promise<QuantityOfferFull> {
-  const payload = quantityOfferDraftSchema.parse(draft);
+  const payload = toOfferPayload(quantityOfferDraftSchema.parse(draft));
   const data = await http<unknown>(`/offers/quantity/${id}`, {
     method: 'PUT',
     body: JSON.stringify(payload),

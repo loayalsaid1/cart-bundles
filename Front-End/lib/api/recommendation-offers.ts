@@ -1,4 +1,5 @@
 import { http } from '@/lib/http';
+import { toOfferPayload } from '@/lib/utils/offer-payload';
 import {
   recommendationOfferDraftSchema,
   recommendationOfferFullSchema,
@@ -21,7 +22,7 @@ export async function getRecommendationOffer(
 export async function createRecommendationOffer(
   draft: RecommendationOfferDraft,
 ): Promise<RecommendationOfferFull> {
-  const payload = recommendationOfferDraftSchema.parse(draft);
+  const payload = toOfferPayload(recommendationOfferDraftSchema.parse(draft));
   const data = await http<unknown>('/offers/recommendation', {
     method: 'POST',
     body: JSON.stringify(payload),
@@ -33,7 +34,7 @@ export async function updateRecommendationOffer(
   id: number,
   draft: RecommendationOfferDraft,
 ): Promise<RecommendationOfferFull> {
-  const payload = recommendationOfferDraftSchema.parse(draft);
+  const payload = toOfferPayload(recommendationOfferDraftSchema.parse(draft));
   const data = await http<unknown>(`/offers/recommendation/${id}`, {
     method: 'PUT',
     body: JSON.stringify(payload),

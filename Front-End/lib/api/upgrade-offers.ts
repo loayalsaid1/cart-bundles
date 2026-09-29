@@ -1,4 +1,5 @@
 import { http } from '@/lib/http';
+import { toOfferPayload } from '@/lib/utils/offer-payload';
 import {
   upgradeOfferDraftSchema,
   upgradeOfferFullSchema,
@@ -17,7 +18,7 @@ export async function getUpgradeOffer(id: number): Promise<UpgradeOfferFull> {
 }
 
 export async function createUpgradeOffer(draft: UpgradeOfferDraft): Promise<UpgradeOfferFull> {
-  const payload = upgradeOfferDraftSchema.parse(draft);
+  const payload = toOfferPayload(upgradeOfferDraftSchema.parse(draft));
   const data = await http<unknown>('/offers/upgrade', {
     method: 'POST',
     body: JSON.stringify(payload),
@@ -29,7 +30,7 @@ export async function updateUpgradeOffer(
   id: number,
   draft: UpgradeOfferDraft,
 ): Promise<UpgradeOfferFull> {
-  const payload = upgradeOfferDraftSchema.parse(draft);
+  const payload = toOfferPayload(upgradeOfferDraftSchema.parse(draft));
   const data = await http<unknown>(`/offers/upgrade/${id}`, {
     method: 'PUT',
     body: JSON.stringify(payload),

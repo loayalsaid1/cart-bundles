@@ -1,4 +1,5 @@
 import { http } from '@/lib/http';
+import { toOfferPayload } from '@/lib/utils/offer-payload';
 import {
   bundleOfferDraftSchema,
   bundleOfferFullSchema,
@@ -17,7 +18,7 @@ export async function getBundleOffer(id: number): Promise<BundleOfferFull> {
 }
 
 export async function createBundleOffer(draft: BundleOfferDraft): Promise<BundleOfferFull> {
-  const payload = bundleOfferDraftSchema.parse(draft);
+  const payload = toOfferPayload(bundleOfferDraftSchema.parse(draft));
   const data = await http<unknown>('/offers/bundle', {
     method: 'POST',
     body: JSON.stringify(payload),
@@ -29,7 +30,7 @@ export async function updateBundleOffer(
   id: number,
   draft: BundleOfferDraft,
 ): Promise<BundleOfferFull> {
-  const payload = bundleOfferDraftSchema.parse(draft);
+  const payload = toOfferPayload(bundleOfferDraftSchema.parse(draft));
   const data = await http<unknown>(`/offers/bundle/${id}`, {
     method: 'PUT',
     body: JSON.stringify(payload),
