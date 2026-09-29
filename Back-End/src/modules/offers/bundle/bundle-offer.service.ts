@@ -11,8 +11,8 @@ import {
 import { MerchantsService } from '../../merchants/merchants.service';
 import { OfferSideEffectsService } from '../offer-side-effects.service';
 import { CreateBundleOfferDto, UpdateBundleOfferDto } from './bundle-offer.dto';
-import { formatSallaDate, formatSallaStartDate } from '../dto/common-offer.dto';
 import { offerScheduleFields } from '../resolve-start-date';
+import { sallaOfferDates } from '../salla-offer-dates';
 import { appearanceValues } from '../appearance.mapper';
 import { BundleOfferFull, ServiceResult } from '../types/offers.types';
 
@@ -337,21 +337,8 @@ export class BundleOfferService {
         .map((rp) => Number(rp.sallaProductId))
         .filter(Boolean);
 
-      const startDateStr = formatSallaStartDate();
-      let expiryDateStr: string | undefined = undefined;
-      if (offer.expiryDate) {
-        const exp = new Date(offer.expiryDate);
-        if (!isNaN(exp.getTime())) {
-          if (
-            exp.getHours() === 0 &&
-            exp.getMinutes() === 0 &&
-            exp.getSeconds() === 0
-          ) {
-            exp.setHours(23, 59, 59);
-          }
-          expiryDateStr = formatSallaDate(exp);
-        }
-      }
+      const { start_date: startDateStr, expiry_date: expiryDateStr } =
+        sallaOfferDates(offer);
 
       const isFreeProduct = rawDiscountType === 'free-product';
       // TODO: USE THE dto TYPE OR DRIZZLE ENUM INSTEAD

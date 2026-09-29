@@ -15,11 +15,7 @@ import {
   appearanceShadowEnum,
   titleAlignEnum,
 } from '../../../database/schema';
-import {
-  formatRiyadhDateTime,
-  immediateStart,
-  parseRiyadhEndOfDay,
-} from '../../../common/time/riyadh-date';
+import { parseRiyadhEndOfDay } from '../../../common/time/riyadh-date';
 
 export class OfferInfoDto {
   @IsString()
@@ -52,14 +48,6 @@ export function toExpiryDate(value?: string): Date | null {
   if (DATE_ONLY.test(value)) return parseRiyadhEndOfDay(value);
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
-
-export function formatSallaDate(d: Date): string {
-  return formatRiyadhDateTime(d);
-}
-
-export function formatSallaStartDate(): string {
-  return formatRiyadhDateTime(immediateStart(new Date()));
 }
 
 export class OfferTargetingDto {

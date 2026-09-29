@@ -14,8 +14,8 @@ import {
   CreateQuantityOfferDto,
   UpdateQuantityOfferDto,
 } from './quantity-offer.dto';
-import { formatSallaDate, formatSallaStartDate } from '../dto/common-offer.dto';
 import { offerScheduleFields } from '../resolve-start-date';
+import { sallaOfferDates } from '../salla-offer-dates';
 import { appearanceValues } from '../appearance.mapper';
 import { QuantityOfferFull, ServiceResult } from '../types/offers.types';
 const SALLA_SPECIAL_OFFERS_URL = 'https://api.salla.dev/admin/v2/specialoffers';
@@ -293,10 +293,8 @@ export class QuantityOfferService {
         return { success: false, error: 'Merchant access token unavailable' };
       }
       
-      const startDateStr = formatSallaStartDate();
-      const expiryDateStr = offer.expiryDate
-        ? formatSallaDate(new Date(offer.expiryDate))
-        : undefined;
+      const { start_date: startDateStr, expiry_date: expiryDateStr } =
+        sallaOfferDates(offer);
 
       const tiers = offer.quantityTiers
         .sort((a, b) => a.position - b.position)
