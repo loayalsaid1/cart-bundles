@@ -40,8 +40,9 @@ export function GeneralInfoStep() {
   const storedStart = form.watch("info.startDate");
   const startMin = riyadhTomorrow();
   const expiryMin = startNow
-    ? riyadhToday()
-    : (toDateInputValue(storedStart) || startMin);
+    ? riyadhTomorrow()
+    : (toDateInputValue(storedStart) || riyadhTomorrow());
+
 
   return (
     <div className="space-y-5">
@@ -178,7 +179,7 @@ export function GeneralInfoStep() {
             onCheckedChange={(checked) =>
               form.setValue(
                 "info.expiryDate",
-                checked ? undefined : riyadhToday(),
+                checked ? undefined : riyadhTomorrow(),
               )
             }
           />

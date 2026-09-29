@@ -37,9 +37,9 @@ export const offerInfoSchema = z.object({
       en: z.string().optional(),
     })
     .optional(),
-  expiryDate: z.string().optional(),
+  expiryDate: z.iso.date().optional(),
   startNow: z.boolean().optional().default(true),
-  startDate: z.string().optional(),
+  startDate: z.iso.date().optional(),
   startFrozen: z.boolean().optional(),
 });
 

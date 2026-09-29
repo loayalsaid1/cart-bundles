@@ -2,11 +2,11 @@ import {
   IsArray,
   IsBoolean,
   IsEnum,
-  IsISO8601,
   IsNumber,
   IsObject,
   IsOptional,
   IsString,
+  Matches,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { Offer } from '../types/offers.types';
@@ -15,7 +15,8 @@ import {
   appearanceShadowEnum,
   titleAlignEnum,
 } from '../../../database/schema';
-import { parseRiyadhEndOfDay } from '../../../common/time/riyadh-date';
+
+const CALENDAR_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 export class OfferInfoDto {
   @IsString()
@@ -28,7 +29,7 @@ export class OfferInfoDto {
   @IsOptional()
   subtitle?: Record<string, string>;
 
-  @IsISO8601()
+  @Matches(CALENDAR_DATE_PATTERN, { message: 'expiryDate must be YYYY-MM-DD' })
   @IsOptional()
   expiryDate?: string;
 
@@ -36,18 +37,9 @@ export class OfferInfoDto {
   @IsOptional()
   startNow?: boolean;
 
-  @IsISO8601()
+  @Matches(CALENDAR_DATE_PATTERN, { message: 'startDate must be YYYY-MM-DD' })
   @IsOptional()
   startDate?: string;
-}
-
-const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
-
-export function toExpiryDate(value?: string): Date | null {
-  if (!value) return null;
-  if (DATE_ONLY.test(value)) return parseRiyadhEndOfDay(value);
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
 export class OfferTargetingDto {

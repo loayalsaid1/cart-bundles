@@ -87,16 +87,15 @@ describe('offerScheduleFields', () => {
     expect(result.startDate.toISOString()).toBe('2026-10-15T12:01:30.000Z');
   });
 
-  it('parses a full ISO expiry as an absolute instant', () => {
+  it('rejects an expiry date that is today or earlier in Riyadh', () => {
     const result = offerScheduleFields(
-      { expiryDate: '2026-10-15T18:00:00.000Z' },
+      { expiryDate: '2026-10-15' },
       undefined,
       now,
     );
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    expect(result.expiryDate?.toISOString()).toBe(
-      '2026-10-15T18:00:00.000Z',
-    );
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toMatch(/expiry date must be tomorrow or later/i);
   });
 });
+
