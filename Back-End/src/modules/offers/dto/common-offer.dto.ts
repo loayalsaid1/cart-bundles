@@ -15,6 +15,11 @@ import {
   appearanceShadowEnum,
   titleAlignEnum,
 } from '../../../database/schema';
+import {
+  formatRiyadhDateTime,
+  immediateStart,
+  parseRiyadhEndOfDay,
+} from '../../../common/time/riyadh-date';
 
 export class OfferInfoDto {
   @IsString()
@@ -30,36 +35,31 @@ export class OfferInfoDto {
   @IsISO8601()
   @IsOptional()
   expiryDate?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  startNow?: boolean;
+
+  @IsISO8601()
+  @IsOptional()
+  startDate?: string;
 }
+
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
 export function toExpiryDate(value?: string): Date | null {
   if (!value) return null;
+  if (DATE_ONLY.test(value)) return parseRiyadhEndOfDay(value);
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
 export function formatSallaDate(d: Date): string {
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'Asia/Riyadh',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  });
-
-  const parts = Object.fromEntries(
-    formatter.formatToParts(d).map((p) => [p.type, p.value]),
-  );
-
-  const hour = parts.hour === '24' ? '00' : parts.hour;
-  return `${parts.year}-${parts.month}-${parts.day} ${hour}:${parts.minute}:${parts.second}`;
+  return formatRiyadhDateTime(d);
 }
 
 export function formatSallaStartDate(): string {
-  return formatSallaDate(new Date(Date.now() + 90000));
+  return formatRiyadhDateTime(immediateStart(new Date()));
 }
 
 export class OfferTargetingDto {
