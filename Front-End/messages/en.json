@@ -333,7 +333,10 @@
       "subtitlePlaceholderAr": "Arabic subtitle",
       "subtitlePlaceholderEn": "English subtitle",
       "expiry": "End date",
-      "noExpiry": "No end date"
+      "noExpiry": "No end date",
+      "startNow": "Start immediately",
+      "startDate": "Start date",
+      "startFrozen": "Start date cannot be changed after the offer has started"
     },
     "targeting": {
       "all_products": "All products",

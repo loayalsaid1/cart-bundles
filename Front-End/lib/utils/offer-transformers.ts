@@ -4,10 +4,32 @@ import type { BundleOfferDraft, BundleOfferFull } from '@/lib/schemas/bundle-off
 import type { UpgradeOfferDraft, UpgradeOfferFull } from '@/lib/schemas/upgrade-offer';
 import type { RecommendationOfferDraft, RecommendationOfferFull } from '@/lib/schemas/recommendation-offer';
 import type { OfferAppearance } from '@/lib/schemas/common-offer';
+import { isStartFrozen, toRiyadhCalendarDate } from '@/lib/utils/riyadh-date';
 
 function toDateInput(value?: string | null): string | undefined {
   if (!value) return undefined;
-  return value.slice(0, 10);
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return undefined;
+  return toRiyadhCalendarDate(d);
+}
+
+function toStartInfo(startDate?: string | null): {
+  startNow: boolean;
+  startDate?: string;
+  startFrozen?: boolean;
+} {
+  if (!startDate) return { startNow: true };
+  const d = new Date(startDate);
+  if (Number.isNaN(d.getTime())) return { startNow: true };
+  if (isStartFrozen(d)) {
+    return { startNow: false, startDate: toRiyadhCalendarDate(d), startFrozen: true };
+  }
+  const cal = toRiyadhCalendarDate(d);
+  const midnight = new Date(`${cal}T00:00:00.000+03:00`);
+  if (d.getTime() === midnight.getTime()) {
+    return { startNow: false, startDate: cal };
+  }
+  return { startNow: true };
 }
 
 function toLocaleText(title: Record<string, string>): { ar: string; en?: string } {
@@ -48,6 +70,7 @@ export function fullOfferToQuantityDraft(offer: QuantityOfferFull): QuantityOffe
       internalName: offer.internalName,
       title: toLocaleText(offer.title),
       subtitle: toOptionalLocaleText(offer.subtitle),
+      ...toStartInfo(offer.startDate),
       expiryDate: toDateInput(offer.expiryDate),
     },
     targeting: {
@@ -85,6 +108,8 @@ export const defaultQuantityDraft: QuantityOfferDraft = {
     internalName: '',
     title: { ar: '', en: '' },
     subtitle: { ar: '', en: '' },
+    startNow: true,
+    startDate: undefined,
     expiryDate: undefined,
   },
   targeting: { type: 'all_products', ids: [] },
@@ -182,6 +207,8 @@ function defaultInfo() {
     internalName: '',
     title: { ar: '', en: '' },
     subtitle: { ar: '', en: '' },
+    startNow: true,
+    startDate: undefined,
     expiryDate: undefined,
   };
 }
@@ -197,6 +224,7 @@ export function fullOfferToAddonDraft(offer: AddonOfferFull): AddonOfferDraft {
       internalName: offer.internalName,
       title: toLocaleText(offer.title),
       subtitle: toOptionalLocaleText(offer.subtitle),
+      ...toStartInfo(offer.startDate),
       expiryDate: toDateInput(offer.expiryDate),
     },
     targeting: {
@@ -252,6 +280,7 @@ export function fullOfferToBundleDraft(offer: BundleOfferFull): BundleOfferDraft
       internalName: offer.internalName,
       title: toLocaleText(offer.title),
       subtitle: toOptionalLocaleText(offer.subtitle),
+      ...toStartInfo(offer.startDate),
       expiryDate: toDateInput(offer.expiryDate),
     },
     targeting: {
@@ -295,6 +324,7 @@ export function fullOfferToUpgradeDraft(offer: UpgradeOfferFull): UpgradeOfferDr
       internalName: offer.internalName,
       title: toLocaleText(offer.title),
       subtitle: toOptionalLocaleText(offer.subtitle),
+      ...toStartInfo(offer.startDate),
       expiryDate: toDateInput(offer.expiryDate),
     },
     targeting: {
@@ -334,6 +364,7 @@ export function fullOfferToRecommendationDraft(
       internalName: offer.internalName,
       title: toLocaleText(offer.title),
       subtitle: toOptionalLocaleText(offer.subtitle),
+      ...toStartInfo(offer.startDate),
       expiryDate: toDateInput(offer.expiryDate),
     },
     settings: {

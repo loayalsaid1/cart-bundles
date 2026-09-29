@@ -13,6 +13,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import type { OfferInfo } from "@/lib/schemas/common-offer";
+import {
+  riyadhToday,
+  riyadhTomorrow,
+  toRiyadhCalendarDate,
+} from "@/lib/utils/riyadh-date";
 
 interface InfoDraftShape {
   info: OfferInfo;
@@ -20,8 +25,9 @@ interface InfoDraftShape {
 
 function toDateInputValue(iso?: string): string {
   if (!iso) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10);
+  return Number.isNaN(d.getTime()) ? "" : toRiyadhCalendarDate(d);
 }
 
 export function GeneralInfoStep() {
@@ -29,6 +35,13 @@ export function GeneralInfoStep() {
   const tCommon = useTranslations("Common");
   const form = useFormContext<InfoDraftShape>();
   const noExpiry = form.watch("info.expiryDate") === undefined;
+  const startNow = form.watch("info.startNow") !== false;
+  const frozen = form.watch("info.startFrozen") === true;
+  const storedStart = form.watch("info.startDate");
+  const startMin = riyadhTomorrow();
+  const expiryMin = startNow
+    ? riyadhToday()
+    : (toDateInputValue(storedStart) || startMin);
 
   return (
     <div className="space-y-5">
@@ -106,11 +119,49 @@ export function GeneralInfoStep() {
 
       <div className="flex flex-wrap items-end gap-4">
         <div className="space-y-2">
+          <Label htmlFor="startDate">{t("info.startDate")}</Label>
+          <Input
+            id="startDate"
+            type="date"
+            disabled={startNow || frozen}
+            min={startMin}
+            value={toDateInputValue(form.watch("info.startDate"))}
+            onChange={(e) =>
+              form.setValue(
+                "info.startDate",
+                e.target.value ? e.target.value : undefined,
+              )
+            }
+            className="w-52"
+          />
+        </div>
+        <label className="flex items-center gap-2 pb-2 text-sm cursor-pointer">
+          <Checkbox
+            checked={startNow}
+            disabled={frozen}
+            onCheckedChange={(checked) => {
+              form.setValue("info.startNow", Boolean(checked));
+              form.setValue(
+                "info.startDate",
+                checked ? undefined : riyadhTomorrow(),
+              );
+            }}
+          />
+          {t("info.startNow")}
+        </label>
+      </div>
+      {frozen ? (
+        <p className="text-xs text-muted-foreground">{t("info.startFrozen")}</p>
+      ) : null}
+
+      <div className="flex flex-wrap items-end gap-4">
+        <div className="space-y-2">
           <Label htmlFor="expiry">{t("info.expiry")}</Label>
           <Input
             id="expiry"
             type="date"
             disabled={noExpiry}
+            min={expiryMin}
             value={toDateInputValue(form.watch("info.expiryDate"))}
             onChange={(e) =>
               form.setValue(
@@ -125,7 +176,10 @@ export function GeneralInfoStep() {
           <Checkbox
             checked={noExpiry}
             onCheckedChange={(checked) =>
-              form.setValue("info.expiryDate", checked ? undefined : new Date().toISOString().slice(0, 10))
+              form.setValue(
+                "info.expiryDate",
+                checked ? undefined : riyadhToday(),
+              )
             }
           />
           {t("info.noExpiry")}

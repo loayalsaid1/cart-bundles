@@ -53,6 +53,7 @@ export const bundleOfferFullSchema = z.object({
   subtitle: z.record(z.string(), z.string()).nullable().optional(),
   targetType: bundleTargetTypeSchema,
   expiryDate: z.string().nullable().optional(),
+  startDate: z.string().nullable().optional(),
   status: offerStatusSchema,
   redirectToCartAfterAdd: z.boolean(),
   hideSallaPopup: z.boolean(),

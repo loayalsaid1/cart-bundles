@@ -38,6 +38,9 @@ export const offerInfoSchema = z.object({
     })
     .optional(),
   expiryDate: z.string().optional(),
+  startNow: z.boolean().optional().default(true),
+  startDate: z.string().optional(),
+  startFrozen: z.boolean().optional(),
 });
 
 export const offerTargetingSchema = z

@@ -333,7 +333,10 @@
       "subtitlePlaceholderAr": "الوصف الفرعي بالعربية",
       "subtitlePlaceholderEn": "الوصف الفرعي بالإنجليزية",
       "expiry": "تاريخ الانتهاء",
-      "noExpiry": "بدون تاريخ انتهاء"
+      "noExpiry": "بدون تاريخ انتهاء",
+      "startNow": "ابدأ فوراً",
+      "startDate": "تاريخ البداية",
+      "startFrozen": "لا يمكن تغيير تاريخ البداية بعد بدء العرض"
     },
     "targeting": {
       "all_products": "جميع المنتجات",

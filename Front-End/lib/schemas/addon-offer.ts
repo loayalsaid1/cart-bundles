@@ -68,6 +68,7 @@ export const addonOfferFullSchema = z.object({
   subtitle: z.record(z.string(), z.string()).nullable().optional(),
   targetType: addonTargetTypeSchema,
   expiryDate: z.string().nullable().optional(),
+  startDate: z.string().nullable().optional(),
   status: offerStatusSchema,
   redirectToCartAfterAdd: z.boolean(),
   hideSallaPopup: z.boolean(),
