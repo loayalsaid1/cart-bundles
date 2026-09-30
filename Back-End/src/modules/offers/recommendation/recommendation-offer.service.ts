@@ -11,7 +11,7 @@ import {
   CreateRecommendationOfferDto,
   UpdateRecommendationOfferDto,
 } from './recommendation-offer.dto';
-import { toExpiryDate } from '../dto/common-offer.dto';
+import { offerScheduleFields } from '../resolve-start-date';
 import { appearanceValues } from '../appearance.mapper';
 import { OfferSideEffectsService } from '../offer-side-effects.service';
 import { RecommendationOfferFull, ServiceResult } from '../types/offers.types';
@@ -64,6 +64,10 @@ export class RecommendationOfferService {
     merchantId: number,
     dto: CreateRecommendationOfferDto,
   ): Promise<ServiceResult<RecommendationOfferFull>> {
+    const schedule = offerScheduleFields(dto.info);
+    if (!schedule.ok) {
+      return { success: false, reason: 'validation_error', error: schedule.error };
+    }
     const created = await this.db.transaction(async (tx) => {
       const [offer] = await tx
         .insert(offers)
@@ -74,7 +78,8 @@ export class RecommendationOfferService {
           title: dto.info.title,
           subtitle: dto.info.subtitle,
           targetType: dto.targeting?.type ?? 'all_products',
-          expiryDate: toExpiryDate(dto.info.expiryDate),
+          startDate: schedule.startDate,
+          expiryDate: schedule.expiryDate,
           status: 'active',
         })
         .returning();
@@ -118,6 +123,10 @@ export class RecommendationOfferService {
   ): Promise<ServiceResult<RecommendationOfferFull>> {
     const existing = await this.findOne(merchantId, offerId);
     if (!existing.success) return existing;
+    const schedule = offerScheduleFields(dto.info, existing.data.startDate);
+    if (!schedule.ok) {
+      return { success: false, reason: 'validation_error', error: schedule.error };
+    }
 
     await this.db.transaction(async (tx) => {
       await tx
@@ -126,7 +135,8 @@ export class RecommendationOfferService {
           internalName: dto.info.internalName,
           title: dto.info.title,
           subtitle: dto.info.subtitle,
-          expiryDate: toExpiryDate(dto.info.expiryDate),
+          startDate: schedule.startDate,
+          expiryDate: schedule.expiryDate,
         })
         .where(eq(offers.id, offerId));
 

@@ -88,6 +88,7 @@ export const quantityOfferFullSchema = z.object({
   subtitle: z.record(z.string(), z.string()).nullable().optional(),
   targetType: targetTypeSchema,
   expiryDate: z.string().nullable().optional(),
+  startDate: z.string().nullable().optional(),
   status: offerStatusSchema,
   redirectToCartAfterAdd: z.boolean(),
   hideSallaPopup: z.boolean(),

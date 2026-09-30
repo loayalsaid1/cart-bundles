@@ -11,7 +11,7 @@ import {
   CreateUpgradeOfferDto,
   UpdateUpgradeOfferDto,
 } from './upgrade-offer.dto';
-import { toExpiryDate } from '../dto/common-offer.dto';
+import { offerScheduleFields } from '../resolve-start-date';
 import { appearanceValues } from '../appearance.mapper';
 import { OfferSideEffectsService } from '../offer-side-effects.service';
 import { ServiceResult, UpgradeOfferFull } from '../types/offers.types';
@@ -56,6 +56,10 @@ export class UpgradeOfferService {
     merchantId: number,
     dto: CreateUpgradeOfferDto,
   ): Promise<ServiceResult<UpgradeOfferFull>> {
+    const schedule = offerScheduleFields(dto.info);
+    if (!schedule.ok) {
+      return { success: false, reason: 'validation_error', error: schedule.error };
+    }
     const created = await this.db.transaction(async (tx) => {
       const [offer] = await tx
         .insert(offers)
@@ -66,7 +70,8 @@ export class UpgradeOfferService {
           title: dto.info.title,
           subtitle: dto.info.subtitle,
           targetType: dto.targeting.type,
-          expiryDate: toExpiryDate(dto.info.expiryDate),
+          startDate: schedule.startDate,
+          expiryDate: schedule.expiryDate,
           status: 'active',
           redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
           hideSallaPopup: dto.settings.hideSallaPopup ?? true,
@@ -115,6 +120,10 @@ export class UpgradeOfferService {
   ): Promise<ServiceResult<UpgradeOfferFull>> {
     const existing = await this.findOne(merchantId, offerId);
     if (!existing.success) return existing;
+    const schedule = offerScheduleFields(dto.info, existing.data.startDate);
+    if (!schedule.ok) {
+      return { success: false, reason: 'validation_error', error: schedule.error };
+    }
 
     await this.db.transaction(async (tx) => {
       await tx
@@ -124,7 +133,8 @@ export class UpgradeOfferService {
           title: dto.info.title,
           subtitle: dto.info.subtitle,
           targetType: dto.targeting.type,
-          expiryDate: toExpiryDate(dto.info.expiryDate),
+          startDate: schedule.startDate,
+          expiryDate: schedule.expiryDate,
           redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
           hideSallaPopup: dto.settings.hideSallaPopup ?? true,
         })

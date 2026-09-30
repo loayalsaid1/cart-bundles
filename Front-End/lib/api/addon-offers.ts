@@ -1,4 +1,5 @@
 import { http } from '@/lib/http';
+import { toOfferPayload } from '@/lib/utils/offer-payload';
 import {
   addonOfferDraftSchema,
   addonOfferFullSchema,
@@ -17,7 +18,7 @@ export async function getAddonOffer(id: number): Promise<AddonOfferFull> {
 }
 
 export async function createAddonOffer(draft: AddonOfferDraft): Promise<AddonOfferFull> {
-  const payload = addonOfferDraftSchema.parse(draft);
+  const payload = toOfferPayload(addonOfferDraftSchema.parse(draft));
   const data = await http<unknown>('/offers/addon', {
     method: 'POST',
     body: JSON.stringify(payload),
@@ -29,7 +30,7 @@ export async function updateAddonOffer(
   id: number,
   draft: AddonOfferDraft,
 ): Promise<AddonOfferFull> {
-  const payload = addonOfferDraftSchema.parse(draft);
+  const payload = toOfferPayload(addonOfferDraftSchema.parse(draft));
   const data = await http<unknown>(`/offers/addon/${id}`, {
     method: 'PUT',
     body: JSON.stringify(payload),

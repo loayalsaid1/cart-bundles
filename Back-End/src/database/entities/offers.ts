@@ -104,6 +104,7 @@ export const offers = pgTable('offers', {
     .notNull()
     .default('selected_products'),
 
+  startDate: timestamp('start_date', { withTimezone: true }),
   expiryDate: timestamp('expiry_date', { withTimezone: true }),
   status: offerStatusEnum('status').notNull().default('draft'),
 

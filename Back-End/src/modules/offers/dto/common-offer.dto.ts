@@ -2,11 +2,11 @@ import {
   IsArray,
   IsBoolean,
   IsEnum,
-  IsISO8601,
   IsNumber,
   IsObject,
   IsOptional,
   IsString,
+  Matches,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { Offer } from '../types/offers.types';
@@ -15,6 +15,8 @@ import {
   appearanceShadowEnum,
   titleAlignEnum,
 } from '../../../database/schema';
+
+const CALENDAR_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
 export class OfferInfoDto {
   @IsString()
@@ -27,39 +29,17 @@ export class OfferInfoDto {
   @IsOptional()
   subtitle?: Record<string, string>;
 
-  @IsISO8601()
+  @Matches(CALENDAR_DATE_PATTERN, { message: 'expiryDate must be YYYY-MM-DD' })
   @IsOptional()
   expiryDate?: string;
-}
 
-export function toExpiryDate(value?: string): Date | null {
-  if (!value) return null;
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
+  @IsBoolean()
+  @IsOptional()
+  startNow?: boolean;
 
-export function formatSallaDate(d: Date): string {
-  const formatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'Asia/Riyadh',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  });
-
-  const parts = Object.fromEntries(
-    formatter.formatToParts(d).map((p) => [p.type, p.value]),
-  );
-
-  const hour = parts.hour === '24' ? '00' : parts.hour;
-  return `${parts.year}-${parts.month}-${parts.day} ${hour}:${parts.minute}:${parts.second}`;
-}
-
-export function formatSallaStartDate(): string {
-  return formatSallaDate(new Date(Date.now() + 90000));
+  @Matches(CALENDAR_DATE_PATTERN, { message: 'startDate must be YYYY-MM-DD' })
+  @IsOptional()
+  startDate?: string;
 }
 
 export class OfferTargetingDto {

@@ -24,7 +24,8 @@
     "db:backfill-daily-stats": "ts-node --transpile-only scripts/run-backfill.ts",
     "db:seed-admin": "ts-node --transpile-only scripts/seed-admin.ts",
     "db:backfill-merchant-profiles": "ts-node --transpile-only scripts/backfill-merchant-profiles.ts",
-    "db:backfill-uninstalled-at": "ts-node --transpile-only scripts/backfill-uninstalled-at.ts"
+    "db:backfill-uninstalled-at": "ts-node --transpile-only scripts/backfill-uninstalled-at.ts",
+    "db:backfill-offer-dates": "ts-node --transpile-only scripts/backfill-offer-dates.ts"
   },
   "dependencies": {
     "@nestjs/bullmq": "^11.0.5",

@@ -11,9 +11,11 @@ import { MerchantsModule } from '../merchants/merchants.module';
 import { OfferSideEffectsModule } from './offer-side-effects.module';
 import { AppearancePresetsModule } from './appearance-presets/appearance-presets.module';
 import { OfferExpirationService } from './offer-expiration.service';
+import { ActivityLogModule } from '../activity-log/activity-log.module';
 
 @Module({
   imports: [
+    ActivityLogModule,
     DrizzleModule,
     MerchantsModule,
     OfferSideEffectsModule,

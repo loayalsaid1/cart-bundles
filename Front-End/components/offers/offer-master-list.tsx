@@ -28,6 +28,7 @@ import { OfferKindBadge } from "@/components/offers/offer-kind-badge";
 import { OfferStatusToggle } from "@/components/offers/offer-status-toggle";
 import { OfferActionsMenu } from "@/components/offers/offer-actions-menu";
 import { offerKindSchema, type OfferKind, type OfferStatus } from "@/lib/schemas/common-offer";
+import { toRiyadhCalendarDate } from "@/lib/utils/riyadh-date";
 
 const STATUS_TABS: Array<OfferStatus | "all"> = ["all", "active", "draft", "paused", "expired"];
 
@@ -161,7 +162,7 @@ export function OfferMasterList() {
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">
                     {offer.expiryDate
-                      ? new Date(offer.expiryDate).toLocaleDateString()
+                      ? toRiyadhCalendarDate(new Date(offer.expiryDate))
                       : t("masterList.never")}
                   </TableCell>
                   <TableCell>

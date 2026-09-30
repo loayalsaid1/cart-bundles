@@ -144,6 +144,9 @@
     const colors = offer.appearance?.colors || {};
     const radius = offer.appearance?.borderRadiusPx ?? 12;
     const settings = offer.quantitySettings || {};
+    const align = offer.appearance?.titleAlign || "start";
+    const showBorder = offer.appearance?.showBorder !== false;
+    const shadowMap = { none: "none", sm: "0 2px 8px rgba(0, 0, 0, 0.06)", md: "0 8px 24px rgba(0, 0, 0, 0.10)", lg: "0 16px 40px rgba(0, 0, 0, 0.16)" };
 
     const cardContainer = document.createElement("div");
     cardContainer.className = "salla-quantity-offer-card";
@@ -153,14 +156,14 @@
       padding: 16px;
       border-radius: ${radius}px;
       background-color: ${colors.cardBg || "#ffffff"};
-      border: 1px solid ${colors.cardBorder || "#e2e8f0"};
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      border: ${showBorder ? `1px solid ${colors.cardBorder || "#e2e8f0"}` : "1px solid transparent"};
+      box-shadow: ${shadowMap[offer.appearance?.shadow] || shadowMap.sm};
       font-family: inherit;
     `;
 
     let html = "";
-    if (title) html += `<div style="font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 2px;">${title}</div>`;
-    if (subtitle) html += `<div style="font-size: 13px; color: #64748b; margin-bottom: 12px;">${subtitle}</div>`;
+    if (title) html += `<div style="font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 2px; text-align: ${align};">${title}</div>`;
+    if (subtitle) html += `<div style="font-size: 13px; color: #64748b; margin-bottom: 12px; text-align: ${align};">${subtitle}</div>`;
     html += `<div class="offer-tiers-list" style="display: flex; flex-direction: column; gap: 8px;"></div>`;
     cardContainer.innerHTML = html;
 
@@ -244,6 +247,9 @@
     const radius = offer.appearance?.borderRadiusPx ?? 12;
     const settings = offer.addonSettings || {};
     const orientation = settings.displayOrientation || "horizontal";
+    const align = offer.appearance?.titleAlign || "start";
+    const showBorder = offer.appearance?.showBorder !== false;
+    const shadowMap = { none: "none", sm: "0 2px 8px rgba(0, 0, 0, 0.06)", md: "0 8px 24px rgba(0, 0, 0, 0.10)", lg: "0 16px 40px rgba(0, 0, 0, 0.16)" };
 
     const productDetailsList = await Promise.all(
       relatedItems.map((item) => fetchProductDetails(item.sallaProductId))
@@ -255,13 +261,13 @@
     cardContainer.style.cssText = `
       margin: 16px 0; padding: 16px; border-radius: ${radius}px;
       background-color: ${colors.cardBg || "#ffffff"};
-      border: 1px solid ${colors.cardBorder || "#e2e8f0"};
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); font-family: inherit;
+      border: ${showBorder ? `1px solid ${colors.cardBorder || "#e2e8f0"}` : "1px solid transparent"};
+      box-shadow: ${shadowMap[offer.appearance?.shadow] || shadowMap.sm}; font-family: inherit;
     `;
 
     let html = "";
-    if (title) html += `<div style="font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 2px;">${title}</div>`;
-    if (subtitle) html += `<div style="font-size: 13px; color: #64748b; margin-bottom: 12px;">${subtitle}</div>`;
+    if (title) html += `<div style="font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 2px; text-align: ${align};">${title}</div>`;
+    if (subtitle) html += `<div style="font-size: 13px; color: #64748b; margin-bottom: 12px; text-align: ${align};">${subtitle}</div>`;
 
     const flexStyle = orientation === "horizontal"
       ? "display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px;"
