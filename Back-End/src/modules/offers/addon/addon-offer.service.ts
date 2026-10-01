@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { eq, and } from 'drizzle-orm';
-import { DrizzleService } from '../../../database/drizzle.service';
+import { DrizzleService, DrizzleTransaction } from '../../../database/drizzle.service';
 import {
   offers,
   offerTargets,
@@ -75,92 +75,100 @@ export class AddonOfferService {
     if (!schedule.ok) {
       return { success: false, reason: 'validation_error', error: schedule.error };
     }
-    const created = await this.db.transaction(async (tx) => {
-      const [offer] = await tx
-        .insert(offers)
-        .values({
+
+    let createdId: number | null = null;
+    try {
+      createdId = await this.db.transaction(async (tx) => {
+        const [offer] = await tx
+          .insert(offers)
+          .values({
+            merchantId,
+            kind: 'product_add_on',
+            internalName: dto.info.internalName,
+            title: dto.info.title,
+            subtitle: dto.info.subtitle,
+            targetType: dto.targeting.type,
+            startDate: schedule.startDate,
+            expiryDate: schedule.expiryDate,
+            status: 'draft',
+            redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
+            hideSallaPopup: dto.settings.hideSallaPopup ?? true,
+          })
+          .returning();
+
+        if (dto.targeting.ids?.length) {
+          await tx.insert(offerTargets).values(
+            dto.targeting.ids.map((id) => ({
+              offerId: offer.id,
+              entityType:
+                dto.targeting.type === 'selected_categories'
+                  ? ('category' as const)
+                  : ('product' as const),
+              sallaEntityId: id,
+            })),
+          );
+        }
+
+        if (dto.settings.relatedProducts?.length) {
+          await tx.insert(offerRelatedProducts).values(
+            dto.settings.relatedProducts.map((p, idx) => ({
+              offerId: offer.id,
+              sallaProductId: p.sallaProductId,
+              position: p.position ?? idx,
+              isPreselected: p.isPreselected ?? false,
+            })),
+          );
+        }
+
+        await tx.insert(addonOfferSettings).values({
+          offerId: offer.id,
+          maxItems: dto.settings.maxItems ?? 8,
+          productsPreselectedByDefault:
+            dto.settings.productsPreselectedByDefault ?? false,
+          showProductOptions: dto.settings.showProductOptions ?? false,
+          displayOrientation: dto.settings.displayOrientation ?? 'horizontal',
+          discountType: dto.settings.discountType,
+          discountAmount:
+            dto.settings.discountAmount !== undefined
+              ? String(dto.settings.discountAmount)
+              : null,
+          positionDesktop: dto.settings.positionDesktop,
+          positionMobile: dto.settings.positionMobile,
+        });
+
+        await tx.insert(offerAppearance).values({
+          offerId: offer.id,
+          ...appearanceValues(dto.appearance),
+        });
+
+        const syncRes = await this.syncToSalla(merchantId, offer.id, tx);
+        if (!syncRes.success) {
+          throw new Error(syncRes.error ?? 'Unknown Salla API error');
+        }
+
+        return offer.id;
+      });
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Unknown sync error';
+      this.logger.error(
+        `Failed to create addon offer due to Salla sync error: ${errorMsg}`,
+      );
+      if (createdId) {
+        await this.sideEffects.afterSallaSyncFailed(
           merchantId,
-          kind: 'product_add_on',
-          internalName: dto.info.internalName,
-          title: dto.info.title,
-          subtitle: dto.info.subtitle,
-          targetType: dto.targeting.type,
-          startDate: schedule.startDate,
-          expiryDate: schedule.expiryDate,
-          status: 'draft',
-          redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
-          hideSallaPopup: dto.settings.hideSallaPopup ?? true,
-        })
-        .returning();
-
-      if (dto.targeting.ids?.length) {
-        await tx.insert(offerTargets).values(
-          dto.targeting.ids.map((id) => ({
-            offerId: offer.id,
-            entityType:
-              dto.targeting.type === 'selected_categories'
-                ? ('category' as const)
-                : ('product' as const),
-            sallaEntityId: id,
-          })),
+          createdId,
+          errorMsg,
         );
       }
-
-      if (dto.settings.relatedProducts?.length) {
-        await tx.insert(offerRelatedProducts).values(
-          dto.settings.relatedProducts.map((p, idx) => ({
-            offerId: offer.id,
-            sallaProductId: p.sallaProductId,
-            position: p.position ?? idx,
-            isPreselected: p.isPreselected ?? false,
-          })),
-        );
-      }
-
-      await tx.insert(addonOfferSettings).values({
-        offerId: offer.id,
-        maxItems: dto.settings.maxItems ?? 8,
-        productsPreselectedByDefault:
-          dto.settings.productsPreselectedByDefault ?? false,
-        showProductOptions: dto.settings.showProductOptions ?? false,
-        displayOrientation: dto.settings.displayOrientation ?? 'horizontal',
-        discountType: dto.settings.discountType,
-        discountAmount:
-          dto.settings.discountAmount !== undefined
-            ? String(dto.settings.discountAmount)
-            : null,
-        positionDesktop: dto.settings.positionDesktop,
-        positionMobile: dto.settings.positionMobile,
-      });
-
-      await tx.insert(offerAppearance).values({
-        offerId: offer.id,
-        ...appearanceValues(dto.appearance),
-      });
-
-      return offer;
-    });
-
-    const syncRes = await this.syncToSalla(merchantId, created.id);
-    if (!syncRes.success) {
-      this.logger.warn(
-        `Addon offer ${created.id} created locally, but Salla sync failed: ${syncRes.error}`,
-      );
-      await this.db.delete(offers).where(eq(offers.id, created.id));
-      await this.sideEffects.afterSallaSyncFailed(
-        merchantId,
-        created.id,
-        syncRes.error ?? 'Unknown Salla API error',
-      );
       return {
         success: false,
         reason: 'salla_sync_failed',
-        error: syncRes.error ?? 'Unknown Salla API error',
+        error: errorMsg,
       };
     }
 
-    await this.sideEffects.afterWrite(merchantId, created.id, 'offer.created');
-    return this.findOne(merchantId, created.id);
+    await this.sideEffects.afterWrite(merchantId, createdId, 'offer.created');
+    return this.findOne(merchantId, createdId);
   }
 
   async update(
@@ -175,85 +183,91 @@ export class AddonOfferService {
       return { success: false, reason: 'validation_error', error: schedule.error };
     }
 
-    await this.db.transaction(async (tx) => {
-      await tx
-        .update(offers)
-        .set({
-          internalName: dto.info.internalName,
-          title: dto.info.title,
-          subtitle: dto.info.subtitle,
-          targetType: dto.targeting.type,
-          startDate: schedule.startDate,
-          expiryDate: schedule.expiryDate,
-          redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
-          hideSallaPopup: dto.settings.hideSallaPopup ?? true,
-        })
-        .where(eq(offers.id, offerId));
-
-      await tx.delete(offerTargets).where(eq(offerTargets.offerId, offerId));
-      if (dto.targeting.ids?.length) {
-        await tx.insert(offerTargets).values(
-          dto.targeting.ids.map((id) => ({
-            offerId,
-            entityType:
-              dto.targeting.type === 'selected_categories'
-                ? ('category' as const)
-                : ('product' as const),
-            sallaEntityId: id,
-          })),
-        );
-      }
-
-      await tx
-        .delete(offerRelatedProducts)
-        .where(eq(offerRelatedProducts.offerId, offerId));
-      if (dto.settings.relatedProducts?.length) {
-        await tx.insert(offerRelatedProducts).values(
-          dto.settings.relatedProducts.map((p, idx) => ({
-            offerId,
-            sallaProductId: p.sallaProductId,
-            position: p.position ?? idx,
-            isPreselected: p.isPreselected ?? false,
-          })),
-        );
-      }
-
-      await tx
-        .update(addonOfferSettings)
-        .set({
-          maxItems: dto.settings.maxItems ?? 8,
-          productsPreselectedByDefault:
-            dto.settings.productsPreselectedByDefault ?? false,
-          showProductOptions: dto.settings.showProductOptions ?? false,
-          displayOrientation: dto.settings.displayOrientation ?? 'horizontal',
-          discountType: dto.settings.discountType,
-          discountAmount:
-            dto.settings.discountAmount !== undefined
-              ? String(dto.settings.discountAmount)
-              : null,
-          positionDesktop: dto.settings.positionDesktop,
-          positionMobile: dto.settings.positionMobile,
-        })
-        .where(eq(addonOfferSettings.offerId, offerId));
-
-      if (dto.appearance) {
+    try {
+      await this.db.transaction(async (tx) => {
         await tx
-          .update(offerAppearance)
-          .set(appearanceValues(dto.appearance))
-          .where(eq(offerAppearance.offerId, offerId));
-      }
-    });
+          .update(offers)
+          .set({
+            internalName: dto.info.internalName,
+            title: dto.info.title,
+            subtitle: dto.info.subtitle,
+            targetType: dto.targeting.type,
+            startDate: schedule.startDate,
+            expiryDate: schedule.expiryDate,
+            redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
+            hideSallaPopup: dto.settings.hideSallaPopup ?? true,
+          })
+          .where(eq(offers.id, offerId));
 
-    const syncRes = await this.syncToSalla(merchantId, offerId);
-    if (!syncRes.success) {
-      this.logger.warn(
-        `Addon offer ${offerId} updated locally, but Salla sync failed: ${syncRes.error}`,
+        await tx.delete(offerTargets).where(eq(offerTargets.offerId, offerId));
+        if (dto.targeting.ids?.length) {
+          await tx.insert(offerTargets).values(
+            dto.targeting.ids.map((id) => ({
+              offerId,
+              entityType:
+                dto.targeting.type === 'selected_categories'
+                  ? ('category' as const)
+                  : ('product' as const),
+              sallaEntityId: id,
+            })),
+          );
+        }
+
+        await tx
+          .delete(offerRelatedProducts)
+          .where(eq(offerRelatedProducts.offerId, offerId));
+        if (dto.settings.relatedProducts?.length) {
+          await tx.insert(offerRelatedProducts).values(
+            dto.settings.relatedProducts.map((p, idx) => ({
+              offerId,
+              sallaProductId: p.sallaProductId,
+              position: p.position ?? idx,
+              isPreselected: p.isPreselected ?? false,
+            })),
+          );
+        }
+
+        await tx
+          .update(addonOfferSettings)
+          .set({
+            maxItems: dto.settings.maxItems ?? 8,
+            productsPreselectedByDefault:
+              dto.settings.productsPreselectedByDefault ?? false,
+            showProductOptions: dto.settings.showProductOptions ?? false,
+            displayOrientation: dto.settings.displayOrientation ?? 'horizontal',
+            discountType: dto.settings.discountType,
+            discountAmount:
+              dto.settings.discountAmount !== undefined
+                ? String(dto.settings.discountAmount)
+                : null,
+            positionDesktop: dto.settings.positionDesktop,
+            positionMobile: dto.settings.positionMobile,
+          })
+          .where(eq(addonOfferSettings.offerId, offerId));
+
+        if (dto.appearance) {
+          await tx
+            .update(offerAppearance)
+            .set(appearanceValues(dto.appearance))
+            .where(eq(offerAppearance.offerId, offerId));
+        }
+
+        const syncRes = await this.syncToSalla(merchantId, offerId, tx);
+        if (!syncRes.success) {
+          throw new Error(syncRes.error ?? 'Unknown Salla API error');
+        }
+      });
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Unknown sync error';
+      this.logger.error(
+        `Failed to update addon offer ${offerId} due to Salla sync error: ${errorMsg}`,
       );
-      await this.sideEffects.afterSallaSyncFailed(
-        merchantId,
-        offerId,
-        syncRes.error ?? 'Unknown Salla API error',
-      );
+      await this.sideEffects.afterSallaSyncFailed(merchantId, offerId, errorMsg);
+      return {
+        success: false,
+        reason: 'salla_sync_failed',
+        error: errorMsg,
+      };
     }
 
     await this.sideEffects.afterWrite(merchantId, offerId, 'offer.updated');
@@ -269,7 +283,14 @@ export class AddonOfferService {
 
     const offer = existing.data;
     if (offer.sallaOfferId) {
-      await this.deleteSallaOffer(merchantId, offer.sallaOfferId);
+      const deleted = await this.deleteSallaOffer(merchantId, offer.sallaOfferId);
+      if (!deleted) {
+        return {
+          success: false,
+          reason: 'salla_sync_failed',
+          error: 'Failed to delete the Salla offer',
+        };
+      }
     }
 
     await this.db.delete(offers).where(eq(offers.id, offerId));
@@ -303,13 +324,23 @@ export class AddonOfferService {
   private async syncToSalla(
     merchantId: number,
     offerId: number,
+    tx?: DrizzleTransaction,
   ): Promise<{ success: boolean; sallaOfferId?: number; error?: string }> {
     try {
-      const found = await this.findOne(merchantId, offerId);
-      if (!found.success)
+      const dbClient = tx ?? this.db;
+      const offer = await dbClient.query.offers.findFirst({
+        where: and(eq(offers.id, offerId), eq(offers.merchantId, merchantId)),
+        with: {
+          targets: true,
+          relatedProducts: true,
+          addonSettings: true,
+          appearance: true,
+        },
+      });
+
+      if (!offer)
         return { success: false, error: 'Addon offer not found' };
 
-      const offer = found.data;
       const tokenRes =
         await this.merchantsService.getValidAccessToken(merchantId);
       if (!tokenRes.success) {
@@ -326,11 +357,14 @@ export class AddonOfferService {
             `Addon offer ${offerId} updated to have no discount. Deleting Salla offer ${offer.sallaOfferId}`,
           );
           await this.deleteSallaOffer(merchantId, offer.sallaOfferId);
-          await this.db
-            .update(offers)
-            .set({ sallaOfferId: null })
-            .where(eq(offers.id, offerId));
         }
+        await dbClient
+          .update(offers)
+          .set({
+            sallaOfferId: null,
+            status: offer.status === 'draft' ? 'active' : offer.status,
+          })
+          .where(eq(offers.id, offerId));
         return { success: true };
       }
 
@@ -410,7 +444,7 @@ export class AddonOfferService {
           id?: number | string;
         };
         const sallaId = Number(json.data?.id ?? json.id ?? offer.sallaOfferId);
-        await this.db
+        await dbClient
           .update(offers)
           .set({
             sallaOfferId: sallaId,
@@ -431,4 +465,5 @@ export class AddonOfferService {
     }
   }
 }
+
 
