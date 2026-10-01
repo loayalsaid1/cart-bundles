@@ -72,83 +72,91 @@ export class BundleOfferService {
     if (!schedule.ok) {
       return { success: false, reason: 'validation_error', error: schedule.error };
     }
-    const created = await this.db.transaction(async (tx) => {
-      const [offer] = await tx
-        .insert(offers)
-        .values({
+
+    let createdId: number | null = null;
+    try {
+      createdId = await this.db.transaction(async (tx) => {
+        const [offer] = await tx
+          .insert(offers)
+          .values({
+            merchantId,
+            kind: 'bundle',
+            internalName: dto.info.internalName,
+            title: dto.info.title,
+            subtitle: dto.info.subtitle,
+            targetType: dto.targeting.type,
+            startDate: schedule.startDate,
+            expiryDate: schedule.expiryDate,
+            status: 'draft',
+            redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
+            hideSallaPopup: dto.settings.hideSallaPopup ?? true,
+          })
+          .returning();
+
+        if (dto.targeting.ids?.length) {
+          await tx.insert(offerTargets).values(
+            dto.targeting.ids.map((id) => ({
+              offerId: offer.id,
+              entityType: 'product' as const,
+              sallaEntityId: id,
+            })),
+          );
+        }
+
+        if (dto.settings.relatedProducts?.length) {
+          await tx.insert(offerRelatedProducts).values(
+            dto.settings.relatedProducts.map((p, idx) => ({
+              offerId: offer.id,
+              sallaProductId: p.sallaProductId,
+              position: p.position ?? idx,
+              isPreselected: p.isPreselected ?? true,
+            })),
+          );
+        }
+
+        await tx.insert(bundleOfferSettings).values({
+          offerId: offer.id,
+          discountType: dto.settings.discountType ?? null,
+          discountAmount:
+            dto.settings.discountType === 'percentage' &&
+            dto.settings.discountAmount !== undefined
+              ? String(dto.settings.discountAmount)
+              : null,
+        });
+
+        await tx.insert(offerAppearance).values({
+          offerId: offer.id,
+          ...appearanceValues(dto.appearance),
+        });
+
+        const syncRes = await this.syncToSalla(merchantId, offer.id, tx);
+        if (!syncRes.success) {
+          throw new Error(syncRes.error ?? 'Unknown Salla API error');
+        }
+
+        return offer.id;
+      });
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Unknown sync error';
+      this.logger.error(
+        `Failed to create bundle offer due to Salla sync error: ${errorMsg}`,
+      );
+      if (createdId) {
+        await this.sideEffects.afterSallaSyncFailed(
           merchantId,
-          kind: 'bundle',
-          internalName: dto.info.internalName,
-          title: dto.info.title,
-          subtitle: dto.info.subtitle,
-          targetType: dto.targeting.type,
-          startDate: schedule.startDate,
-          expiryDate: schedule.expiryDate,
-          status: 'draft',
-          redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
-          hideSallaPopup: dto.settings.hideSallaPopup ?? true,
-        })
-        .returning();
-
-      if (dto.targeting.ids?.length) {
-        await tx.insert(offerTargets).values(
-          dto.targeting.ids.map((id) => ({
-            offerId: offer.id,
-            entityType: 'product' as const,
-            sallaEntityId: id,
-          })),
+          createdId,
+          errorMsg,
         );
       }
-
-      if (dto.settings.relatedProducts?.length) {
-        await tx.insert(offerRelatedProducts).values(
-          dto.settings.relatedProducts.map((p, idx) => ({
-            offerId: offer.id,
-            sallaProductId: p.sallaProductId,
-            position: p.position ?? idx,
-            isPreselected: p.isPreselected ?? true,
-          })),
-        );
-      }
-
-      await tx.insert(bundleOfferSettings).values({
-        offerId: offer.id,
-        discountType: dto.settings.discountType ?? null,
-        discountAmount:
-          dto.settings.discountType === 'percentage' &&
-          dto.settings.discountAmount !== undefined
-            ? String(dto.settings.discountAmount)
-            : null,
-      });
-
-      await tx.insert(offerAppearance).values({
-        offerId: offer.id,
-        ...appearanceValues(dto.appearance),
-      });
-
-      return offer;
-    });
-
-    const syncRes = await this.syncToSalla(merchantId, created.id);
-    if (!syncRes.success) {
-      this.logger.warn(
-        `Bundle offer ${created.id} created locally, but Salla sync failed: ${syncRes.error}`,
-      );
-      await this.db.delete(offers).where(eq(offers.id, created.id));
-      await this.sideEffects.afterSallaSyncFailed(
-        merchantId,
-        created.id,
-        syncRes.error ?? 'Unknown Salla API error',
-      );
       return {
         success: false,
         reason: 'salla_sync_failed',
-        error: syncRes.error ?? 'Unknown Salla API error',
+        error: errorMsg,
       };
     }
 
-    await this.sideEffects.afterWrite(merchantId, created.id, 'offer.created');
-    return this.findOne(merchantId, created.id);
+    await this.sideEffects.afterWrite(merchantId, createdId, 'offer.created');
+    return this.findOne(merchantId, createdId);
   }
 
   async update(

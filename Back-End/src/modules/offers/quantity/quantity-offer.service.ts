@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { eq, and } from 'drizzle-orm';
-import { DrizzleService } from '../../../database/drizzle.service';
+import { DrizzleService, DrizzleTransaction } from '../../../database/drizzle.service';
 import {
   offers,
   offerTargets,
@@ -71,88 +71,100 @@ export class QuantityOfferService {
     if (!schedule.ok) {
       return { success: false, reason: 'validation_error', error: schedule.error };
     }
-    const created = await this.db.transaction(async (tx) => {
-      const [offer] = await tx
-        .insert(offers)
-        .values({
+
+    let createdId: number | null = null;
+    try {
+      createdId = await this.db.transaction(async (tx) => {
+        const [offer] = await tx
+          .insert(offers)
+          .values({
+            merchantId,
+            kind: 'quantity_discount',
+            internalName: dto.info.internalName,
+            title: dto.info.title,
+            subtitle: dto.info.subtitle,
+            targetType: dto.targeting.type,
+            startDate: schedule.startDate,
+            expiryDate: schedule.expiryDate,
+            status: 'draft',
+            redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
+            hideSallaPopup: dto.settings.hideSallaPopup ?? true,
+          })
+          .returning();
+        if (dto.targeting.ids?.length) {
+          await tx.insert(offerTargets).values(
+            dto.targeting.ids.map((id) => ({
+              offerId: offer.id,
+              entityType:
+                dto.targeting.type === 'selected_categories'
+                  ? ('category' as const)
+                  : ('product' as const),
+              sallaEntityId: id,
+            })),
+          );
+        }
+        await tx.insert(quantityOfferSettings).values({
+          offerId: offer.id,
+          allowDifferentOptionsPerPiece:
+            dto.settings.allowDifferentOptionsPerPiece ?? false,
+          hideThemeDefaultOptions: dto.settings.hideThemeDefaultOptions ?? false,
+          showPricePerPiece: dto.settings.showPricePerPiece ?? false,
+          roundPriceToNearestInteger:
+            dto.settings.roundPriceToNearestInteger ?? false,
+          applyEvenWithCoupon: dto.settings.applyEvenWithCoupon ?? true,
+          hideQuantityField: dto.settings.hideQuantityField ?? false,
+        });
+        if (dto.settings.tiers?.length) {
+          await tx.insert(quantityOfferTiers).values(
+            dto.settings.tiers.map((tier, position) => ({
+              offerId: offer.id,
+              position,
+              quantity: tier.quantity,
+              mainTitle: tier.mainTitle,
+              subtitle: tier.subtitle,
+              pricingType: tier.pricingType,
+              discountAmount: String(tier.discountAmount),
+              isSelectedByDefault: tier.isSelectedByDefault ?? false,
+              badgeText: tier.badgeText,
+              labelText: tier.labelText,
+            })),
+          );
+        }
+        await tx.insert(offerAppearance).values({
+          offerId: offer.id,
+          ...appearanceValues(dto.appearance),
+        });
+
+        const syncRes = await this.syncToSalla(merchantId, offer.id, tx);
+        if (!syncRes.success) {
+          throw new Error(syncRes.error ?? 'Unknown Salla API error');
+        }
+
+        return offer.id;
+      });
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Unknown sync error';
+      this.logger.error(
+        `Failed to create quantity offer due to Salla sync error: ${errorMsg}`,
+      );
+      if (createdId) {
+        await this.sideEffects.afterSallaSyncFailed(
           merchantId,
-          kind: 'quantity_discount',
-          internalName: dto.info.internalName,
-          title: dto.info.title,
-          subtitle: dto.info.subtitle,
-          targetType: dto.targeting.type,
-          startDate: schedule.startDate,
-          expiryDate: schedule.expiryDate,
-          status: 'draft',
-          redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
-          hideSallaPopup: dto.settings.hideSallaPopup ?? true,
-        })
-        .returning();
-      if (dto.targeting.ids?.length) {
-        await tx.insert(offerTargets).values(
-          dto.targeting.ids.map((id) => ({
-            offerId: offer.id,
-            entityType:
-              dto.targeting.type === 'selected_categories'
-                ? ('category' as const)
-                : ('product' as const),
-            sallaEntityId: id,
-          })),
+          createdId,
+          errorMsg,
         );
       }
-      await tx.insert(quantityOfferSettings).values({
-        offerId: offer.id,
-        allowDifferentOptionsPerPiece:
-          dto.settings.allowDifferentOptionsPerPiece ?? false,
-        hideThemeDefaultOptions: dto.settings.hideThemeDefaultOptions ?? false,
-        showPricePerPiece: dto.settings.showPricePerPiece ?? false,
-        roundPriceToNearestInteger:
-          dto.settings.roundPriceToNearestInteger ?? false,
-        applyEvenWithCoupon: dto.settings.applyEvenWithCoupon ?? true,
-        hideQuantityField: dto.settings.hideQuantityField ?? false,
-      });
-      if (dto.settings.tiers?.length) {
-        await tx.insert(quantityOfferTiers).values(
-          dto.settings.tiers.map((tier, position) => ({
-            offerId: offer.id,
-            position,
-            quantity: tier.quantity,
-            mainTitle: tier.mainTitle,
-            subtitle: tier.subtitle,
-            pricingType: tier.pricingType,
-            discountAmount: String(tier.discountAmount),
-            isSelectedByDefault: tier.isSelectedByDefault ?? false,
-            badgeText: tier.badgeText,
-            labelText: tier.labelText,
-          })),
-        );
-      }
-      await tx.insert(offerAppearance).values({
-        offerId: offer.id,
-        ...appearanceValues(dto.appearance),
-      });
-      return offer;
-    });
-    const syncRes = await this.syncToSalla(merchantId, created.id);
-    if (!syncRes.success) {
-      this.logger.warn(
-        `Offer ${created.id} created locally, but Salla sync failed: ${syncRes.error}`,
-      );
-      await this.db.delete(offers).where(eq(offers.id, created.id));
-      await this.sideEffects.afterSallaSyncFailed(
-        merchantId,
-        created.id,
-        syncRes.error ?? 'Unknown Salla API error',
-      );
       return {
         success: false,
         reason: 'salla_sync_failed',
-        error: syncRes.error ?? 'Unknown Salla API error',
+        error: errorMsg,
       };
     }
-    await this.sideEffects.afterWrite(merchantId, created.id, 'offer.created');
-    return this.findOne(merchantId, created.id);
+
+    await this.sideEffects.afterWrite(merchantId, createdId, 'offer.created');
+    return this.findOne(merchantId, createdId);
   }
+
   async update(
     merchantId: number,
     offerId: number,
@@ -164,93 +176,98 @@ export class QuantityOfferService {
     if (!schedule.ok) {
       return { success: false, reason: 'validation_error', error: schedule.error };
     }
-    await this.db.transaction(async (tx) => {
-      await tx
-        .update(offers)
-        .set({
-          internalName: dto.info.internalName,
-          title: dto.info.title,
-          subtitle: dto.info.subtitle,
-          targetType: dto.targeting.type,
-          startDate: schedule.startDate,
-          expiryDate: schedule.expiryDate,
-          redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
-          hideSallaPopup: dto.settings.hideSallaPopup ?? true,
-          updatedAt: new Date(),
-        })
-        .where(eq(offers.id, offerId));
-      await tx.delete(offerTargets).where(eq(offerTargets.offerId, offerId));
-      if (dto.targeting.ids?.length) {
-        await tx.insert(offerTargets).values(
-          dto.targeting.ids.map((id) => ({
-            offerId,
-            entityType:
-              dto.targeting.type === 'selected_categories'
-                ? ('category' as const)
-                : ('product' as const),
-            sallaEntityId: id,
-          })),
-        );
-      }
-      await tx
-        .update(quantityOfferSettings)
-        .set({
-          allowDifferentOptionsPerPiece:
-            dto.settings.allowDifferentOptionsPerPiece ?? false,
-          hideThemeDefaultOptions:
-            dto.settings.hideThemeDefaultOptions ?? false,
-          showPricePerPiece: dto.settings.showPricePerPiece ?? false,
-          roundPriceToNearestInteger:
-            dto.settings.roundPriceToNearestInteger ?? false,
-          applyEvenWithCoupon: dto.settings.applyEvenWithCoupon ?? true,
-          hideQuantityField: dto.settings.hideQuantityField ?? false,
-        })
-        .where(eq(quantityOfferSettings.offerId, offerId));
-      await tx
-        .delete(quantityOfferTiers)
-        .where(eq(quantityOfferTiers.offerId, offerId));
-      if (dto.settings.tiers?.length) {
-        await tx.insert(quantityOfferTiers).values(
-          dto.settings.tiers.map((tier, position) => ({
-            offerId,
-            position,
-            quantity: tier.quantity,
-            mainTitle: tier.mainTitle,
-            subtitle: tier.subtitle,
-            pricingType: tier.pricingType,
-            discountAmount: String(tier.discountAmount),
-            isSelectedByDefault: tier.isSelectedByDefault ?? false,
-            badgeText: tier.badgeText,
-            labelText: tier.labelText,
-          })),
-        );
-      }
-      if (dto.appearance) {
+
+    try {
+      await this.db.transaction(async (tx) => {
         await tx
-          .update(offerAppearance)
-          .set(appearanceValues(dto.appearance))
-          .where(eq(offerAppearance.offerId, offerId));
-      }
-    });
-    const syncRes = await this.syncToSalla(merchantId, offerId);
-    if (!syncRes.success) {
-      this.logger.warn(
-        `Offer ${offerId} updated locally, but Salla sync failed: ${syncRes.error}`,
+          .update(offers)
+          .set({
+            internalName: dto.info.internalName,
+            title: dto.info.title,
+            subtitle: dto.info.subtitle,
+            targetType: dto.targeting.type,
+            startDate: schedule.startDate,
+            expiryDate: schedule.expiryDate,
+            redirectToCartAfterAdd: dto.settings.redirectToCartAfterAdd ?? false,
+            hideSallaPopup: dto.settings.hideSallaPopup ?? true,
+            updatedAt: new Date(),
+          })
+          .where(eq(offers.id, offerId));
+        await tx.delete(offerTargets).where(eq(offerTargets.offerId, offerId));
+        if (dto.targeting.ids?.length) {
+          await tx.insert(offerTargets).values(
+            dto.targeting.ids.map((id) => ({
+              offerId,
+              entityType:
+                dto.targeting.type === 'selected_categories'
+                  ? ('category' as const)
+                  : ('product' as const),
+              sallaEntityId: id,
+            })),
+          );
+        }
+        await tx
+          .update(quantityOfferSettings)
+          .set({
+            allowDifferentOptionsPerPiece:
+              dto.settings.allowDifferentOptionsPerPiece ?? false,
+            hideThemeDefaultOptions:
+              dto.settings.hideThemeDefaultOptions ?? false,
+            showPricePerPiece: dto.settings.showPricePerPiece ?? false,
+            roundPriceToNearestInteger:
+              dto.settings.roundPriceToNearestInteger ?? false,
+            applyEvenWithCoupon: dto.settings.applyEvenWithCoupon ?? true,
+            hideQuantityField: dto.settings.hideQuantityField ?? false,
+          })
+          .where(eq(quantityOfferSettings.offerId, offerId));
+        await tx
+          .delete(quantityOfferTiers)
+          .where(eq(quantityOfferTiers.offerId, offerId));
+        if (dto.settings.tiers?.length) {
+          await tx.insert(quantityOfferTiers).values(
+            dto.settings.tiers.map((tier, position) => ({
+              offerId,
+              position,
+              quantity: tier.quantity,
+              mainTitle: tier.mainTitle,
+              subtitle: tier.subtitle,
+              pricingType: tier.pricingType,
+              discountAmount: String(tier.discountAmount),
+              isSelectedByDefault: tier.isSelectedByDefault ?? false,
+              badgeText: tier.badgeText,
+              labelText: tier.labelText,
+            })),
+          );
+        }
+        if (dto.appearance) {
+          await tx
+            .update(offerAppearance)
+            .set(appearanceValues(dto.appearance))
+            .where(eq(offerAppearance.offerId, offerId));
+        }
+
+        const syncRes = await this.syncToSalla(merchantId, offerId, tx);
+        if (!syncRes.success) {
+          throw new Error(syncRes.error ?? 'Unknown Salla API error');
+        }
+      });
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Unknown sync error';
+      this.logger.error(
+        `Failed to update quantity offer ${offerId} due to Salla sync error: ${errorMsg}`,
       );
-      await this.sideEffects.afterSallaSyncFailed(
-        merchantId,
-        offerId,
-        syncRes.error ?? 'Unknown Salla API error',
-      );
+      await this.sideEffects.afterSallaSyncFailed(merchantId, offerId, errorMsg);
       return {
         success: false,
         reason: 'salla_sync_failed',
-        error: syncRes.error ?? 'Unknown Salla API error',
+        error: errorMsg,
       };
     }
+
     await this.sideEffects.afterWrite(merchantId, offerId, 'offer.updated');
     return this.findOne(merchantId, offerId);
   }
+
   async delete(
     merchantId: number,
     offerId: number,
@@ -299,14 +316,24 @@ export class QuantityOfferService {
       return false;
     }
   }
+
   private async syncToSalla(
     merchantId: number,
     offerId: number,
+    tx?: DrizzleTransaction,
   ): Promise<{ success: boolean; sallaOfferId?: number; error?: string }> {
     try {
-      const found = await this.findOne(merchantId, offerId);
-      if (!found.success) return { success: false, error: 'Offer not found' };
-      const offer = found.data;
+      const dbClient = tx ?? this.db;
+      const offer = await dbClient.query.offers.findFirst({
+        where: and(eq(offers.id, offerId), eq(offers.merchantId, merchantId)),
+        with: {
+          targets: true,
+          quantityTiers: true,
+          quantitySettings: true,
+          appearance: true,
+        },
+      });
+      if (!offer) return { success: false, error: 'Offer not found' };
       const tokenRes =
         await this.merchantsService.getValidAccessToken(merchantId);
       if (!tokenRes.success) {
@@ -323,7 +350,7 @@ export class QuantityOfferService {
           discount_type: t.pricingType,
           discount_amount: Number(t.discountAmount),
         }));
-const isAll = offer.targetType === 'all_products';
+      const isAll = offer.targetType === 'all_products';
       const isCategory = offer.targetType === 'selected_categories';
       const entityIds = offer.targets
         .map((t) => Number(t.sallaEntityId))
@@ -371,7 +398,7 @@ const isAll = offer.targetType === 'all_products';
           id?: number | string;
         };
         const sallaId = Number(json.data?.id ?? json.id ?? offer.sallaOfferId);
-        await this.db
+        await dbClient
           .update(offers)
           .set({
             sallaOfferId: sallaId,
@@ -391,3 +418,4 @@ const isAll = offer.targetType === 'all_products';
     }
   }
 }
+
