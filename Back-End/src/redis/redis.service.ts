@@ -1,4 +1,5 @@
 import { Inject, Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import { randomUUID } from 'node:crypto';
 import Redis from 'ioredis';
 import { REDIS_CLIENT } from './redis.constants';
 
@@ -51,12 +52,27 @@ export class RedisService implements OnModuleDestroy {
     await this.client.del(key);
   }
 
+  async delKeys(keys: string[]): Promise<void> {
+    if (keys.length === 0) return;
+    const pipeline = this.client.pipeline();
+    for (const key of keys) pipeline.unlink(key);
+    await pipeline.exec();
+  }
+
   async incr(key: string, ttlSeconds?: number): Promise<number> {
-    const count = await this.client.incr(key);
-    if (count === 1 && ttlSeconds && ttlSeconds > 0) {
-      await this.client.expire(key, ttlSeconds);
+    if (!ttlSeconds || ttlSeconds <= 0) {
+      return this.client.incr(key);
     }
-    return count;
+
+    const result = await this.client.eval(
+      `local count = redis.call('INCR', KEYS[1])
+       if count == 1 then redis.call('EXPIRE', KEYS[1], ARGV[1]) end
+       return count`,
+      1,
+      key,
+      ttlSeconds,
+    );
+    return Number(result);
   }
 
   async delByPrefix(prefix: string): Promise<number> {
@@ -124,6 +140,18 @@ export class RedisService implements OnModuleDestroy {
     return result === 'OK';
   }
 
+  async releaseLock(key: string, value: string): Promise<boolean> {
+    const result = await this.client.eval(
+      `if redis.call('GET', KEYS[1]) == ARGV[1]
+       then return redis.call('DEL', KEYS[1])
+       else return 0 end`,
+      1,
+      key,
+      value,
+    );
+    return Number(result) === 1;
+  }
+
   /** Atomic move; a missing source key is a no-op. */
   async rename(from: string, to: string): Promise<void> {
     try {
@@ -146,9 +174,24 @@ export class RedisService implements OnModuleDestroy {
     if (existing) return existing as Promise<T>;
 
     const pending = (async () => {
-      const value = await factory();
-      await this.set(key, value, ttlSeconds);
-      return value;
+      const lockKey = `lock:cache-build:${key}`;
+      const lockValue = randomUUID();
+      const acquired = await this.setNx(lockKey, lockValue, 30);
+      if (!acquired) {
+        for (let attempt = 0; attempt < 30; attempt += 1) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          const populated = await this.get<T>(key);
+          if (populated !== null) return populated;
+        }
+      }
+
+      try {
+        const value = await factory();
+        await this.set(key, value, ttlSeconds);
+        return value;
+      } finally {
+        if (acquired) await this.releaseLock(lockKey, lockValue);
+      }
     })().finally(() => {
       this.inflight.delete(key);
     });

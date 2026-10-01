@@ -32,14 +32,15 @@ export class AdminStatsService {
   }
 
   async getAdminOverview(): Promise<AdminOverview> {
-    const cached = await this.redis.get<AdminOverview>(
+    return this.redis.getOrSet(
       ADMIN_OVERVIEW_CACHE_KEY,
-    );
-    if (cached) return cached;
-
-    const fourteenDaysAgoStr = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000)
-      .toISOString()
-      .slice(0, 10);
+      ADMIN_OVERVIEW_TTL_SECONDS,
+      async () => {
+        const fourteenDaysAgoStr = new Date(
+          Date.now() - 14 * 24 * 60 * 60 * 1000,
+        )
+          .toISOString()
+          .slice(0, 10);
 
     const [
       merchantRows,
@@ -181,12 +182,9 @@ export class AdminStatsService {
       recentErrors,
     };
 
-    await this.redis.set(
-      ADMIN_OVERVIEW_CACHE_KEY,
-      overview,
-      ADMIN_OVERVIEW_TTL_SECONDS,
+        return overview;
+      },
     );
-    return overview;
   }
 
   async listMerchants(): Promise<AdminMerchantRow[]> {

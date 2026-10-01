@@ -259,25 +259,45 @@ export class QuantityOfferService {
     if (!existing.success) return existing;
     const offer = existing.data;
     if (offer.sallaOfferId) {
-      try {
-        const tokenRes =
-          await this.merchantsService.getValidAccessToken(merchantId);
-        if (tokenRes.success) {
-          await fetch(`${SALLA_SPECIAL_OFFERS_URL}/${offer.sallaOfferId}`, {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${tokenRes.accessToken}` },
-          });
-        }
-      } catch (err) {
-        this.logger.error(
-          `Failed to delete Salla offer ${offer.sallaOfferId}`,
-          err,
-        );
+      const deleted = await this.deleteSallaOffer(merchantId, offer.sallaOfferId);
+      if (!deleted) {
+        return {
+          success: false,
+          reason: 'salla_sync_failed',
+          error: 'Failed to delete the Salla offer',
+        };
       }
     }
     await this.db.delete(offers).where(eq(offers.id, offerId));
     await this.sideEffects.afterWrite(merchantId, offerId, 'offer.deleted');
     return { success: true, data: undefined };
+  }
+
+  private async deleteSallaOffer(
+    merchantId: number,
+    sallaOfferId: number,
+  ): Promise<boolean> {
+    try {
+      const tokenRes =
+        await this.merchantsService.getValidAccessToken(merchantId);
+      if (!tokenRes.success) return false;
+      const response = await fetch(`${SALLA_SPECIAL_OFFERS_URL}/${sallaOfferId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${tokenRes.accessToken}` },
+      });
+      if (!response.ok) {
+        this.logger.error(
+          `Failed to delete Salla offer ${sallaOfferId}: ${response.status}`,
+        );
+      }
+      return response.ok;
+    } catch (err) {
+      this.logger.error(
+        `Failed to delete Salla offer ${sallaOfferId}`,
+        err,
+      );
+      return false;
+    }
   }
   private async syncToSalla(
     merchantId: number,

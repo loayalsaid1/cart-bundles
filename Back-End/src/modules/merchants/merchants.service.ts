@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { randomUUID } from 'node:crypto';
 import { eq } from 'drizzle-orm';
 import { DrizzleService } from '../../database/drizzle.service';
 import { merchants, type Merchant } from '../../database/entities/merchants';
@@ -20,6 +21,7 @@ import {
 import type { MerchantProfileFields } from './types/salla-store-info.types';
 
 const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000;
+const TOKEN_REFRESH_LOCK_TTL_SECONDS = 30;
 
 @Injectable()
 export class MerchantsService {
@@ -89,7 +91,12 @@ export class MerchantsService {
   async updateProfile(
     merchantId: number,
     fields: MerchantProfileFields,
-  ): Promise<void> {
+  ): Promise<string[]> {
+    const existing = await this.findByMerchantId(merchantId);
+    if (!existing) return [];
+    const changedFields = (
+      Object.keys(fields) as Array<keyof MerchantProfileFields>
+    ).filter((field) => existing[field] !== fields[field]);
     await this.db
       .update(merchants)
       .set({
@@ -99,6 +106,7 @@ export class MerchantsService {
         avatar: fields.avatar,
       })
       .where(eq(merchants.merchantId, merchantId));
+    return changedFields;
   }
 
   /** Deactivate a merchant on `app.uninstalled`. */
@@ -115,8 +123,10 @@ export class MerchantsService {
 
   async invalidateMerchantCache(merchantId: number): Promise<void> {
     await Promise.all([
-      this.redis.del(merchantTokenCacheKey(merchantId)),
-      this.redis.del(merchantStatusCacheKey(merchantId)),
+      this.redis.delKeys([
+        merchantTokenCacheKey(merchantId),
+        merchantStatusCacheKey(merchantId),
+      ]),
       this.redis.delByPrefixes(merchantCatalogPrefixes(merchantId)),
       this.redis.delByPrefix(merchantStorefrontPrefix(merchantId)),
       this.redis.delByPrefix(merchantDashboardPrefix(merchantId)),
@@ -128,9 +138,9 @@ export class MerchantsService {
   }
 
   async invalidateStorefrontCache(merchantId: number): Promise<void> {
-    await Promise.all([
-      this.redis.delByPrefix(merchantStorefrontPrefix(merchantId)),
-      this.redis.delByPrefix(merchantDashboardPrefix(merchantId)),
+    await this.redis.delByPrefixes([
+      merchantStorefrontPrefix(merchantId),
+      merchantDashboardPrefix(merchantId),
     ]);
   }
 

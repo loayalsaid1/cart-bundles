@@ -51,6 +51,7 @@ export class ActivityService {
       });
     } catch (error) {
       this.logger.error('Failed to persist activity log', error);
+      throw error;
     }
   }
 

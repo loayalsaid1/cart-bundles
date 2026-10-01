@@ -23,7 +23,7 @@ export class OfferSideEffectsService {
   ): Promise<void> {
     // Invalidate the storefront offer cache and the order-matching index in parallel.
     // The index is rebuilt lazily on the next order event.
-    this.invalidateCaches(merchantId)
+    await this.invalidateCaches(merchantId);
 
     await this.activityService.enqueue({
       merchantId,

@@ -255,7 +255,14 @@ export class BundleOfferService {
 
     const offer = existing.data;
     if (offer.sallaOfferId) {
-      await this.deleteSallaOffer(merchantId, offer.sallaOfferId);
+      const deleted = await this.deleteSallaOffer(merchantId, offer.sallaOfferId);
+      if (!deleted) {
+        return {
+          success: false,
+          reason: 'salla_sync_failed',
+          error: 'Failed to delete the Salla offer',
+        };
+      }
     }
 
     await this.db.delete(offers).where(eq(offers.id, offerId));
