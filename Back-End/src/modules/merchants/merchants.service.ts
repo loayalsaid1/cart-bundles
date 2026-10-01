@@ -149,63 +149,95 @@ export class MerchantsService {
    * Cache-first; on a miss (or near-expiry) it refreshes the token through
    * Salla OAuth and stores the fresh value with a TTL bounded by its expiry.
    */
+  private isFresh(m: Merchant): boolean {
+    return m.expiresAt.getTime() - TOKEN_REFRESH_BUFFER_MS > Date.now();
+  }
+
   async getValidAccessToken(merchantId: number): Promise<TokenResult> {
-    const cacheKey = merchantTokenCacheKey(merchantId);
-    const cached = await this.redis.get<string>(cacheKey);
+    const cached = await this.redis.get<string>(merchantTokenCacheKey(merchantId));
     if (cached) return { success: true, accessToken: cached };
 
     const merchant = await this.findByMerchantId(merchantId);
     if (!merchant) return { success: false, reason: 'not_found' };
 
-    if (merchant.expiresAt.getTime() - TOKEN_REFRESH_BUFFER_MS > Date.now()) {
-      await this.cacheToken(
-        merchantId,
-        merchant.accessToken,
-        merchant.expiresAt,
-      );
+    if (this.isFresh(merchant)) {
+      await this.cacheToken(merchantId, merchant.accessToken, merchant.expiresAt);
       return { success: true, accessToken: merchant.accessToken };
     }
 
-    const refreshResult = await this.getOrRefreshToken(
-      merchant.merchantId,
-      merchant.refreshToken,
-    );
-
-    if (!refreshResult.success) {
-      if (refreshResult.reason === 'reauth_required') {
-        // Refresh token is dead; mark the merchant inactive so other
-        // code paths (e.g. dashboards) can prompt re-authorization.
-        await this.deactivate(merchantId);
-      }
-      return refreshResult;
+    const result = await this.refreshOnce(merchantId);
+    if (!result.success) {
+      if (result.reason === 'reauth_required') await this.deactivate(merchantId);
+      return result;
     }
 
-    await this.updateToken(merchant.merchantId, refreshResult.data);
-    await this.cacheToken(
-      merchantId,
-      refreshResult.data.accessToken,
-      refreshResult.data.expiresAt,
-    );
-    return { success: true, accessToken: refreshResult.data.accessToken };
+    await this.cacheToken(merchantId, result.data.accessToken, result.data.expiresAt);
+    return { success: true, accessToken: result.data.accessToken };
   }
 
-  /**
-   * Refresh a merchant's token, collapsing concurrent callers for the same
-   * merchant into a single in-flight request.
-   */
-  private getOrRefreshToken(
-    merchantId: number,
-    refreshToken: string,
-  ): Promise<RefreshResult> {
+  /** Per-process dedupe + cross-process lock. */
+  private refreshOnce(merchantId: number): Promise<RefreshResult> {
     const existing = this.inFlightRefreshes.get(merchantId);
     if (existing) return existing;
 
-    const refreshPromise = this.refreshToken(merchantId, refreshToken).finally(
-      () => this.inFlightRefreshes.delete(merchantId),
-    );
+    const p = this.withLock(
+      `lock:merchant-token-refresh:${merchantId}`,
+      () => this.refreshIfStale(merchantId),
+    )
+      .then(
+        (r): RefreshResult =>
+          r ?? { success: false, reason: 'refresh_failed', error: 'Timed out waiting for refresh lock' },
+      )
+      .finally(() => this.inFlightRefreshes.delete(merchantId));
 
-    this.inFlightRefreshes.set(merchantId, refreshPromise);
-    return refreshPromise;
+    this.inFlightRefreshes.set(merchantId, p);
+    return p;
+  }
+
+  /** Runs inside the lock: re-read, skip if someone already refreshed, else refresh + persist. */
+  private async refreshIfStale(merchantId: number): Promise<RefreshResult> {
+    const merchant = await this.findByMerchantId(merchantId);
+    if (!merchant) {
+      return { success: false, reason: 'refresh_failed', error: 'Merchant not found' };
+    }
+
+    if (this.isFresh(merchant)) {
+      return {
+        success: true,
+        data: {
+          merchantId,
+          accessToken: merchant.accessToken,
+          refreshToken: merchant.refreshToken,
+          expiresAt: merchant.expiresAt,
+        },
+      };
+    }
+
+    const result = await this.refreshToken(merchantId, merchant.refreshToken);
+    if (result.success) await this.updateToken(merchantId, result.data);
+    return result;
+  }
+
+  /** Generic lock helper. Returns null if the lock couldn't be acquired in time. */
+  private async withLock<T>(
+    key: string,
+    fn: () => Promise<T>,
+    timeoutMs = 10_000,
+  ): Promise<T | null> {
+    const token = randomUUID();
+    const deadline = Date.now() + timeoutMs;
+
+    while (Date.now() < deadline) {
+      if (await this.redis.setNx(key, token, TOKEN_REFRESH_LOCK_TTL_SECONDS)) {
+        try {
+          return await fn();
+        } finally {
+          await this.redis.releaseLock(key, token);
+        }
+      }
+      await new Promise((r) => setTimeout(r, 250));
+    }
+    return null;
   }
 
   private async refreshToken(
