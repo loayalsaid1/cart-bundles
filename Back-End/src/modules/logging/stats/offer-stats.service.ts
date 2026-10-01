@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
+import { randomUUID } from 'node:crypto';
 import { and, eq, sql } from 'drizzle-orm';
 import { DrizzleService } from '../../../database/drizzle.service';
 import { dailyStats, offerStats } from '../../../database/entities/activity-logs';
@@ -17,7 +18,8 @@ import { RedisService } from '../../../redis/redis.service';
 import type { OfferStatField } from '../types/storefront.types';
 
 const PROCESSING_MARKER = ':flushing:';
-const PROCESSING_TTL_SECONDS = 24 * 60 * 60;
+const PROCESSING_TTL_SECONDS = 30 * 60;
+const FLUSH_LOCK_TTL_SECONDS = 10 * 60;
 
 interface StatDeltas {
   impressions: number;
@@ -73,7 +75,11 @@ export class OfferStatsService {
   /** Cheap ownership check used before writing audit rows for storefront events. */
   async isOfferOwned(merchantId: number, offerId: number): Promise<boolean> {
     const owned = await this.db.query.offers.findFirst({
-      where: and(eq(offers.id, offerId), eq(offers.merchantId, merchantId)),
+      where: and(
+        eq(offers.id, offerId),
+        eq(offers.merchantId, merchantId),
+        eq(offers.status, 'active'),
+      ),
       columns: { id: true },
     });
     return Boolean(owned);
@@ -81,13 +87,11 @@ export class OfferStatsService {
 
   @Interval(OFFER_STATS_FLUSH_INTERVAL_MS)
   async flush(): Promise<void> {
-    const lockTtlSeconds = Math.ceil(
-      (OFFER_STATS_FLUSH_INTERVAL_MS * 2) / 1000,
-    );
+    const lockValue = `${process.pid}:${randomUUID()}`;
     const acquired = await this.redis.setNx(
       OFFER_STATS_FLUSH_LOCK,
-      String(process.pid),
-      lockTtlSeconds,
+      lockValue,
+      FLUSH_LOCK_TTL_SECONDS,
     );
     if (!acquired) return;
 
@@ -99,7 +103,7 @@ export class OfferStatsService {
     } catch (error) {
       this.logger.error('Failed to flush buffered offer stats', error);
     } finally {
-      await this.redis.del(OFFER_STATS_FLUSH_LOCK);
+      await this.redis.releaseLock(OFFER_STATS_FLUSH_LOCK, lockValue);
     }
   }
 
@@ -121,8 +125,9 @@ export class OfferStatsService {
     }
 
     const deltas = this.toDeltas(await this.redis.hGetAll(readKey));
-    if (deltas) {
-      await this.applyDeltas(parsed.merchantId, parsed.offerId, deltas);
+    if (!deltas) {
+      await this.redis.del(readKey);
+      return;
     }
     await this.redis.del(readKey);
   }

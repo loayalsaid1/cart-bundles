@@ -9,6 +9,7 @@ import {
   Res,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { timingSafeEqual } from 'node:crypto';
 import {
   CurrentUser,
   IsPublic,
@@ -70,7 +71,11 @@ export class OAuthController {
       .cookies;
     const expectedState = cookies?.[OAUTH_STATE_COOKIE];
 
-    if (!expectedState || expectedState !== dto.state) {
+    const stateMatches = expectedState
+      ? Buffer.byteLength(expectedState) === Buffer.byteLength(dto.state) &&
+        timingSafeEqual(Buffer.from(expectedState), Buffer.from(dto.state))
+      : false;
+    if (!stateMatches) {
       throw new BadRequestException('Invalid OAuth state');
     }
     res.clearCookie(OAUTH_STATE_COOKIE);

@@ -8,7 +8,7 @@ import { ActivityService } from '../activity-log/activity/activity.service';
 import { OfferSideEffectsService } from './offer-side-effects.service';
 
 const OFFER_EXPIRATION_LOCK = 'lock:offers:expiration';
-const OFFER_EXPIRATION_LOCK_TTL_SECONDS = 10 * 60;
+const OFFER_EXPIRATION_LOCK_TTL_SECONDS = 30 * 60;
 
 @Injectable()
 export class OfferExpirationService {

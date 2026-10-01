@@ -5,10 +5,13 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { DatabaseError } from 'pg';
 
 @Catch(DatabaseError)
 export class DatabaseExceptionFilter implements ExceptionFilter {
+  private readonly logger = new Logger(DatabaseExceptionFilter.name);
+
   catch(exception: DatabaseError, _host: ArgumentsHost) {
     // Handle specific PostgreSQL error codes
     switch (exception.code) {
@@ -29,6 +32,12 @@ export class DatabaseExceptionFilter implements ExceptionFilter {
         );
 
       default:
+        this.logger.error('Unhandled database error', {
+          code: exception.code,
+          constraint: exception.constraint,
+          table: exception.table,
+          detail: exception.detail,
+        });
         // Let other database errors be handled by the global exception filter
         throw exception;
     }
