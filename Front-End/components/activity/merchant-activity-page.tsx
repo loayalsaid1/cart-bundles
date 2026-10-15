@@ -84,9 +84,9 @@ export function MerchantActivityPage() {
             <Badge variant={health.data.isActive ? "default" : "destructive"}>
               {health.data.isActive ? t("active") : t("inactive")}
             </Badge>
-            <Badge variant={tokenBadge(health.data.tokenStatus)}>
+            {/* <Badge variant={tokenBadge(health.data.tokenStatus)}>
               {t(`token.${health.data.tokenStatus}`)}
-            </Badge>
+            </Badge> */}
             <span className="text-muted-foreground">
               {t("lastWebhook")}: {health.data.lastWebhookEvent ?? t("never")}
             </span>
