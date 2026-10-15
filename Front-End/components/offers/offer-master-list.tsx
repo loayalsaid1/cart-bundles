@@ -54,7 +54,7 @@ export function OfferMasterList() {
   const conversions = data?.reduce((acc, o) => acc + (o.conversions ?? 0), 0) ?? 0;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-6">
+    <div className="mx-auto max-w-salla space-y-6 p-6">
       <div className="flex flex-wrap items-end justify-between gap-4 border-b pb-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{t("masterList.title")}</h1>

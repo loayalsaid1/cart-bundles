@@ -127,7 +127,9 @@ export default function EmbedLayout({ children }: { children: React.ReactNode })
             <Suspense fallback={null}>
                 <DarkModeSync />
             </Suspense>
-            {children}
+            <div className="mx-auto w-full max-w-salla">
+                {children}
+            </div>
             <Toaster position="bottom-right" />
             </ReactQueryProvider>
         </div>
