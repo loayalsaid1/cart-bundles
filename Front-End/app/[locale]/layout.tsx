@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { createFormats } from "@/i18n/formats";
 import { routing } from "@/i18n/routing";
 import { ThemeProvider } from "@/components/theme-provider";
+import { pingARLT } from "@/app/fonts";
 import "../globals.css";
 
 export const metadata: Metadata = {
@@ -35,8 +36,13 @@ export default async function LocaleLayout({
   const formats = createFormats(locale);
 
   return (
-    <html lang={locale} dir={locale === "ar" ? "rtl" : "ltr"} className="h-full antialiased" suppressHydrationWarning>
-      <body className="min-h-full flex flex-col">
+    <html
+      lang={locale}
+      dir={locale === "ar" ? "rtl" : "ltr"}
+      className={`h-full antialiased ${pingARLT.variable}`}
+      suppressHydrationWarning
+    >
+      <body className={`min-h-full flex flex-col ${pingARLT.className}`}>
         <ThemeProvider attribute={["class", "data-theme"]} defaultTheme="system" enableSystem disableTransitionOnChange>
           <NextIntlClientProvider 
             messages={messages}

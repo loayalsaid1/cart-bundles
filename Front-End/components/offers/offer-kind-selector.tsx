@@ -31,13 +31,13 @@ export function OfferKindSelector() {
     router.push(`/salla/embed/offers/${kindToSlug(kind)}/new`);
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 p-6">
+    <div className="mx-auto max-w-salla space-y-6 p-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">{t("typeSelector.title")}</h1>
         <p className="mt-1 text-xs text-muted-foreground">{t("typeSelector.subtitle")}</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="w-full grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {offerKindSchema.options.map((kind) => (
           <Card
             key={kind}
