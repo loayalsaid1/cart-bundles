@@ -9,10 +9,11 @@ services:
       - '${APP_PORT:-3000}:3000'
     environment:
       - NODE_ENV=${NODE_ENV:-production}
-      - PORT=${APP_PORT:-3000}
+      # - PORT=${APP_PORT:-3000}
 
-      - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=${REDIS_URL}
+   
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-cart_bundles}:${POSTGRES_PASSWORD:-cart_bundles}@postgres:5432/${POSTGRES_DB:-cart_bundles}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
 
       - SALLA_CLIENT_ID=${SALLA_CLIENT_ID}
       - SALLA_CLIENT_SECRET=${SALLA_CLIENT_SECRET}
@@ -31,9 +32,54 @@ services:
       - VIRTUAL_HOST=${VIRTUAL_HOST}
       - LETSENCRYPT_HOST=${LETSENCRYPT_HOST}
       - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - backend-network
       - nginx-proxy
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: cart-bundles-postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-cart_bundles}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-cart_bundles}
+      - POSTGRES_DB=${POSTGRES_DB:-cart_bundles}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - backend-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: cart-bundles-redis
+    restart: always
+    # AOF for BullMQ jobs and cached merchant tokens across restarts
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - backend-network
+
+volumes:
+  postgres-data:
+  redis-data:
 
 networks:
   backend-network:
