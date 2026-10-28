@@ -1,0 +1,1 @@
+CREATE INDEX "activity_logs_attribution_idx" ON "activity_logs" USING btree ("offer_id","created_at","actor_type","action");

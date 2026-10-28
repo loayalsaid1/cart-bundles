@@ -29,6 +29,13 @@
       "when": 1790695806774,
       "tag": "0003_workable_rumiko_fujikawa",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1793176952765,
+      "tag": "0004_brave_absorbing_man",
+      "breakpoints": true
     }
   ]
 }
