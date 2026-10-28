@@ -1,7 +1,7 @@
 name: cart-bundles-prod
 
 services:
-  web:
+  backend:
     image: ${IMAGE_NAME:-cart-bundles-backend}:${IMAGE_TAG:-latest}
     container_name: cart-bundles-backend
     restart: always
