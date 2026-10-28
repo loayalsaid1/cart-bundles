@@ -5,7 +5,7 @@ WORKDIR /app
 RUN corepack enable
 
 # install dependencies using pnpm (uses pnpm-lock.yaml if present)
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # copy source (node_modules excluded by .dockerignore)
@@ -20,7 +20,7 @@ RUN corepack enable
 
 # copy built artifacts and package files
 COPY --from=builder /app/dist ./dist
-COPY package.json pnpm-lock.yaml* ./
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
 
 # Install production dependencies
 RUN pnpm install --prod --frozen-lockfile
